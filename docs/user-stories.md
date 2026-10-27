@@ -178,7 +178,7 @@ Acceptance:
 - [snap] Outgoing lists each Link target once, Unresolved ones fainter.
 - [snap] Outline lists Headings indented by level.
 - [manual] Clicking an outline row scrolls the Editor to that Heading. Clicking an Outgoing row follows the Link.
-Status: todo
+Status: done
 
 ### M2-07 Quick Switcher (⌘O)
 As a user, I want to open any Note by typing part of its name or Alias, so that I never hunt in the tree.

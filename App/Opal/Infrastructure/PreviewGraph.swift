@@ -14,6 +14,7 @@
         // MARK: - Fixtures
 
         static let gardenRoot = URL(filePath: "/Preview/Garden")
+        static let previewDefaultsSuite = "com.jamielesouef.Opal.previews"
 
         static let gardenFiles: [String: String] = [
             "Welcome.md": "---\naliases:\n  - Start Here\n---\n# Welcome\n\nStart with [[Gardening Basics]].\n",
@@ -31,7 +32,7 @@
                 locations: MockVaultLocationStore(),
                 launchVaultURL: openingGarden ? gardenRoot : nil
             ) { _ in store }
-            return AppGraph(vaultService: vaultService)
+            return AppGraph(vaultService: vaultService, defaults: UserDefaults(suiteName: previewDefaultsSuite) ?? .standard)
         }
     }
 #endif

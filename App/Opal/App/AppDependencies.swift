@@ -33,6 +33,11 @@ enum AppDependencies {
             nil
         }
 
-        return AppGraph(vaultService: vaultService, launchNote: arguments.openNote, launchAppearance: appearance)
+        return AppGraph(
+            vaultService: vaultService,
+            defaults: defaults,
+            launchNote: arguments.openNote,
+            launchAppearance: appearance
+        )
     }
 }
