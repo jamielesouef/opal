@@ -94,12 +94,12 @@ public final class LinkService {
         await rebuildTask?.value
     }
 
-    public func update(_ path: NotePath, text: String) {
+    public func update(_ path: NotePath, text: String) async {
         guard path.isNote, rootURL != nil else {
             return
         }
 
-        parsed[path] = MarkdownNoteParser.parse(text)
+        parsed[path] = await Self.parseConcurrently(text)
         scheduleRebuild()
     }
 
@@ -193,6 +193,11 @@ public final class LinkService {
             parsed: parsed,
             highlights: map.highlights(in: parsed, from: path)
         )
+    }
+
+    @concurrent
+    private nonisolated static func parseConcurrently(_ text: String) async -> ParsedNote {
+        MarkdownNoteParser.parse(text)
     }
 
     @concurrent

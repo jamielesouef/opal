@@ -84,7 +84,7 @@ public final class MentionService {
                     return false
                 }
                 try await store.writeNote(linked, at: mention.source)
-                links.update(mention.source, text: linked)
+                await links.update(mention.source, text: linked)
                 await index.update([mention.source])
             } catch {
                 AppLog.error("Linking a mention in \(mention.source) failed: \(error)")

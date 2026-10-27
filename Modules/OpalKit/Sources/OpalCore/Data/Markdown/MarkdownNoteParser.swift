@@ -93,7 +93,7 @@ public enum MarkdownNoteParser {
     }
 
     public static func lineStartOffsets(in text: String) -> [Int] {
-        splitLines(text).map(\.offset)
+        TextLineUseCase.lineStartOffsets(in: text)
     }
 
     // MARK: - Lines

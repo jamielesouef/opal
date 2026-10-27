@@ -259,6 +259,7 @@ Acceptance:
 - [unit] Tags nest by `/`: `#garden/harvest` counts for `garden` and `garden/harvest`. Case is ignored when counting; the first spelling seen is shown.
 - [snap] The sidebar has a Tags section: a tree of Tags with Note counts (`obsidian-10`).
 - [manual] Choosing a Tag searches for `tag:#name`.
+- Later (with M4-03 Properties): the open Note's own Tags in the inspector, which the design brief lists.
 Status: done
 
 ### M3-04 Search (⇧⌘F)
@@ -271,6 +272,7 @@ Acceptance:
 - [unit] Search works on a 10,000-Note Index in under 100 ms.
 - [snap] ⇧⌘F shows Search in the sidebar, above the Folder tree; results update as you type.
 - [manual] Clicking a result opens the Note at that line.
+- Later (with M4-03 Properties): `[property:value]` search, which the design brief lists.
 Status: done
 
 ### M3-05 Unlinked mentions

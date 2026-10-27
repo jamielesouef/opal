@@ -305,7 +305,7 @@ public final class NoteService {
 
         diskText = text
         saveError = nil
-        links?.update(path, text: text)
+        await links?.update(path, text: text)
         await index?.update([path])
     }
 }

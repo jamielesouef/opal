@@ -13,7 +13,7 @@ public enum UnlinkedMentionUseCase {
     public static func mentions(of names: [String], in text: String, parsed: ParsedNote, source: NotePath) -> [UnlinkedMention] {
         let nsText = text as NSString
         let blocked = parsed.skippedSpans + parsed.links.map(\.span)
-        let lineStarts = MarkdownNoteParser.lineStartOffsets(in: text)
+        let lineStarts = TextLineUseCase.lineStartOffsets(in: text)
         var found: [UnlinkedMention] = []
         var taken: [TextSpan] = []
         for name in names.filter({ $0.isEmpty == false }).sorted(by: { $0.count > $1.count }) {

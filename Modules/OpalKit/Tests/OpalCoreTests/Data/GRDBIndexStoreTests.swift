@@ -78,4 +78,14 @@ struct GRDBIndexStoreTests {
         #expect(one.deletingLastPathComponent().path == "/Indexes")
         #expect(one == IndexLocation.folder(forVaultAt: URL(filePath: "/Vaults/One/"), in: base))
     }
+
+    @Test("a query with no word characters returns no hits instead of failing", arguments: ["!!!", "🌱", "\"\"", "a*b"])
+    func oddQueries(text: String) async throws {
+        let folder = Self.folder()
+        defer { try? FileManager().removeItem(at: folder) }
+        let store = try GRDBIndexStore(folderURL: folder)
+        try await store.upsert([Self.note("Soil.md", "# Soil\n\nGood soil.\n")])
+
+        _ = try await store.search(SearchQueryUseCase.parse(text), limit: 10)
+    }
 }
