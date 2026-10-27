@@ -12,7 +12,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | --- | --- | --- |
 | **M1 — Open a Vault and write a Note** (built 27/10/2026) | Open an existing Obsidian Vault or a new one, browse it, and write in a Note safely | M1-01 … M1-11 |
 | **M2 — Links** (built 27/10/2026) | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
-| M3 — Find | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-05 |
+| M3 — Find | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-06 |
 | M4 — Rich Editor | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | M5 — Daily work | Daily Notes, Templates, rename with Link updates, Command Palette, Settings, tabs | M5-01 … M5-09 |
 
@@ -228,23 +228,68 @@ Status: done
 
 ## M3 — Find
 
-### M3-01 The Index
-- Opal keeps a derived Index outside the Vault. Deleting it loses nothing; it is rebuilt on the next open, with progress.
-- A 10,000-Note Vault reopens and is searchable in under a second once indexed.
+The Index is a SQLite database read and written through GRDB ([ADR 0004](adr/0004-index-in-sqlite-with-grdb.md)). It lives in Opal's Application Support folder, one per Vault, never in the Vault. It holds only what Opal can read again from the files.
 
-### M3-02 Search (⇧⌘F)
-- Full-text search, results grouped by Note with the match in context, updated as you type (`obsidian-13`).
-- Operators: quoted phrases, `path:`, `file:`, `tag:`, `[property:value]`.
+### M3-01 Keep an Index of the Vault
+As a user with a big Vault, I want Opal to remember what it read, so that reopening the Vault is fast.
+Depends: M2-08
+Acceptance:
+- [unit] The Index stores, per Note: path, modification date, size, parsed Links, Headings, Blocks, Aliases, Tags, and the text for search.
+- [unit] Opening a Vault compares each Note's date and size with the Index and reads only the Notes that changed, were added or were removed.
+- [unit] Deleting the Index folder loses nothing: the next open rebuilds it with the same content.
+- [unit] An Index with an older schema version is deleted and rebuilt.
+- [unit] Changes from outside (M2-08) and Opal's own saves update the Index.
+- [unit] Tests and acceptance runs point the Index at a temporary folder (`-OpalIndexFolder`).
+- [snap] While the Index is built, the sidebar foot shows “Indexing 120 of 2,000 Notes…”.
+Status: todo
+
+### M3-02 The Link map reads the Index
+As a user, I want Backlinks ready as soon as the Vault opens, without Opal reading every Note again.
+Depends: M3-01
+Acceptance:
+- [unit] `LinkService` builds the Link map from the parsed Notes in the Index; it reads no Note file when nothing changed.
+- [unit] All M2 Link tests still pass.
+Status: todo
 
 ### M3-03 Tags
-- The inspector lists all Tags, nested by `/`, with counts (`obsidian-10`). Choosing a Tag searches for it.
-- Tags come from `#tag` in the body and the `tags` Property.
+As a user, I want Opal to know my Tags, so that I can find Notes by topic.
+Depends: M3-01
+Acceptance:
+- [unit] Tags come from `#tag` in the body (not in code, not in a Heading's `#`, not `#123`, not a URL fragment) and from the `tags` Property as a list, an inline list or one value.
+- [unit] Tags nest by `/`: `#garden/harvest` counts for `garden` and `garden/harvest`. Case is ignored when counting; the first spelling seen is shown.
+- [snap] The sidebar has a Tags section: a tree of Tags with Note counts (`obsidian-10`).
+- [manual] Choosing a Tag searches for `tag:#name`.
+Status: todo
 
-### M3-04 Unlinked mentions
-- Below Backlinks, Notes that mention the open Note's name or Alias without a Link, with **Link** to turn a mention into a Link (with confirmation).
+### M3-04 Search (⇧⌘F)
+As a user, I want to find any word in my Vault, so that I can find a Note I half remember.
+Screens: `obsidian-13-search.png`
+Depends: M3-01, M3-03
+Acceptance:
+- [unit] The query parser reads words, quoted phrases, `path:`, `file:`, `tag:` and `-word` (exclude). Unknown operators are searched as words.
+- [unit] All words must match (AND). Results are grouped by Note, best first, with up to 3 lines in context per Note and the matched words marked.
+- [unit] Search works on a 10,000-Note Index in under 100 ms.
+- [snap] ⇧⌘F shows Search in the sidebar, above the Folder tree; results update as you type.
+- [manual] Clicking a result opens the Note at that line.
+Status: todo
 
-### M3-05 Large Vaults
-- Folder tree, Note switching and Search stay responsive in a 10,000-Note Vault with Notes of 1 MB.
+### M3-05 Unlinked mentions
+As a user, I want to see Notes that mention this Note without linking it, so that I can link them.
+Screens: `obsidian-08-backlinks-and-unlinked-mentions.png`
+Depends: M3-04
+Acceptance:
+- [unit] For the open Note, the Index finds other Notes whose text contains its name or an Alias as whole words, outside code and outside existing Links.
+- [snap] The Backlinks tab shows “Unlinked mentions” below the Backlinks, with the line in context.
+- [unit] **Link** asks first, then rewrites only that mention to `[[Name]]` (or `[[Name|Alias]]`), writes that Note atomically, and changes nothing else in it.
+Status: todo
+
+### M3-06 Large Vaults
+As a user with 10,000 Notes, I want Opal to stay fast.
+Depends: M3-02, M3-04
+Acceptance:
+- [unit] A generated 10,000-Note Vault: first index under 20 s, reopen with no changes under 1 s, Search under 100 ms (Release build, this Mac).
+- [manual] Typing in a 1 MB Note does not stutter (open-Note parsing is off the main actor since the 27/10/2026 review).
+Status: todo
 
 ## M4 — Rich Editor
 
