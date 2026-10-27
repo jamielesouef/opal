@@ -48,3 +48,21 @@ Taken on 27/10/2026 from a Debug build, sandboxed, on a copy of the `Garden` fix
 | `opal-m1-02-note-editor.png` | A Note open in the Editor after an edit | M1-04, M1-05, M1-06 |
 | `opal-m1-03-conflict.png` | The Note changed on disk while it had edits | M1-11 |
 | `opal-m1-04-new-note-in-inbox.png` | ⌘N placed the Note in `Inbox`, from `.obsidian/app.json` | M1-07 |
+
+## Opal, Milestone 2
+
+Taken on 27/10/2026 from a Debug build, sandboxed, on a copy of the `Garden` fixture Vault in the app container's temporary folder, with preferences in a throwaway suite (`-OpalDefaultsSuite`). Most shots are set up with launch arguments, not clicks: `-OpalOpenNote <path>`, `-OpalAppearance light|dark`, `-OpalQuickOpen <query>`, and the Debug-only `-OpalTypeText <text>`. The inspector tab comes from `inspectorPane` in the throwaway suite.
+
+| File | Screen | Story |
+| --- | --- | --- |
+| `opal-m2-01-links-styled.png`, `-dark` | Links in the accent colour, the Unresolved Link fainter | M2-03, M2-04 |
+| `opal-m2-02-inspector-backlinks.png`, `-dark` | Inspector: Backlinks of `Soil`, grouped by Note, with the line in context | M2-05 |
+| `opal-m2-02b-no-backlinks.png` | Inspector: no Backlinks | M2-05 |
+| `opal-m2-03-inspector-outgoing.png`, `-dark` | Inspector: outgoing Links of `Welcome` | M2-06 |
+| `opal-m2-04-inspector-outline.png`, `-dark` | Inspector: outline of `Opal Roadmap` | M2-06 |
+| `opal-m2-05-quick-switcher.png`, `-dark` | Quick Switcher, query `so` | M2-07 |
+| `opal-m2-05b-quick-switcher-alias.png` | Quick Switcher, query `dirt` finds `Soil` by its Alias | M2-07 |
+| `opal-m2-05c-quick-switcher-create.png` | Quick Switcher, no match: Return creates the Note | M2-07 |
+| `opal-m2-06-link-suggestions.png` | `[[so` suggestions under the cursor | M2-09 |
+| `opal-m2-07-back-forward.png` | Back and forward in the toolbar | M2-10 |
+| `opal-m2-08-outside-change.png` | `Welcome` changed and `Peas` added by another app, shown without ⌘R | M2-08 |

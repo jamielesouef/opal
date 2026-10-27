@@ -11,7 +11,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | Milestone | Goal | Stories |
 | --- | --- | --- |
 | **M1 — Open a Vault and write a Note** (built 27/10/2026) | Open an existing Obsidian Vault or a new one, browse it, and write in a Note safely | M1-01 … M1-11 |
-| M2 — Links | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
+| **M2 — Links** (built 27/10/2026) | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
 | M3 — Find | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-05 |
 | M4 — Rich Editor | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | M5 — Daily work | Daily Notes, Templates, rename with Link updates, Command Palette, Settings, tabs | M5-01 … M5-09 |

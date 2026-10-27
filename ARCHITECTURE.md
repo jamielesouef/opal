@@ -3,7 +3,7 @@
 The rules are in [docs/architecture.md](docs/architecture.md). This file names
 Opal's pieces and its deliberate constraints.
 
-**Status: Milestone 1 built** (open a Vault and write a Note; see
+**Status: Milestones 1 and 2 built** (open a Vault and write a Note; Links; see
 [docs/user-stories.md](docs/user-stories.md)). Lines marked _built_ exist on
 `HEAD`; everything else is still the target shape. When code lands, replace a
 planned line with what was built, and add each new protocol, store and
@@ -21,14 +21,26 @@ constraint here.
 | App | `OpalApp` (one `Window`), `OpalAppDelegate` (saves on quit and on resign active), `AppDependencies`, `AppGraph`, `LaunchArguments` |
 | Infrastructure | `MockVaultFileStore`, `MockVaultAccess`, `MockVaultLocationStore`, `PreviewGraph` |
 
-Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`.
+## Built in Milestone 2
+
+| Layer | Built |
+| --- | --- |
+| Domain | `Link`, `LinkSubpath`, `LinkStyle`, `Heading`, `Block`, `ParsedNote`, `TextSpan`, `Backlink`, `BacklinkGroup`, `OutgoingLink`, `LinkHighlight`, `LinkDestination`, `LinkQuery`, `LinkSuggestion`, `LinkResolver` (path, relative path, name with shortest path, Alias), `LinkMap` (in-memory Backlinks and Unresolved targets), `NavigationHistory`, `RevealRequest`, `SwitcherCandidate`, `SwitcherMatch`. Use cases: `LinkFollowUseCase`, `BacklinkGroupUseCase`, `LinkSuggestionUseCase`, `QuickSwitcherMatchUseCase`, `TextLineUseCase` |
+| Data | `MarkdownNoteParser` (pure: Links, Embeds, Headings, Blocks, `aliases`; skips code and frontmatter), `FSEventsVaultWatcher` ([ADR 0003](docs/adr/0003-fsevents-dispatch-queue-exception.md)), `UserDefaultsRecentNotesStore` |
+| Services | `LinkService` (the Link map, rebuilt off the main actor), `NavigationService` (open, follow, back and forward, reveal a line, recent Notes, inspector and Quick Switcher visibility), `QuickSwitcherService` (query, results, create, `[[` suggestions). `VaultService` gains `entries`, `createNote(at:)`, the watcher and `onExternalChange`; `NoteService` gains `reloadIfUnchanged` and tells `LinkService` after each save |
+| Design | `EditorMetrics` inspector, switcher and suggestion sizes |
+| Presentation | `InspectorView` + `InspectorPane`, `BacklinksView`, `OutgoingLinksView`, `OutlineView`, `QuickSwitcherView` + `QuickSwitcherRow`, `LinkSuggestionPanel` + `LinkSuggestionList` + `LinkSuggestionRow`; the Editor colours Links, follows them on ⌘-click and reveals a line; Go menu (⌘O, ⌘[, ⌘]) and Toggle Inspector (⌥⌘0) |
+
+Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`.
 Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`
 scheme's test action).
 
 Launch arguments for acceptance runs, read only in `AppDependencies`:
 `-OpalVaultPath <folder>` opens that folder without remembering it, and
 `-OpalDefaultsSuite <name>` keeps Opal's preferences in that suite instead of
-the app's own domain.
+the app's own domain, `-OpalOpenNote <path>` opens a Note, `-OpalAppearance
+light|dark` forces the look, `-OpalQuickOpen <query>` opens the Quick Switcher,
+and `-OpalTypeText <text>` (Debug builds only) types into the Editor.
 
 ## Layers
 
@@ -88,8 +100,17 @@ the app's own domain.
   replacement and automatic spelling correction would change text the user did
   not type differently. They become settings in M5.
 - **One window, one Vault** until M5-08. `Window`, not `WindowGroup`.
-- **No file watcher yet.** M1 detects outside changes only when saving (and
-  ⌘R reloads the tree). FSEvents arrives in M2-07.
+- **The Vault is watched with FSEvents.** `FSEventsVaultWatcher` owns the one
+  `DispatchQueue` in Opal ([ADR 0003](docs/adr/0003-fsevents-dispatch-queue-exception.md)).
+  Hidden paths are dropped; an open Note reloads only when it has no unsaved
+  edits and the disk differs from what Opal last wrote.
+- **The Link map is not the Index.** `LinkService` reads and parses every Note
+  after the Vault opens and keeps the result in memory only. Nothing is stored.
+  The persistent Index is M3-01.
+- **Recent Notes live in Opal's preferences**, keyed by the Vault folder, never
+  in the Vault.
+- **`[[` suggestions use Opal's own panel**, not `NSTextView` completion, which
+  inserts the only match at once while the user is still typing.
 - **`UserDefaultsVaultLocationStore` is `@unchecked Sendable`.** `UserDefaults`
   is documented as thread-safe but not marked `Sendable`.
 - **Panels and Finder actions are called from Presentation.** `VaultPanels`
