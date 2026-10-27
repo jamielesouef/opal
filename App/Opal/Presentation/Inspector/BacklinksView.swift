@@ -13,12 +13,15 @@ struct BacklinksView: View {
     // MARK: - Input
 
     let groups: [BacklinkGroup]
+    var mentions: [UnlinkedMention] = []
     var onOpen: (Backlink) -> Void = { _ in }
+    var onOpenMention: (UnlinkedMention) -> Void = { _ in }
+    var onLinkMention: (UnlinkedMention) -> Void = { _ in }
 
     // MARK: - View
 
     var body: some View {
-        if groups.isEmpty {
+        if groups.isEmpty, mentions.isEmpty {
             ContentUnavailableView(
                 String(localized: "No Backlinks"),
                 systemImage: "arrow.uturn.backward",
@@ -53,6 +56,8 @@ struct BacklinksView: View {
                         .padding(.trailing, AppSpacing.small)
                     }
                 }
+
+                UnlinkedMentionsSection(mentions: mentions, onOpen: onOpenMention, onLink: onLinkMention)
             }
             .listStyle(.sidebar)
         }

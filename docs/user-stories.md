@@ -281,7 +281,7 @@ Acceptance:
 - [unit] For the open Note, the Index finds other Notes whose text contains its name or an Alias as whole words, outside code and outside existing Links.
 - [snap] The Backlinks tab shows “Unlinked mentions” below the Backlinks, with the line in context.
 - [unit] **Link** asks first, then rewrites only that mention to `[[Name]]` (or `[[Name|Alias]]`), writes that Note atomically, and changes nothing else in it.
-Status: todo
+Status: done (the [snap] line is not shot yet: screen locked)
 
 ### M3-06 Large Vaults
 As a user with 10,000 Notes, I want Opal to stay fast.

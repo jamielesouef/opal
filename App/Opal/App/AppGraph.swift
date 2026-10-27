@@ -19,6 +19,7 @@ struct AppGraph {
     let navigationService: NavigationService
     let quickSwitcherService: QuickSwitcherService
     let searchService: SearchService
+    let mentionService: MentionService
     let launchNote: NotePath?
     let launchAppearance: NSAppearance.Name?
     let launchQuickOpen: String?
@@ -59,6 +60,7 @@ struct AppGraph {
         self.navigationService = navigationService
         quickSwitcherService = QuickSwitcherService(vault: vaultService, links: linkService, navigation: navigationService)
         searchService = SearchService(index: indexService, navigation: navigationService)
+        mentionService = MentionService(vault: vaultService, index: indexService, links: linkService, notes: noteService)
         vaultService.onExternalChange = { [linkService, noteService, indexService] paths in
             await indexService.update(paths)
             await linkService.refresh(paths)

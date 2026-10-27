@@ -43,11 +43,18 @@ public enum MarkdownNoteParser {
         var links: [Link] = []
         var headings: [Heading] = []
         var blocks: [Block] = []
+        var skipped: [TextSpan] = []
         var openFence: String?
+
+        if frontmatterLength > 0 {
+            let end = lines.indices.contains(frontmatterLength) ? lines[frontmatterLength].offset : text.utf16.count
+            skipped.append(TextSpan(location: 0, length: end))
+        }
 
         for line in lines.dropFirst(frontmatterLength) {
             let trimmed = String(line.text.drop { $0 == " " || $0 == "\t" })
             if let fence = openFence {
+                skipped.append(TextSpan(location: line.offset, length: line.text.utf16.count))
                 if closesFence(trimmed, fence: fence) {
                     openFence = nil
                 }
@@ -55,11 +62,13 @@ public enum MarkdownNoteParser {
             }
 
             if let fence = fenceMarker(trimmed) {
+                skipped.append(TextSpan(location: line.offset, length: line.text.utf16.count))
                 openFence = fence
                 continue
             }
 
             let codeSpans = inlineCodeSpans(line.text)
+            skipped += codeSpans.map { TextSpan(location: line.offset + $0.location, length: $0.length) }
             links += wikiLinks(in: line, avoiding: codeSpans)
             links += markdownLinks(in: line, avoiding: codeSpans)
             tags += bodyTags(in: line, avoiding: codeSpans)
@@ -78,7 +87,8 @@ public enum MarkdownNoteParser {
             headings: headings,
             blocks: blocks,
             aliases: aliases,
-            tags: uniqueIgnoringCase(tags)
+            tags: uniqueIgnoringCase(tags),
+            skippedSpans: skipped
         )
     }
 
