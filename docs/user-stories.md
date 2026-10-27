@@ -11,7 +11,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | Milestone | Goal | Stories |
 | --- | --- | --- |
 | **M1 — Open a Vault and write a Note** (built 27/10/2026) | Open an existing Obsidian Vault or a new one, browse it, and write in a Note safely | M1-01 … M1-11 |
-| M2 — Links | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-07 |
+| M2 — Links | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
 | M3 — Find | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-05 |
 | M4 — Rich Editor | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | M5 — Daily work | Daily Notes, Templates, rename with Link updates, Command Palette, Settings, tabs | M5-01 … M5-09 |
@@ -110,31 +110,121 @@ As a user who also uses Obsidian, git or a sync tool, I want Opal never to overw
 
 ## M2 — Links
 
-### M2-01 Follow a Link
-- ⌘-click a `[[Link]]`, `[[Note|alias]]`, `[[Note#Heading]]` or `[[Note#^block]]` to open its target, scrolled to the Heading or Block.
-- Link resolution follows Obsidian: exact path, then name anywhere in the Vault (shortest path wins), case-insensitive, then Alias.
-- A Markdown Link `[text](path.md)` to a Note is followed too.
+Each acceptance line starts with how it is checked: `[unit]` a Swift Testing test, `[snap]` a screenshot of the running app on a copy of the `Garden` fixture Vault, `[manual]` a person must try it.
 
-### M2-02 Unresolved Links
-- An Unresolved Link looks different. Following it creates the Note (placed as in M1-07) and opens it.
+The Link map in M2 is held in memory, built from the files after the Vault opens. It is not the Index (M3-01): nothing is stored, so there is nothing to delete or rebuild.
 
-### M2-03 Backlinks
-- The inspector lists the Notes that link to the open Note, each with the line in context (screen `obsidian-08`).
+### M2-01 Read the Links in a Note
+As a user, I want Opal to understand the Links I write in Obsidian syntax, so that every later story can follow, list and suggest them.
+Screens: `obsidian-06-note-source-mode.png`
+Acceptance:
+- [unit] The parser finds `[[Note]]`, `[[Note|alias]]`, `[[Note#Heading]]`, `[[Note#^block]]`, `[[Folder/Note]]` and `![[Embed]]`, with their ranges in the text.
+- [unit] It finds Markdown Links `[text](path.md)` and `[text](My%20Note.md)`. A Markdown Link to `http:` or `mailto:` is not a Link.
+- [unit] It ignores Links inside fenced code blocks, inline code and frontmatter.
+- [unit] It finds Headings (`#` to `######`, outside code) and Block ids (`^id` at the end of a line).
+- [unit] It reads `aliases` from frontmatter as a list or a single string. Other Properties wait for M4.
+Status: todo
 
-### M2-04 Outgoing Links and outline
-- The inspector lists the open Note's Links (`obsidian-09`) and its Headings (`obsidian-12`). Choosing a Heading scrolls to it.
+### M2-02 Resolve a Link to its target
+As a user, I want `[[Soil]]` to find `Soil.md` wherever it lives, the way Obsidian does, so that my existing Links work.
+Depends: M2-01
+Acceptance:
+- [unit] Order: exact path from the Vault root, then path relative to the linking Note, then the Note name anywhere in the Vault. When names clash, the shortest path wins, then name order.
+- [unit] Case is ignored. `.md` may be left out.
+- [unit] An Alias resolves when no Note has that name (`[[Dirt]]` → `Soil.md`).
+- [unit] `[[seedlings.png]]` resolves to an Attachment.
+- [unit] A Link that matches nothing is an Unresolved Link.
+Status: todo
 
-### M2-05 Quick Switcher (⌘O)
-- Fuzzy match on name, path and Alias (Obsidian misses Aliases by default; Opal does not). Recent Notes first with an empty query.
-- Return opens; ⌘Return opens in a new tab; with no match, Return creates the Note.
+### M2-03 Follow a Link (⌘-click)
+As a user, I want to ⌘-click a Link to open its target, so that I can move through my Notes.
+Screens: `opal-m2-01-links-styled.png`
+Depends: M2-02
+Acceptance:
+- [snap] Links show in the accent colour. The text itself never changes.
+- [manual] ⌘-click on a Link opens its target. On a Heading or Block Link, the Editor scrolls to that line and puts the cursor there.
+- [manual] A Link to an Attachment opens it in its default app.
+- [manual] A plain click places the cursor as usual. The pointer is a hand only while ⌘ is held over a Link.
+Status: todo
 
-### M2-06 Link suggestions
-- Typing `[[` lists Notes, Aliases and Unresolved targets; `#` lists Headings and `^` lists Blocks of the chosen Note; `|` adds display text (`obsidian-14`).
-- The inserted Link uses the shortest unambiguous path, or Markdown Link syntax when `useMarkdownLinks` is true.
+### M2-04 Unresolved Links
+As a user, I want to see which Links have no Note yet, and create it by following the Link.
+Screens: `opal-m2-01-links-styled.png`
+Depends: M2-03
+Acceptance:
+- [snap] An Unresolved Link shows fainter than a resolved Link (`[[Ideas That Do Not Exist Yet]]` in `Welcome`).
+- [unit] Following it plans a new Note: a bare name goes where M1-07 places new Notes; a name with a Folder (`[[Ideas/New]]`) goes in that Folder.
+- [manual] The new Note opens and appears in the sidebar. Its Link now shows as resolved.
+Status: todo
 
-### M2-07 Changes from outside
-- Opal watches the Vault. Files added, removed or changed by other apps appear in the tree.
-- An open Note with no unsaved edits reloads. With unsaved edits, M1-11 applies.
+### M2-05 Backlinks
+As a user, I want to see the Notes that link to the open Note, each with the line in context, so that I can see how it connects.
+Screens: `obsidian-08-backlinks-and-unlinked-mentions.png`, `opal-m2-02-inspector-backlinks.png`
+Depends: M2-02
+Acceptance:
+- [unit] `Soil` has Backlinks from `Gardening Basics`, `Tomatoes` (two Links) and `The Soil Book`. A Link through an Alias counts.
+- [snap] The inspector (⌥⌘0, toolbar button) shows Backlinks grouped by Note, with each line in context and the count.
+- [manual] Clicking a Backlink opens that Note at the line.
+- [unit] After the open Note is saved, the Link map updates; Backlinks of other Notes change to match.
+- [snap] With no Backlinks, the section says “No Backlinks”.
+Status: todo
+
+### M2-06 Outgoing Links and outline
+As a user, I want to see what the open Note links to and its Headings, so that I can jump around a long Note.
+Screens: `obsidian-09-outgoing-links-pane.png`, `obsidian-12-outline-pane.png`, `opal-m2-03-inspector-outgoing.png`, `opal-m2-04-inspector-outline.png`
+Depends: M2-05
+Acceptance:
+- [snap] The inspector has three sections in a segmented control: Backlinks, Outgoing, Outline.
+- [snap] Outgoing lists each Link target once, Unresolved ones fainter.
+- [snap] Outline lists Headings indented by level.
+- [manual] Clicking an outline row scrolls the Editor to that Heading. Clicking an Outgoing row follows the Link.
+Status: todo
+
+### M2-07 Quick Switcher (⌘O)
+As a user, I want to open any Note by typing part of its name or Alias, so that I never hunt in the tree.
+Screens: `obsidian-07-quick-switcher.png`, `opal-m2-05-quick-switcher.png`
+Depends: M2-02
+Acceptance:
+- [unit] Fuzzy match: the letters of the query, in order, in the name, path or Alias. A match at the start of a word ranks higher; a name match beats a path match.
+- [unit] `dirt` finds `Soil` through its Alias (Obsidian misses this by default).
+- [unit] With an empty query, recent Notes come first, then the rest by name. Recent Notes are kept in Opal's preferences, never in the Vault.
+- [snap] A panel over the window: a search field and a list with name, Folder, and the Alias when it matched.
+- [manual] ↑ ↓ move, Return opens, Esc closes. With no match, Return creates a Note with the typed name (placed as in M1-07).
+- Later: ⌘Return opens in a new tab, when tabs exist (M5-06).
+Status: todo
+
+### M2-08 Changes from outside
+As a user who also uses Obsidian, git or a sync tool, I want Opal to show their changes without ⌘R.
+Depends: M2-05
+Acceptance:
+- [unit] Files added, removed or changed outside Opal appear in the tree within a second (FSEvents, [ADR 0003](adr/0003-fsevents-dispatch-queue-exception.md)).
+- [unit] An open Note with no unsaved edits reloads with the text on disk.
+- [unit] An open Note with unsaved edits is not touched; saving then follows M1-11.
+- [unit] Opal's own saves cause no reload and no conflict.
+- [unit] Changes in hidden Folders (`.obsidian/`, `.git/`) are ignored.
+- [unit] The Link map updates for each changed Note.
+Status: todo
+
+### M2-09 Link suggestions (`[[`)
+As a user, I want a list of Notes while I type a Link, so that I link without spelling the name exactly.
+Screens: `obsidian-14-link-suggestions.png`, `opal-m2-06-link-suggestions.png`
+Depends: M2-07
+Acceptance:
+- [unit] Typing `[[` and a query lists Notes and Aliases by the M2-07 match, plus Unresolved targets already used in the Vault.
+- [snap] The list shows under the cursor, like the system completion list.
+- [manual] ↑ ↓ choose, Return or Tab inserts, Esc closes. The insert is one undo step.
+- [unit] The inserted Link is the shortest path that resolves to the chosen Note; an Alias inserts `[[Note|Alias]]`; `useMarkdownLinks: true` inserts `[Name](path.md)` with spaces as `%20`.
+- Later: `#` Headings and `^` Blocks of the chosen Note inside `[[`.
+Status: todo
+
+### M2-10 Back and forward
+As a user who follows Links, I want to go back to the Note I came from.
+Depends: M2-03
+Acceptance:
+- [unit] Opening a Note (by Link, tree, Quick Switcher or Backlink) pushes the last Note on a back list and clears forward.
+- [snap] Toolbar back and forward buttons, enabled only when there is somewhere to go.
+- [manual] ⌘[ and ⌘] go back and forward.
+Status: todo
 
 ## M3 — Find
 
