@@ -43,6 +43,20 @@ struct OpalCommands: Commands {
             }
         }
 
+        CommandMenu(String(localized: "Go")) {
+            Button(String(localized: "Back")) {
+                Task { await navigation.goBack() }
+            }
+            .keyboardShortcut("[")
+            .disabled(vault.isOpen == false)
+
+            Button(String(localized: "Forward")) {
+                Task { await navigation.goForward() }
+            }
+            .keyboardShortcut("]")
+            .disabled(vault.isOpen == false)
+        }
+
         CommandGroup(after: .sidebar) {
             Button(String(localized: "Toggle Inspector")) {
                 navigation.isInspectorShown.toggle()

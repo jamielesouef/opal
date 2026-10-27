@@ -56,6 +56,24 @@ struct VaultScreen: View {
         .navigationTitle(WindowTitleUseCase.title(vaultName: vault.name, openNote: notes.path))
         .navigationSubtitle(WindowTitleUseCase.subtitle(vaultName: vault.name, openNote: notes.path))
         .toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                Button {
+                    Task { await navigation.goBack() }
+                } label: {
+                    Label(String(localized: "Back"), systemImage: "chevron.backward")
+                }
+                .help(String(localized: "Go back (⌘[)"))
+                .disabled(navigation.history.canGoBack == false)
+
+                Button {
+                    Task { await navigation.goForward() }
+                } label: {
+                    Label(String(localized: "Forward"), systemImage: "chevron.forward")
+                }
+                .help(String(localized: "Go forward (⌘])"))
+                .disabled(navigation.history.canGoForward == false)
+            }
+
             ToolbarItem(placement: .status) {
                 SaveStatusView(status: notes.saveStatus, hasNote: notes.path != nil)
             }

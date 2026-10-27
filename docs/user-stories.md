@@ -224,7 +224,7 @@ Acceptance:
 - [unit] Opening a Note (by Link, tree, Quick Switcher or Backlink) pushes the last Note on a back list and clears forward.
 - [snap] Toolbar back and forward buttons, enabled only when there is somewhere to go.
 - [manual] ⌘[ and ⌘] go back and forward.
-Status: todo
+Status: done
 
 ## M3 — Find
 
