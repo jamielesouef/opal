@@ -12,6 +12,9 @@ public actor FileSystemVaultStore: VaultFileStoring {
 
     private enum Constants {
         static let obsidianFolder = ".obsidian"
+        static let walkKeys: [URLResourceKey] = [
+            .isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey, .contentModificationDateKey, .fileSizeKey
+        ]
     }
 
     // MARK: - Private
@@ -143,21 +146,46 @@ public actor FileSystemVaultStore: VaultFileStoring {
     // MARK: - Private
 
     private func walk(_ visit: (NotePath, FileAttributeType?, [FileAttributeKey: Any]) -> Void) throws(VaultError) {
-        guard isDirectory(rootURL), let enumerator = fileManager.enumerator(atPath: rootURL.path) else {
+        guard isDirectory(rootURL),
+              let enumerator = fileManager.enumerator(at: rootURL, includingPropertiesForKeys: Constants.walkKeys)
+        else {
             throw .folderUnreadable
         }
 
-        while let relative = enumerator.nextObject() as? String {
-            let path = NotePath(relative)
-            let attributes = enumerator.fileAttributes ?? [:]
-            let type = attributes[.type] as? FileAttributeType
-            guard path.isHidden == false, type != .typeSymbolicLink else {
+        let prefixes = rootPrefixes()
+        while let url = enumerator.nextObject() as? URL {
+            guard let prefix = prefixes.first(where: { url.path.hasPrefix($0) }) else {
+                continue
+            }
+
+            let path = NotePath(String(url.path.dropFirst(prefix.count)))
+            let values = try? url.resourceValues(forKeys: Set(Constants.walkKeys))
+            guard path.isHidden == false, values?.isSymbolicLink != true else {
                 enumerator.skipDescendants()
                 continue
             }
 
+            let type: FileAttributeType? = if values?.isDirectory == true {
+                .typeDirectory
+            } else if values?.isRegularFile == true {
+                .typeRegular
+            } else {
+                nil
+            }
+            var attributes: [FileAttributeKey: Any] = [:]
+            attributes[.modificationDate] = values?.contentModificationDate
+            attributes[.size] = values?.fileSize.map(NSNumber.init(value:))
             visit(path, type, attributes)
         }
+    }
+
+    private func rootPrefixes() -> [String] {
+        let standard = rootURL.path
+        let real = realpath(standard, nil).map { pointer in
+            defer { free(pointer) }
+            return String(cString: pointer)
+        } ?? standard
+        return [standard, real].map { $0.hasSuffix("/") ? $0 : $0 + "/" }
     }
 
     private static func stamp(from attributes: [FileAttributeKey: Any]) -> FileStamp {

@@ -3,7 +3,7 @@
 The rules are in [docs/architecture.md](docs/architecture.md). This file names
 Opal's pieces and its deliberate constraints.
 
-**Status: Milestones 1 and 2 built** (open a Vault and write a Note; Links; see
+**Status: Milestones 1, 2 and 3 built** (open a Vault and write a Note; Links; Find; see
 [docs/user-stories.md](docs/user-stories.md)). Lines marked _built_ exist on
 `HEAD`; everything else is still the target shape. When code lands, replace a
 planned line with what was built, and add each new protocol, store and
@@ -31,7 +31,16 @@ constraint here.
 | Design | `EditorMetrics` inspector, switcher and suggestion sizes |
 | Presentation | `InspectorView` + `InspectorPane`, `BacklinksView`, `OutgoingLinksView`, `OutlineView`, `QuickSwitcherView` + `QuickSwitcherRow`, `LinkSuggestionPanel` + `LinkSuggestionList` + `LinkSuggestionRow`; the Editor colours Links, follows them on ⌘-click and reveals a line; Go menu (⌘O, ⌘[, ⌘]) and Toggle Inspector (⌥⌘0) |
 
-Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`.
+## Built in Milestone 3
+
+| Layer | Built |
+| --- | --- |
+| Domain | `FileStamp`, `IndexedNote`, `IndexSyncPlan` + `IndexSyncPlanUseCase`, `IndexError`, `TagNode` + `TagTreeUseCase`, `SearchQuery` + `SearchQueryUseCase`, `SearchHit`, `SearchResult`, `SearchLine`, `SearchSnippetUseCase`, `UnlinkedMention` + `UnlinkedMentionUseCase`, `SidebarPane`. `ParsedNote` gains `tags` and `skippedSpans` and is `Codable` |
+| Data | `GRDBIndexStore` (GRDB 7, SQLite, FTS5; [ADR 0004](docs/adr/0004-index-in-sqlite-with-grdb.md)), `FTSQueryBuilder`, `IndexLocation`. `FileSystemVaultStore` gains `noteStamps()` and `stamp(of:)`, walking with `enumerator(at:includingPropertiesForKeys:)` |
+| Services | `IndexService` (sync by file stamps, in batches, with progress; updates on saves and outside changes), `SearchService` (query, debounce, results), `MentionService` (unlinked mentions, link after confirmation). `LinkService` loads parsed Notes from a ready Index; the Link map also builds the Tag tree |
+| Presentation | Sidebar panes (Files, Search, Tags), `SearchView`, `TagsView`, `IndexStatusView`, `UnlinkedMentionsSection`; ⇧⌘F |
+
+Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`, `IndexStoring`.
 Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`
 scheme's test action).
 
@@ -62,7 +71,7 @@ and `-OpalTypeText <text>` (Debug builds only) types into the Editor.
 | `VaultWatching` | `FSEventsVaultWatcher` | Reports file changes made outside Opal (Obsidian, git, sync tools) as an `AsyncStream` |
 | `NoteParsing` | `MarkdownNoteParser` | Pure: Note text in, Headings, Links, Embeds, Tags, Properties and Blocks out |
 | `ObsidianSettingsReading` | `ObsidianSettingsFile` | Reads `.obsidian/app.json`, `daily-notes.json` and `templates.json` when present. Read only |
-| `IndexStoring` | Planned. Choice open (see below) | The derived Index. Rebuilt from the Vault when missing, out of date or a different schema version |
+| `IndexStoring` | `GRDBIndexStore` | The derived Index. Rebuilt from the Vault when missing, damaged or a different schema version |
 | `Clocking` | `SystemClock` | Today's date for Daily Notes |
 
 ## Deliberate constraints
@@ -104,9 +113,15 @@ and `-OpalTypeText <text>` (Debug builds only) types into the Editor.
   `DispatchQueue` in Opal ([ADR 0003](docs/adr/0003-fsevents-dispatch-queue-exception.md)).
   Hidden paths are dropped; an open Note reloads only when it has no unsaved
   edits and the disk differs from what Opal last wrote.
-- **The Link map is not the Index.** `LinkService` reads and parses every Note
-  after the Vault opens and keeps the result in memory only. Nothing is stored.
-  The persistent Index is M3-01.
+- **The Index lives outside the Vault**, one SQLite file per Vault under
+  Application Support (`-OpalIndexFolder` in tests and acceptance runs). It is
+  versioned with `PRAGMA user_version`; any mismatch or damage deletes and
+  rebuilds it. GRDB is imported only in `GRDBIndexStore`.
+- **The Link map is held in memory** and built from the Index when it is
+  ready, from the files otherwise.
+- **Performance budget (10,000 Notes, Release):** first index under 20 s,
+  reopen under 1 s, Search under 100 ms. `OPAL_PERF=1 xcrun swift test -c
+  release -Xswiftc -enable-testing --filter LargeVaultPerformanceTests`.
 - **Presentation never parses a Note.** The Editor and the inspector read
   `LinkService.openNote`. A Note over 64 KB is parsed off the main actor 200 ms
   after typing stops; a smaller one at once (review 27/10/2026).
@@ -122,6 +137,4 @@ and `-OpalTypeText <text>` (Debug builds only) types into the Editor.
 
 ## Open questions
 
-- **Index store.** SQLite (GRDB with FTS5) or SwiftData. Full-text search favours
-  SQLite with FTS5.
 - **Plugins.** Not in v1. Obsidian's JavaScript plugins will not run in Opal.

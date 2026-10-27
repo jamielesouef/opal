@@ -11,7 +11,7 @@ import GRDB
 public final class GRDBIndexStore: IndexStoring {
     // MARK: - Constants
 
-    public static let schemaVersion = 4
+    public static let schemaVersion = 5
 
     private enum Constants {
         static let fileName = "index.sqlite"
@@ -85,25 +85,26 @@ public final class GRDBIndexStore: IndexStoring {
             try await queue.write { db in
                 let encoder = JSONEncoder()
                 for note in notes {
-                    let path = note.path.rawValue
-                    try db.execute(
+                    let id = try Int64.fetchOne(
+                        db,
                         sql: """
                         INSERT INTO notes (path, modified, size, parsed, tags) VALUES (?, ?, ?, ?, ?)
                         ON CONFLICT(path) DO UPDATE SET
                             modified = excluded.modified, size = excluded.size, parsed = excluded.parsed, tags = excluded.tags
+                        RETURNING id
                         """,
                         arguments: [
-                            path,
+                            note.path.rawValue,
                             note.stamp.modified.timeIntervalSinceReferenceDate,
                             note.stamp.size,
                             encoder.encode(note.parsed),
                             FTSQueryBuilder.tagColumn(for: note.parsed.tags)
                         ]
                     )
-                    try db.execute(sql: "DELETE FROM notes_fts WHERE path = ?", arguments: [path])
+                    try db.execute(sql: "DELETE FROM notes_fts WHERE rowid = ?", arguments: [id])
                     try db.execute(
-                        sql: "INSERT INTO notes_fts (path, name, body) VALUES (?, ?, ?)",
-                        arguments: [path, note.path.name, note.text]
+                        sql: "INSERT INTO notes_fts (rowid, name, body) VALUES (?, ?, ?)",
+                        arguments: [id, note.path.name, note.text]
                     )
                 }
             }
@@ -121,8 +122,11 @@ public final class GRDBIndexStore: IndexStoring {
         do {
             try await queue.write { db in
                 for path in paths.map(\.rawValue) {
-                    try db.execute(sql: "DELETE FROM notes WHERE path = ?", arguments: [path])
-                    try db.execute(sql: "DELETE FROM notes_fts WHERE path = ?", arguments: [path])
+                    guard let id = try Int64.fetchOne(db, sql: "SELECT id FROM notes WHERE path = ?", arguments: [path]) else {
+                        continue
+                    }
+                    try db.execute(sql: "DELETE FROM notes_fts WHERE rowid = ?", arguments: [id])
+                    try db.execute(sql: "DELETE FROM notes WHERE id = ?", arguments: [id])
                 }
             }
         } catch {
@@ -167,11 +171,11 @@ public final class GRDBIndexStore: IndexStoring {
             arguments.append(patterns.exact)
             arguments.append(patterns.child)
         }
-        let order = query.hasTextTerms ? "bm25(notes_fts, 0.0, 5.0, 1.0)" : "notes.path"
+        let order = query.hasTextTerms ? "bm25(notes_fts, 5.0, 1.0)" : "notes.path"
         let filter = conditions.isEmpty ? "1" : conditions.joined(separator: " AND ")
         let sql = """
         SELECT notes.path AS path, notes_fts.body AS body
-        FROM notes_fts JOIN notes ON notes.path = notes_fts.path
+        FROM notes_fts JOIN notes ON notes.id = notes_fts.rowid
         WHERE \(filter)
         ORDER BY \(order)
         LIMIT \(limit)
@@ -197,13 +201,14 @@ public final class GRDBIndexStore: IndexStoring {
         try queue.write { db in
             try db.execute(sql: """
             CREATE TABLE notes (
-                path TEXT PRIMARY KEY NOT NULL,
+                id INTEGER PRIMARY KEY,
+                path TEXT NOT NULL UNIQUE,
                 modified DOUBLE NOT NULL,
                 size INTEGER NOT NULL,
                 parsed BLOB NOT NULL,
                 tags TEXT NOT NULL DEFAULT ' '
             );
-            CREATE VIRTUAL TABLE notes_fts USING fts5(path UNINDEXED, name, body, tokenize = 'unicode61 remove_diacritics 2');
+            CREATE VIRTUAL TABLE notes_fts USING fts5(name, body, tokenize = 'unicode61 remove_diacritics 2');
             PRAGMA user_version = \(schemaVersion);
             """)
         }

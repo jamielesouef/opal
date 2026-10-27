@@ -25,3 +25,15 @@ Bugs found while building, with the rule each one taught.
 - Cause: `QuickSwitcherService` passed `openNote: nil` to the placement plan.
 - Fix: pass `NavigationService.openNote`.
 - Rule: every path that creates a Note uses `NewItemPlanUseCase` with the open Note.
+
+## 27/10/2026 — First index of 10,000 Notes took 56 seconds
+- Symptom: the M3-06 performance test indexed 10,000 Notes in 55.6 s (budget 20 s).
+- Cause: each upsert ran `DELETE FROM notes_fts WHERE path = ?`; `path` was an UNINDEXED FTS5 column, so every delete scanned the whole table.
+- Fix: the FTS row shares its `rowid` with `notes.id`; deletes and joins use the rowid. 5.6 s after the fix.
+- Rule: never filter an FTS5 table by an UNINDEXED column; link it to its content table by rowid.
+
+## 27/10/2026 — Listing file dates took 0.7 s for 10,000 Notes
+- Symptom: reopening an unchanged 10,000-Note Vault took 1.08 s (budget 1 s).
+- Cause: `FileManager.enumerator(atPath:)` with `fileAttributes` stats each file one by one.
+- Fix: `enumerator(at:includingPropertiesForKeys:)` with the date, size and type keys (0.12 s); paths are made relative to both the standard and the `realpath` form of the root, since the URL walk reports `/private/var/…`.
+- Rule: walk big folders with `enumerator(at:includingPropertiesForKeys:)`, and compare paths against `realpath` as well.

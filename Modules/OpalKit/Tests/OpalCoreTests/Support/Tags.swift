@@ -12,4 +12,5 @@ extension Tag {
     @Tag static var data: Self
     @Tag static var parser: Self
     @Tag static var service: Self
+    @Tag static var performance: Self
 }
