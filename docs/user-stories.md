@@ -167,7 +167,7 @@ Acceptance:
 - [manual] Clicking a Backlink opens that Note at the line.
 - [unit] After the open Note is saved, the Link map updates; Backlinks of other Notes change to match.
 - [snap] With no Backlinks, the section says “No Backlinks”.
-Status: todo
+Status: done
 
 ### M2-06 Outgoing Links and outline
 As a user, I want to see what the open Note links to and its Headings, so that I can jump around a long Note.

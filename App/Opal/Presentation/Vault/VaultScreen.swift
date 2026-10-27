@@ -29,6 +29,7 @@ struct VaultScreen: View {
     // MARK: - View
 
     var body: some View {
+        @Bindable var navigation = navigation
         NavigationSplitView {
             FolderTreeView(
                 selection: $selection,
@@ -43,12 +44,29 @@ struct VaultScreen: View {
             .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
         } detail: {
             detail
+                .inspector(isPresented: $navigation.isInspectorShown) {
+                    InspectorView()
+                        .inspectorColumnWidth(
+                            min: EditorMetrics.inspectorMinWidth,
+                            ideal: EditorMetrics.inspectorIdealWidth,
+                            max: EditorMetrics.inspectorMaxWidth
+                        )
+                }
         }
         .navigationTitle(WindowTitleUseCase.title(vaultName: vault.name, openNote: notes.path))
         .navigationSubtitle(WindowTitleUseCase.subtitle(vaultName: vault.name, openNote: notes.path))
         .toolbar {
             ToolbarItem(placement: .status) {
                 SaveStatusView(status: notes.saveStatus, hasNote: notes.path != nil)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    navigation.isInspectorShown.toggle()
+                } label: {
+                    Label(String(localized: "Inspector"), systemImage: "sidebar.trailing")
+                }
+                .help(String(localized: "Show or hide Backlinks and the outline (⌥⌘0)"))
             }
         }
         .onChange(of: selection) { _, newSelection in

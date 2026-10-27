@@ -70,6 +70,12 @@ struct LinkServiceIntegrationTests {
         #expect(harness.notes.path == NotePath("Tomatoes.md"))
         #expect(harness.navigation.reveal?.line == 9)
         #expect(harness.navigation.history.back == [NotePath("Gardening Basics.md")])
+
+        await harness.navigation.open(NotePath("Tomatoes.md"))
+        #expect(harness.navigation.reveal?.line == 9)
+
+        await harness.navigation.open(NotePath("Soil.md"))
+        #expect(harness.navigation.reveal == nil)
     }
 
     @Test("following an Unresolved Link creates the Note in Inbox, opens it and resolves the Link")

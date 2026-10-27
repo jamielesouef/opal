@@ -13,6 +13,7 @@ struct OpalCommands: Commands {
 
     let vault: VaultService
     let notes: NoteService
+    let navigation: NavigationService
 
     // MARK: - Commands
 
@@ -40,6 +41,13 @@ struct OpalCommands: Commands {
             Button(String(localized: "Create Vault…")) {
                 Task { await VaultActions.createVault(vault: vault, notes: notes) }
             }
+        }
+
+        CommandGroup(after: .sidebar) {
+            Button(String(localized: "Toggle Inspector")) {
+                navigation.isInspectorShown.toggle()
+            }
+            .keyboardShortcut("0", modifiers: [.command, .option])
         }
 
         CommandGroup(replacing: .saveItem) {

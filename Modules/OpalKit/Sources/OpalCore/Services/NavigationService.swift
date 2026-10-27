@@ -39,11 +39,11 @@ public final class NavigationService {
     public func open(_ path: NotePath, line: Int? = nil) async {
         if path != notes.path {
             history.visit(from: notes.path, to: path)
+            reveal = nil
             await notes.open(path)
         }
 
         guard let line else {
-            reveal = nil
             return
         }
 
