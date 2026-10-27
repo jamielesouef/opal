@@ -16,6 +16,7 @@ struct VaultScreen: View {
     @Environment(\.noteService) private var notes
     @Environment(\.linkService) private var links
     @Environment(\.indexService) private var index
+    @Environment(\.searchService) private var search
     @Environment(\.navigationService) private var navigation
 
     // MARK: - State
@@ -92,6 +93,9 @@ struct VaultScreen: View {
         .sheet(isPresented: $navigation.isQuickSwitcherShown) {
             QuickSwitcherView()
         }
+        .onChange(of: index.revision) {
+            Task { await search.search() }
+        }
         .task(id: vaultService.entries) {
             await index.sync()
             await links.sync()
@@ -112,7 +116,7 @@ struct VaultScreen: View {
         @Bindable var navigation = navigation
         return VStack(spacing: 0) {
             Picker(String(localized: "Sidebar"), selection: $navigation.sidebarPane) {
-                ForEach([SidebarPane.files, .tags]) { pane in
+                ForEach(SidebarPane.allCases) { pane in
                     Label(pane.title, systemImage: pane.systemImage)
                         .labelStyle(.iconOnly)
                         .help(pane.title)
@@ -128,9 +132,11 @@ struct VaultScreen: View {
             case .files:
                 folderTree
             case .search:
-                folderTree
+                SearchView()
             case .tags:
-                TagsView(tags: links.map.tags)
+                TagsView(tags: links.map.tags) { tag in
+                    search.show(query: TagTreeUseCase.searchQuery(for: tag))
+                }
             }
         }
     }
@@ -171,6 +177,7 @@ struct VaultScreen: View {
             .environment(\.noteService, graph.noteService)
             .environment(\.linkService, graph.linkService)
             .environment(\.indexService, graph.indexService)
+            .environment(\.searchService, graph.searchService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task { await graph.vaultService.start() }

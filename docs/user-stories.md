@@ -259,7 +259,7 @@ Acceptance:
 - [unit] Tags nest by `/`: `#garden/harvest` counts for `garden` and `garden/harvest`. Case is ignored when counting; the first spelling seen is shown.
 - [snap] The sidebar has a Tags section: a tree of Tags with Note counts (`obsidian-10`).
 - [manual] Choosing a Tag searches for `tag:#name`.
-Status: doing (Tags parsed, nested and listed; choosing a Tag waits for Search in M3-04; [snap] not shot yet: screen locked)
+Status: done (the [snap] line is not shot yet: screen locked)
 
 ### M3-04 Search (⇧⌘F)
 As a user, I want to find any word in my Vault, so that I can find a Note I half remember.
@@ -271,7 +271,7 @@ Acceptance:
 - [unit] Search works on a 10,000-Note Index in under 100 ms.
 - [snap] ⇧⌘F shows Search in the sidebar, above the Folder tree; results update as you type.
 - [manual] Clicking a result opens the Note at that line.
-Status: todo
+Status: done (the [snap] line is not shot yet: screen locked; the 100 ms check is in M3-06)
 
 ### M3-05 Unlinked mentions
 As a user, I want to see Notes that mention this Note without linking it, so that I can link them.

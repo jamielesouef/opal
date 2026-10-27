@@ -40,7 +40,8 @@ struct OpalApp: App {
                 vault: AppDependencies.shared.vaultService,
                 notes: AppDependencies.shared.noteService,
                 navigation: AppDependencies.shared.navigationService,
-                switcher: AppDependencies.shared.quickSwitcherService
+                switcher: AppDependencies.shared.quickSwitcherService,
+                search: AppDependencies.shared.searchService
             )
         }
     }

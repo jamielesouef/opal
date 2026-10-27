@@ -20,6 +20,7 @@ struct ServiceHarness {
     let switcher: QuickSwitcherService
     let recents: StubRecentNotesStore
     let index: IndexService
+    let search: SearchService
     let indexFolder: URL
 
     // MARK: - Init
@@ -45,6 +46,7 @@ struct ServiceHarness {
         recents = StubRecentNotesStore()
         navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
         switcher = QuickSwitcherService(vault: vault, links: links, navigation: navigation)
+        search = SearchService(index: index, navigation: navigation)
         vault.onExternalChange = { [links, notes, index] paths in
             await index.update(paths)
             await links.refresh(paths)

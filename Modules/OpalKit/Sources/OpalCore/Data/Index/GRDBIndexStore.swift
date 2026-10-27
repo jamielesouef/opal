@@ -11,7 +11,7 @@ import GRDB
 public final class GRDBIndexStore: IndexStoring {
     // MARK: - Constants
 
-    public static let schemaVersion = 2
+    public static let schemaVersion = 3
 
     private enum Constants {
         static let fileName = "index.sqlite"
@@ -88,10 +88,17 @@ public final class GRDBIndexStore: IndexStoring {
                     let path = note.path.rawValue
                     try db.execute(
                         sql: """
-                        INSERT INTO notes (path, modified, size, parsed) VALUES (?, ?, ?, ?)
-                        ON CONFLICT(path) DO UPDATE SET modified = excluded.modified, size = excluded.size, parsed = excluded.parsed
+                        INSERT INTO notes (path, modified, size, parsed, tags) VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(path) DO UPDATE SET
+                            modified = excluded.modified, size = excluded.size, parsed = excluded.parsed, tags = excluded.tags
                         """,
-                        arguments: [path, note.stamp.modified.timeIntervalSinceReferenceDate, note.stamp.size, encoder.encode(note.parsed)]
+                        arguments: [
+                            path,
+                            note.stamp.modified.timeIntervalSinceReferenceDate,
+                            note.stamp.size,
+                            encoder.encode(note.parsed),
+                            FTSQueryBuilder.tagColumn(for: note.parsed.tags)
+                        ]
                     )
                     try db.execute(sql: "DELETE FROM notes_fts WHERE path = ?", arguments: [path])
                     try db.execute(
@@ -123,6 +130,55 @@ public final class GRDBIndexStore: IndexStoring {
         }
     }
 
+    public func search(_ query: SearchQuery, limit: Int) async throws(IndexError) -> [SearchHit] {
+        let (sql, arguments) = Self.searchSQL(for: query, limit: limit)
+        do {
+            return try await queue.read { db in
+                try Row.fetchAll(db, sql: sql, arguments: arguments).map { row in
+                    SearchHit(path: NotePath(row["path"] as String), text: row["body"])
+                }
+            }
+        } catch {
+            AppLog.error("Searching the Index failed: \(error)")
+            throw .readFailed
+        }
+    }
+
+    // MARK: - Search
+
+    private static func searchSQL(for query: SearchQuery, limit: Int) -> (String, StatementArguments) {
+        var conditions: [String] = []
+        var arguments: [any DatabaseValueConvertible] = []
+        if let match = FTSQueryBuilder.match(for: query) {
+            conditions.append("notes_fts MATCH ?")
+            arguments.append(match)
+        }
+        for path in query.paths {
+            conditions.append("notes.path LIKE ? ESCAPE '\\'")
+            arguments.append(FTSQueryBuilder.likePattern(containing: path))
+        }
+        for file in query.files {
+            conditions.append("notes.path LIKE ? ESCAPE '\\'")
+            arguments.append(FTSQueryBuilder.likePattern(containing: file))
+        }
+        for tag in query.tags {
+            let patterns = FTSQueryBuilder.tagPatterns(for: tag)
+            conditions.append("(notes.tags LIKE ? ESCAPE '\\' OR notes.tags LIKE ? ESCAPE '\\')")
+            arguments.append(patterns.exact)
+            arguments.append(patterns.child)
+        }
+        let order = query.hasTextTerms ? "bm25(notes_fts, 0.0, 5.0, 1.0)" : "notes.path"
+        let filter = conditions.isEmpty ? "1" : conditions.joined(separator: " AND ")
+        let sql = """
+        SELECT notes.path AS path, notes_fts.body AS body
+        FROM notes_fts JOIN notes ON notes.path = notes_fts.path
+        WHERE \(filter)
+        ORDER BY \(order)
+        LIMIT \(limit)
+        """
+        return (sql, StatementArguments(arguments))
+    }
+
     // MARK: - Schema
 
     private static func openCurrentSchema(at fileURL: URL) throws -> DatabaseQueue {
@@ -144,7 +200,8 @@ public final class GRDBIndexStore: IndexStoring {
                 path TEXT PRIMARY KEY NOT NULL,
                 modified DOUBLE NOT NULL,
                 size INTEGER NOT NULL,
-                parsed BLOB NOT NULL
+                parsed BLOB NOT NULL,
+                tags TEXT NOT NULL DEFAULT ' '
             );
             CREATE VIRTUAL TABLE notes_fts USING fts5(path UNINDEXED, name, body, tokenize = 'unicode61 remove_diacritics 2');
             PRAGMA user_version = \(schemaVersion);
