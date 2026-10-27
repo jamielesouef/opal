@@ -27,16 +27,21 @@ struct ServiceHarness {
         store: any VaultFileStoring,
         access: StubVaultAccess = StubVaultAccess(),
         locations: StubVaultLocationStore = StubVaultLocationStore(),
-        launchVaultURL: URL? = nil
+        launchVaultURL: URL? = nil,
+        makeWatcher: (@Sendable (URL) -> any VaultWatching)? = nil
     ) {
         self.store = store
         self.locations = locations
-        vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL) { _ in store }
+        vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL, makeWatcher: makeWatcher) { _ in store }
         links = LinkService(vault: vault)
         notes = NoteService(vault: vault, links: links, saveDelay: .seconds(3600))
         recents = StubRecentNotesStore()
         navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
         switcher = QuickSwitcherService(vault: vault, links: links, navigation: navigation)
+        vault.onExternalChange = { [links, notes] paths in
+            await links.refresh(paths)
+            await notes.reloadIfUnchanged(paths)
+        }
     }
 
     // MARK: - Steps

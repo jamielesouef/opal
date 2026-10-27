@@ -203,7 +203,7 @@ Acceptance:
 - [unit] Opal's own saves cause no reload and no conflict.
 - [unit] Changes in hidden Folders (`.obsidian/`, `.git/`) are ignored.
 - [unit] The Link map updates for each changed Note.
-Status: todo
+Status: done
 
 ### M2-09 Link suggestions (`[[`)
 As a user, I want a list of Notes while I type a Link, so that I link without spelling the name exactly.

@@ -174,6 +174,28 @@ public final class NoteService {
         saveError = nil
     }
 
+    public func reloadIfUnchanged(_ changed: Set<NotePath>) async {
+        guard let path, changed.contains(path), isLoading == false, loadError == nil, let store = vault.store else {
+            return
+        }
+
+        let onDisk: String?
+        do {
+            onDisk = try await store.readNote(at: path)
+        } catch {
+            AppLog.error("Reading \(path) after an outside change failed: \(error)")
+            return
+        }
+
+        guard self.path == path, let onDisk, onDisk != diskText, draft == diskText, conflictDiskText == nil else {
+            return
+        }
+
+        draft = onDisk
+        diskText = onDisk
+        saveError = nil
+    }
+
     public func close() async {
         await flush()
         reset(to: nil)

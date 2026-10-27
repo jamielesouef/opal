@@ -21,8 +21,10 @@ enum AppDependencies {
         let vaultService = VaultService(
             access: SecurityScopedVaultAccess(),
             locations: UserDefaultsVaultLocationStore(defaults: defaults),
-            launchVaultURL: arguments.vaultURL
-        ) { FileSystemVaultStore(rootURL: $0) }
+            launchVaultURL: arguments.vaultURL,
+            makeWatcher: { FSEventsVaultWatcher(rootURL: $0) },
+            makeStore: { FileSystemVaultStore(rootURL: $0) }
+        )
 
         let appearance: NSAppearance.Name? = switch arguments.appearance {
         case "light":

@@ -48,5 +48,9 @@ struct AppGraph {
         )
         self.navigationService = navigationService
         quickSwitcherService = QuickSwitcherService(vault: vaultService, links: linkService, navigation: navigationService)
+        vaultService.onExternalChange = { [linkService, noteService] paths in
+            await linkService.refresh(paths)
+            await noteService.reloadIfUnchanged(paths)
+        }
     }
 }

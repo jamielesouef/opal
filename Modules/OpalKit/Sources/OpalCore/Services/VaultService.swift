@@ -43,12 +43,17 @@ public final class VaultService: SingleFlightRefreshing {
 
     public var refreshTask: Task<Void, Never>?
 
+    // MARK: - Changes from outside
+
+    public var onExternalChange: (@MainActor (Set<NotePath>) async -> Void)?
+
     // MARK: - Private
 
     private let access: any VaultAccessGranting
     private let locations: any VaultLocationStoring
     private let launchVaultURL: URL?
     private let makeStore: @Sendable (URL) -> any VaultFileStoring
+    private let makeWatcher: (@Sendable (URL) -> any VaultWatching)?
 
     private var vault: Vault?
     private var kinds: [NotePath: VaultItemKind] = [:]
@@ -56,6 +61,7 @@ public final class VaultService: SingleFlightRefreshing {
     private var error: VaultError?
     private var hasStarted = false
     private var accessedURL: URL?
+    @ObservationIgnored private var watchTask: Task<Void, Never>?
 
     // MARK: - Init
 
@@ -63,11 +69,13 @@ public final class VaultService: SingleFlightRefreshing {
         access: any VaultAccessGranting,
         locations: any VaultLocationStoring,
         launchVaultURL: URL?,
+        makeWatcher: (@Sendable (URL) -> any VaultWatching)? = nil,
         makeStore: @escaping @Sendable (URL) -> any VaultFileStoring
     ) {
         self.access = access
         self.locations = locations
         self.launchVaultURL = launchVaultURL
+        self.makeWatcher = makeWatcher
         self.makeStore = makeStore
     }
 
@@ -141,6 +149,16 @@ public final class VaultService: SingleFlightRefreshing {
         try await store.createFolder(at: path)
         insert(VaultEntry(path: path, kind: .folder))
         return path
+    }
+
+    public func handleExternalChanges(_ paths: Set<NotePath>) async {
+        let visible = paths.filter { $0.isHidden == false }
+        guard isOpen, visible.isEmpty == false else {
+            return
+        }
+
+        await refresh()
+        await onExternalChange?(visible)
     }
 
     // MARK: - SingleFlightRefreshing
@@ -225,9 +243,25 @@ public final class VaultService: SingleFlightRefreshing {
         vault = Vault(rootURL: folderURL)
         apply(listed)
         isOpening = false
+        startWatching(folderURL)
+    }
+
+    private func startWatching(_ folderURL: URL) {
+        guard let makeWatcher else {
+            return
+        }
+
+        let changes = makeWatcher(folderURL).changes()
+        watchTask = Task { [weak self] in
+            for await paths in changes {
+                await self?.handleExternalChanges(paths)
+            }
+        }
     }
 
     private func closeCurrentVault() {
+        watchTask?.cancel()
+        watchTask = nil
         if let accessedURL {
             access.endAccess(to: accessedURL)
         }
