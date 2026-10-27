@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-import Foundation
+import AppKit
 import OpalCore
 
 struct LaunchArguments {
@@ -34,6 +34,28 @@ struct LaunchArguments {
     let indexFolderURL: URL?
     let search: String?
     let sidebarPane: SidebarPane?
+
+    // MARK: - Derived
+
+    var request: LaunchRequest {
+        #if DEBUG
+            let typed = typeText
+        #else
+            let typed: String? = nil
+        #endif
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed)
+    }
+
+    var appearanceName: NSAppearance.Name? {
+        switch appearance {
+        case "light":
+            .aqua
+        case "dark":
+            .darkAqua
+        default:
+            nil
+        }
+    }
 
     // MARK: - Init
 

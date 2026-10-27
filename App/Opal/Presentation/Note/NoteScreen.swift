@@ -16,7 +16,7 @@ struct NoteScreen: View {
     @Environment(\.linkService) private var links
     @Environment(\.navigationService) private var navigation
     @Environment(\.quickSwitcherService) private var switcher
-    @Environment(\.launchTypeText) private var launchTypeText
+    @Environment(\.launchRequest) private var launch
 
     // MARK: - View
 
@@ -65,7 +65,7 @@ struct NoteScreen: View {
             text: note.text,
             highlights: links.openNote.flatMap { $0.path == note.path ? $0.highlights : nil } ?? [],
             reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
-            typeOnAppear: launchTypeText
+            typeOnAppear: launch.typeText
         ) { text in
             notes.edit(text)
         } onFollowLink: { offset in

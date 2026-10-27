@@ -49,5 +49,5 @@ extension EnvironmentValues {
     @Entry var mentionService: MentionService = defaultMentionService
     @Entry var navigationService: NavigationService = defaultNavigationService
     @Entry var quickSwitcherService: QuickSwitcherService = defaultQuickSwitcherService
-    @Entry var launchTypeText: String?
+    @Entry var launchRequest = LaunchRequest()
 }

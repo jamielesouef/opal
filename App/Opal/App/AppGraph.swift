@@ -20,12 +20,8 @@ struct AppGraph {
     let quickSwitcherService: QuickSwitcherService
     let searchService: SearchService
     let mentionService: MentionService
-    let launchNote: NotePath?
+    let launchRequest: LaunchRequest
     let launchAppearance: NSAppearance.Name?
-    let launchQuickOpen: String?
-    let launchTypeText: String?
-    let launchSearch: String?
-    let launchSidebarPane: SidebarPane?
     let defaults: UserDefaults
 
     // MARK: - Init
@@ -34,12 +30,8 @@ struct AppGraph {
         vaultService: VaultService,
         indexBaseURL: URL,
         defaults: UserDefaults,
-        launchNote: NotePath? = nil,
-        launchAppearance: NSAppearance.Name? = nil,
-        launchQuickOpen: String? = nil,
-        launchTypeText: String? = nil,
-        launchSearch: String? = nil,
-        launchSidebarPane: SidebarPane? = nil
+        launchRequest: LaunchRequest = LaunchRequest(),
+        launchAppearance: NSAppearance.Name? = nil
     ) {
         let indexService = IndexService(vault: vaultService) { root throws(IndexError) in
             try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
@@ -48,12 +40,8 @@ struct AppGraph {
         let noteService = NoteService(vault: vaultService, links: linkService, index: indexService)
         self.indexService = indexService
         self.vaultService = vaultService
-        self.launchNote = launchNote
+        self.launchRequest = launchRequest
         self.launchAppearance = launchAppearance
-        self.launchQuickOpen = launchQuickOpen
-        self.launchTypeText = launchTypeText
-        self.launchSearch = launchSearch
-        self.launchSidebarPane = launchSidebarPane
         self.defaults = defaults
         self.noteService = noteService
         self.linkService = linkService

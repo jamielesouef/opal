@@ -15,29 +15,14 @@ struct OpalApp: App {
 
     @NSApplicationDelegateAdaptor(OpalAppDelegate.self) private var appDelegate
 
-    // MARK: - Launch
-
-    private static var launchTypeText: String? {
-        #if DEBUG
-            AppDependencies.shared.launchTypeText
-        #else
-            nil
-        #endif
-    }
-
     // MARK: - Scene
 
     var body: some Scene {
         Window(String(localized: "Opal"), id: "main") {
-            RootScreen(
-                launchNote: AppDependencies.shared.launchNote,
-                launchQuickOpen: AppDependencies.shared.launchQuickOpen,
-                launchSearch: AppDependencies.shared.launchSearch,
-                launchSidebarPane: AppDependencies.shared.launchSidebarPane
-            )
+            RootScreen()
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
                 .defaultAppStorage(AppDependencies.shared.defaults)
-                .environment(\.launchTypeText, Self.launchTypeText)
+                .environment(\.launchRequest, AppDependencies.shared.launchRequest)
         }
         .defaultSize(width: EditorMetrics.windowDefaultWidth, height: EditorMetrics.windowDefaultHeight)
         .commands {

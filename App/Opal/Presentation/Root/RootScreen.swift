@@ -17,13 +17,7 @@ struct RootScreen: View {
     @Environment(\.navigationService) private var navigation
     @Environment(\.quickSwitcherService) private var switcher
     @Environment(\.searchService) private var search
-
-    // MARK: - Input
-
-    var launchNote: NotePath?
-    var launchQuickOpen: String?
-    var launchSearch: String?
-    var launchSidebarPane: SidebarPane?
+    @Environment(\.launchRequest) private var launch
 
     // MARK: - View
 
@@ -31,17 +25,17 @@ struct RootScreen: View {
         content
             .task {
                 await vault.start()
-                if let launchNote, vault.isOpen {
-                    await navigation.open(launchNote)
+                if let note = launch.note, vault.isOpen {
+                    await navigation.open(note)
                 }
-                if let launchSidebarPane, vault.isOpen {
-                    navigation.sidebarPane = launchSidebarPane
+                if let pane = launch.sidebarPane, vault.isOpen {
+                    navigation.sidebarPane = pane
                 }
-                if let launchSearch, vault.isOpen {
-                    search.show(query: launchSearch)
+                if let query = launch.search, vault.isOpen {
+                    search.show(query: query)
                 }
-                if let launchQuickOpen, vault.isOpen {
-                    await VaultActions.showQuickSwitcher(query: launchQuickOpen, switcher: switcher, navigation: navigation)
+                if let switcherQuery = launch.quickOpen, vault.isOpen {
+                    await VaultActions.showQuickSwitcher(query: switcherQuery, switcher: switcher, navigation: navigation)
                 }
             }
     }

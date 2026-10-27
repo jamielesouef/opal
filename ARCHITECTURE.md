@@ -18,7 +18,7 @@ constraint here.
 | Services | `VaultService` (open, create, reopen, tree, new Note and Folder, reload), `NoteService` (open Note, edits, debounced autosave, conflict), `SingleFlightRefreshing` |
 | Design | `AppSpacing`, `EditorMetrics` |
 | Presentation | `RootScreen`, `WelcomeView`, `VaultScreen`, `FolderTreeView` + `FolderTreeRow`, `NoteScreen`, `MarkdownTextView` (TextKit 2, [ADR 0002](docs/adr/0002-textkit-2-editor.md)), `ConflictBanner`, `AttachmentView`, `SaveStatusView`, `OpalCommands`, `VaultActions` |
-| App | `OpalApp` (one `Window`), `OpalAppDelegate` (saves on quit and on resign active), `AppDependencies`, `AppGraph`, `LaunchArguments` |
+| App | `OpalApp` (one `Window`), `OpalAppDelegate` (saves on quit and on resign active), `AppDependencies`, `AppGraph`, `LaunchArguments` (and `LaunchRequest` in Presentation) |
 | Infrastructure | `MockVaultFileStore`, `MockVaultAccess`, `MockVaultLocationStore`, `PreviewGraph` |
 
 ## Built in Milestone 2
@@ -49,7 +49,13 @@ Launch arguments for acceptance runs, read only in `AppDependencies`:
 `-OpalDefaultsSuite <name>` keeps Opal's preferences in that suite instead of
 the app's own domain, `-OpalOpenNote <path>` opens a Note, `-OpalAppearance
 light|dark` forces the look, `-OpalQuickOpen <query>` opens the Quick Switcher,
-and `-OpalTypeText <text>` (Debug builds only) types into the Editor.
+`-OpalTypeText <text>` (Debug builds only) types into the Editor,
+`-OpalIndexFolder <folder>` keeps the Index there, `-OpalSearch <query>` runs a
+Search, and `-OpalSidebarPane files|search|tags` picks the sidebar pane.
+`LaunchArguments` turns the arguments that act on the window into one
+`LaunchRequest` value, which `RootScreen` and `NoteScreen` read from the
+environment; a new argument touches `LaunchArguments`, `LaunchRequest` and the
+view that acts on it.
 
 ## Layers
 

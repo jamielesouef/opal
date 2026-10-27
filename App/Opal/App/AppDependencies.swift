@@ -30,25 +30,12 @@ enum AppDependencies {
             makeStore: { FileSystemVaultStore(rootURL: $0) }
         )
 
-        let appearance: NSAppearance.Name? = switch arguments.appearance {
-        case "light":
-            .aqua
-        case "dark":
-            .darkAqua
-        default:
-            nil
-        }
-
         return AppGraph(
             vaultService: vaultService,
             indexBaseURL: arguments.indexFolderURL ?? defaultIndexBaseURL(),
             defaults: defaults,
-            launchNote: arguments.openNote,
-            launchAppearance: appearance,
-            launchQuickOpen: arguments.quickOpen,
-            launchTypeText: arguments.typeText,
-            launchSearch: arguments.search,
-            launchSidebarPane: arguments.sidebarPane
+            launchRequest: arguments.request,
+            launchAppearance: arguments.appearanceName
         )
     }
 }
