@@ -17,6 +17,7 @@ public struct LinkMap: Sendable {
     public let parsed: [NotePath: ParsedNote]
     public let resolver: LinkResolver
     public let unresolvedTargets: [String]
+    public let tags: [TagNode]
 
     private let backlinksByTarget: [NotePath: [Backlink]]
 
@@ -41,6 +42,7 @@ public struct LinkMap: Sendable {
 
         self.parsed = parsed
         self.resolver = resolver
+        tags = TagTreeUseCase.tree(from: parsed.mapValues(\.tags))
         unresolvedTargets = unresolved.values.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
         backlinksByTarget = backlinks.mapValues { links in
             links.sorted { lhs, rhs in

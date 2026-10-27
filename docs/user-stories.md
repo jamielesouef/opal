@@ -259,7 +259,7 @@ Acceptance:
 - [unit] Tags nest by `/`: `#garden/harvest` counts for `garden` and `garden/harvest`. Case is ignored when counting; the first spelling seen is shown.
 - [snap] The sidebar has a Tags section: a tree of Tags with Note counts (`obsidian-10`).
 - [manual] Choosing a Tag searches for `tag:#name`.
-Status: todo
+Status: doing (Tags parsed, nested and listed; choosing a Tag waits for Search in M3-04; [snap] not shot yet: screen locked)
 
 ### M3-04 Search (⇧⌘F)
 As a user, I want to find any word in my Vault, so that I can find a Note I half remember.

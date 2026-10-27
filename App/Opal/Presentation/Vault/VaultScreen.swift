@@ -32,20 +32,11 @@ struct VaultScreen: View {
     var body: some View {
         @Bindable var navigation = navigation
         NavigationSplitView {
-            FolderTreeView(
-                selection: $selection,
-                expandedFolders: $expandedFolders,
-                vaultName: vault.name,
-                tree: vaultService.tree
-            ) { path in
-                VaultActions.reveal(path, vault: vaultService)
-            } onOpenInDefaultApp: { path in
-                VaultActions.openInDefaultApp(path, vault: vaultService)
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                IndexStatusView(state: index.loadState)
-            }
-            .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
+            sidebar
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    IndexStatusView(state: index.loadState)
+                }
+                .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
         } detail: {
             detail
                 .inspector(isPresented: $navigation.isInspectorShown) {
@@ -112,6 +103,48 @@ struct VaultScreen: View {
 
             expandedFolders.formUnion(openPath.ancestors)
             selection = openPath
+        }
+    }
+
+    // MARK: - Sidebar
+
+    private var sidebar: some View {
+        @Bindable var navigation = navigation
+        return VStack(spacing: 0) {
+            Picker(String(localized: "Sidebar"), selection: $navigation.sidebarPane) {
+                ForEach([SidebarPane.files, .tags]) { pane in
+                    Label(pane.title, systemImage: pane.systemImage)
+                        .labelStyle(.iconOnly)
+                        .help(pane.title)
+                        .tag(pane)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal, AppSpacing.small)
+            .padding(.bottom, AppSpacing.xsmall)
+
+            switch navigation.sidebarPane {
+            case .files:
+                folderTree
+            case .search:
+                folderTree
+            case .tags:
+                TagsView(tags: links.map.tags)
+            }
+        }
+    }
+
+    private var folderTree: some View {
+        FolderTreeView(
+            selection: $selection,
+            expandedFolders: $expandedFolders,
+            vaultName: vault.name,
+            tree: vaultService.tree
+        ) { path in
+            VaultActions.reveal(path, vault: vaultService)
+        } onOpenInDefaultApp: { path in
+            VaultActions.openInDefaultApp(path, vault: vaultService)
         }
     }
 

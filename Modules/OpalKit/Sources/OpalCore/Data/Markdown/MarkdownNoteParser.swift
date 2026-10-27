@@ -17,6 +17,8 @@ public enum MarkdownNoteParser {
         static let block = regex(#"(?:^|\s)\^([A-Za-z0-9-]+)[ \t]*$"#)
         static let urlScheme = regex(#"^[A-Za-z][A-Za-z0-9+.-]*:"#)
         static let aliasKey = regex(#"^(?:aliases|alias)[ \t]*:[ \t]*(.*)$"#)
+        static let tagKey = regex(#"^(?:tags|tag)[ \t]*:[ \t]*(.*)$"#)
+        static let tag = regex(#"(?:^|(?<=[\s(,;]))#([\p{L}\p{N}_/-]*[\p{L}_/-][\p{L}\p{N}_/-]*)"#)
     }
 
     private enum Constants {
@@ -32,7 +34,11 @@ public enum MarkdownNoteParser {
     public static func parse(_ text: String) -> ParsedNote {
         let lines = splitLines(text)
         let frontmatterLength = frontmatterLineCount(lines)
-        let aliases = frontmatterLength > 0 ? parseAliases(lines[1 ..< frontmatterLength - 1].map(\.text)) : []
+        let frontmatter = frontmatterLength > 0 ? lines[1 ..< frontmatterLength - 1].map(\.text) : []
+        let aliases = listProperty(Pattern.aliasKey, in: frontmatter)
+        var tags = listProperty(Pattern.tagKey, in: frontmatter, splitOnSpaces: true)
+            .map { $0.hasPrefix("#") ? String($0.dropFirst()) : $0 }
+            .filter { $0.isEmpty == false }
 
         var links: [Link] = []
         var headings: [Heading] = []
@@ -56,6 +62,7 @@ public enum MarkdownNoteParser {
             let codeSpans = inlineCodeSpans(line.text)
             links += wikiLinks(in: line, avoiding: codeSpans)
             links += markdownLinks(in: line, avoiding: codeSpans)
+            tags += bodyTags(in: line, avoiding: codeSpans)
 
             if let heading = heading(in: line) {
                 headings.append(heading)
@@ -70,7 +77,8 @@ public enum MarkdownNoteParser {
             links: links.sorted { $0.span.location < $1.span.location },
             headings: headings,
             blocks: blocks,
-            aliases: aliases
+            aliases: aliases,
+            tags: uniqueIgnoringCase(tags)
         )
     }
 
@@ -291,11 +299,11 @@ public enum MarkdownNoteParser {
         return Block(id: (line.text as NSString).substring(with: match.range(at: 1)), line: line.index)
     }
 
-    // MARK: - Aliases
+    // MARK: - Properties
 
-    private static func parseAliases(_ lines: [String]) -> [String] {
-        guard let keyIndex = lines.firstIndex(where: { matches(of: Pattern.aliasKey, in: $0).isEmpty == false }),
-              let match = matches(of: Pattern.aliasKey, in: lines[keyIndex]).first
+    private static func listProperty(_ key: NSRegularExpression, in lines: [String], splitOnSpaces: Bool = false) -> [String] {
+        guard let keyIndex = lines.firstIndex(where: { matches(of: key, in: $0).isEmpty == false }),
+              let match = matches(of: key, in: lines[keyIndex]).first
         else {
             return []
         }
@@ -309,7 +317,13 @@ public enum MarkdownNoteParser {
         }
 
         if value.isEmpty == false {
-            return [unquoted(value)]
+            guard splitOnSpaces else {
+                return [unquoted(value)]
+            }
+            return unquoted(value)
+                .split { $0 == "," || $0 == " " }
+                .map(String.init)
+                .filter { $0.isEmpty == false }
         }
 
         var aliases: [String] = []
@@ -328,6 +342,25 @@ public enum MarkdownNoteParser {
             }
         }
         return aliases
+    }
+
+    // MARK: - Tags
+
+    private static func bodyTags(in line: MarkdownLine, avoiding codeSpans: [TextSpan]) -> [String] {
+        let nsLine = line.text as NSString
+        return matches(of: Pattern.tag, in: line.text).compactMap { match in
+            guard overlaps(match.range, codeSpans) == false else {
+                return nil
+            }
+
+            let tag = nsLine.substring(with: match.range(at: 1)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            return tag.isEmpty ? nil : tag
+        }
+    }
+
+    private static func uniqueIgnoringCase(_ values: [String]) -> [String] {
+        var seen: Set<String> = []
+        return values.filter { seen.insert($0.lowercased()).inserted }
     }
 
     private static func unquoted(_ value: String) -> String {

@@ -18,6 +18,7 @@ public final class NavigationService {
     public private(set) var recentNotes: [NotePath] = []
     public var isInspectorShown = true
     public var isQuickSwitcherShown = false
+    public var sidebarPane = SidebarPane.files
 
     public var openNote: NotePath? {
         notes.path

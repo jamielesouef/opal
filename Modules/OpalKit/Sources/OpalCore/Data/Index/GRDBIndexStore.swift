@@ -11,7 +11,7 @@ import GRDB
 public final class GRDBIndexStore: IndexStoring {
     // MARK: - Constants
 
-    public static let schemaVersion = 1
+    public static let schemaVersion = 2
 
     private enum Constants {
         static let fileName = "index.sqlite"
