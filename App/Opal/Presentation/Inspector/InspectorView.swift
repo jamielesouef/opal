@@ -43,18 +43,19 @@ struct InspectorView: View {
 
     @ViewBuilder
     private var content: some View {
-        if let path = notes.path, let note = notes.loadState.note {
+        if let path = notes.path, notes.loadState.note != nil {
+            let parsed = links.openNote.flatMap { $0.path == path ? $0.parsed : nil } ?? .empty
             switch pane {
             case .backlinks:
                 BacklinksView(groups: BacklinkGroupUseCase.groups(links.map.backlinks(to: path))) { backlink in
                     Task { await navigation.open(backlink.source, line: backlink.link.line) }
                 }
             case .outgoing:
-                OutgoingLinksView(links: links.map.outgoing(from: path, in: links.parse(note.text))) { outgoing in
+                OutgoingLinksView(links: links.map.outgoing(from: path, in: parsed)) { outgoing in
                     Task { await VaultActions.follow(outgoing.link, from: path, vault: vault, navigation: navigation) }
                 }
             case .outline:
-                OutlineView(headings: links.parse(note.text).headings) { heading in
+                OutlineView(headings: parsed.headings) { heading in
                     Task { await navigation.open(path, line: heading.line) }
                 }
             }

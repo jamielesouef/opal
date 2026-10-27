@@ -27,7 +27,7 @@ constraint here.
 | --- | --- |
 | Domain | `Link`, `LinkSubpath`, `LinkStyle`, `Heading`, `Block`, `ParsedNote`, `TextSpan`, `Backlink`, `BacklinkGroup`, `OutgoingLink`, `LinkHighlight`, `LinkDestination`, `LinkQuery`, `LinkSuggestion`, `LinkResolver` (path, relative path, name with shortest path, Alias), `LinkMap` (in-memory Backlinks and Unresolved targets), `NavigationHistory`, `RevealRequest`, `SwitcherCandidate`, `SwitcherMatch`. Use cases: `LinkFollowUseCase`, `BacklinkGroupUseCase`, `LinkSuggestionUseCase`, `QuickSwitcherMatchUseCase`, `TextLineUseCase` |
 | Data | `MarkdownNoteParser` (pure: Links, Embeds, Headings, Blocks, `aliases`; skips code and frontmatter), `FSEventsVaultWatcher` ([ADR 0003](docs/adr/0003-fsevents-dispatch-queue-exception.md)), `UserDefaultsRecentNotesStore` |
-| Services | `LinkService` (the Link map, rebuilt off the main actor), `NavigationService` (open, follow, back and forward, reveal a line, recent Notes, inspector and Quick Switcher visibility), `QuickSwitcherService` (query, results, create, `[[` suggestions). `VaultService` gains `entries`, `createNote(at:)`, the watcher and `onExternalChange`; `NoteService` gains `reloadIfUnchanged` and tells `LinkService` after each save |
+| Services | `LinkService` (the Link map, rebuilt off the main actor; `openNote`, the open Note's parsed Links, Headings and Link colours, which `NoteService` keeps current), `NavigationService` (open, follow, back and forward, reveal a line, recent Notes, inspector and Quick Switcher visibility), `QuickSwitcherService` (query, results, create, `[[` suggestions). `VaultService` gains `entries`, `createNote(at:)`, the watcher and `onExternalChange`; `NoteService` gains `reloadIfUnchanged` and tells `LinkService` after each save |
 | Design | `EditorMetrics` inspector, switcher and suggestion sizes |
 | Presentation | `InspectorView` + `InspectorPane`, `BacklinksView`, `OutgoingLinksView`, `OutlineView`, `QuickSwitcherView` + `QuickSwitcherRow`, `LinkSuggestionPanel` + `LinkSuggestionList` + `LinkSuggestionRow`; the Editor colours Links, follows them on ⌘-click and reveals a line; Go menu (⌘O, ⌘[, ⌘]) and Toggle Inspector (⌥⌘0) |
 
@@ -107,6 +107,9 @@ and `-OpalTypeText <text>` (Debug builds only) types into the Editor.
 - **The Link map is not the Index.** `LinkService` reads and parses every Note
   after the Vault opens and keeps the result in memory only. Nothing is stored.
   The persistent Index is M3-01.
+- **Presentation never parses a Note.** The Editor and the inspector read
+  `LinkService.openNote`. A Note over 64 KB is parsed off the main actor 200 ms
+  after typing stops; a smaller one at once (review 27/10/2026).
 - **Recent Notes live in Opal's preferences**, keyed by the Vault folder, never
   in the Vault.
 - **`[[` suggestions use Opal's own panel**, not `NSTextView` completion, which

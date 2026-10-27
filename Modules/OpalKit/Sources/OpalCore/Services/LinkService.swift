@@ -153,10 +153,6 @@ public final class LinkService {
 
     // MARK: - Reads
 
-    public func parse(_ text: String) -> ParsedNote {
-        MarkdownNoteParser.parse(text)
-    }
-
     public func link(at offset: Int, in text: String) -> Link? {
         let parsed = openNote.flatMap { $0.textLength == text.utf16.count ? $0.parsed : nil } ?? MarkdownNoteParser.parse(text)
         return parsed.links.first { $0.span.contains(offset) }

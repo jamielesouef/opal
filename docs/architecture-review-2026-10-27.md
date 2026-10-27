@@ -58,6 +58,8 @@ Proposal: pass one `LaunchOptions` value. Small gain; do it when the next argume
 
 The first card: parse the open Note once, in `LinkService`, off the main actor for large Notes.
 
+Done on 27/10/2026 in three commits (Refactor 1/3 … 3/3). 137 tests pass; Link colours and the Outline look the same in the running app. A large Note now costs no parse on the main actor per key press.
+
 ## Considered, not recommended
 
 - Splitting `MarkdownNoteParser` (355 lines): one cohesive parser with private helpers; it passes the deletion test.
