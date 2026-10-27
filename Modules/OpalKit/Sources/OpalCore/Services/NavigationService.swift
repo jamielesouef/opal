@@ -19,6 +19,10 @@ public final class NavigationService {
     public var isInspectorShown = true
     public var isQuickSwitcherShown = false
 
+    public var openNote: NotePath? {
+        notes.path
+    }
+
     // MARK: - Private
 
     private let vault: VaultService

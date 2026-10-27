@@ -77,4 +77,22 @@ struct QuickSwitcherServiceTests {
         #expect(harness.switcher.results.prefix(2).map(\.path) == [NotePath("Areas/Health.md"), NotePath("Tomatoes.md")])
         #expect(await harness.recents.recentNotes(forVaultAt: harness.store.rootURL).first == NotePath("Areas/Health.md"))
     }
+
+    @Test("with newFileLocation current, a created Note goes in the open Note's Folder")
+    func createsBesideOpenNote() async {
+        let store = StubVaultFileStore(
+            files: ["Soil.md": "# Soil\n", "Areas/Health.md": "# Health\n"],
+            folders: ["Areas"],
+            settingsJSON: #"{"newFileLocation":"current"}"#
+        )
+        let harness = ServiceHarness(store: store)
+        await harness.openVaultWithLinks()
+        await harness.navigation.open(NotePath("Areas/Health.md"))
+
+        await harness.switcher.prepare(query: "Zucchini")
+        let created = await harness.switcher.confirm()
+
+        #expect(created == NotePath("Areas/Zucchini.md"))
+        #expect(await store.text("Areas/Zucchini.md") == "")
+    }
 }

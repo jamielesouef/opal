@@ -68,7 +68,7 @@ public final class QuickSwitcherService {
     }
 
     private var newNotePath: NotePath? {
-        LinkFollowUseCase.newNotePath(for: query, settings: vault.appSettings, openNote: nil)
+        LinkFollowUseCase.newNotePath(for: query, settings: vault.appSettings, openNote: navigation.openNote)
     }
 
     // MARK: - Init

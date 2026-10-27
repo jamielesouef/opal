@@ -78,6 +78,7 @@ struct MarkdownTextView: NSViewRepresentable {
 
         if textView.string != text {
             textView.string = text
+            textView.undoManager?.removeAllActions()
         }
 
         coordinator.apply(highlights, to: textView)

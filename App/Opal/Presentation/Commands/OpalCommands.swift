@@ -45,7 +45,7 @@ struct OpalCommands: Commands {
         }
 
         CommandMenu(String(localized: "Go")) {
-            Button(String(localized: "Quick Open…")) {
+            Button(String(localized: "Quick Switcher…")) {
                 Task { await VaultActions.showQuickSwitcher(switcher: switcher, navigation: navigation) }
             }
             .keyboardShortcut("o")
