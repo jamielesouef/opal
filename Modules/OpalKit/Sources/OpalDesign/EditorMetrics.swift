@@ -1,0 +1,20 @@
+//
+//  EditorMetrics.swift
+//  Opal
+//
+//  Created by Jamie Le Souef on 27/10/2026.
+//
+
+import Foundation
+
+public enum EditorMetrics {
+    public static let fontSize: CGFloat = 15
+    public static let textInset: CGFloat = 32
+    public static let sidebarMinWidth: CGFloat = 200
+    public static let sidebarIdealWidth: CGFloat = 260
+    public static let welcomeWidth: CGFloat = 420
+    public static let windowMinWidth: CGFloat = 640
+    public static let windowMinHeight: CGFloat = 420
+    public static let windowDefaultWidth: CGFloat = 1100
+    public static let windowDefaultHeight: CGFloat = 720
+}

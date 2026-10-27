@@ -1,0 +1,103 @@
+# Opal architecture
+
+The rules are in [docs/architecture.md](docs/architecture.md). This file names
+Opal's pieces and its deliberate constraints.
+
+**Status: Milestone 1 built** (open a Vault and write a Note; see
+[docs/user-stories.md](docs/user-stories.md)). Lines marked _built_ exist on
+`HEAD`; everything else is still the target shape. When code lands, replace a
+planned line with what was built, and add each new protocol, store and
+constraint here.
+
+## Built in Milestone 1
+
+| Layer | Built |
+| --- | --- |
+| Domain | `Vault`, `NotePath`, `VaultEntry`, `VaultItemKind`, `VaultTreeNode`, `Note`, `ObsidianAppSettings`, `NewFileLocation`, `VaultError`. Use cases: `VaultTreeUseCase` (tree, Finder order, hidden items), `NewItemPlanUseCase` (where and what a new Note or Folder is called), `NoteSaveDecisionUseCase` (write, skip, adopt, recreate or conflict), `DetailContentUseCase`, `WindowTitleUseCase` |
+| Data | `FileSystemVaultStore` (actor), `ObsidianAppSettingsParser` + `ObsidianAppSettingsDTO`, `SecurityScopedVaultAccess`, `UserDefaultsVaultLocationStore` |
+| Services | `VaultService` (open, create, reopen, tree, new Note and Folder, reload), `NoteService` (open Note, edits, debounced autosave, conflict), `SingleFlightRefreshing` |
+| Design | `AppSpacing`, `EditorMetrics` |
+| Presentation | `RootScreen`, `WelcomeView`, `VaultScreen`, `FolderTreeView` + `FolderTreeRow`, `NoteScreen`, `MarkdownTextView` (TextKit 2, [ADR 0002](docs/adr/0002-textkit-2-editor.md)), `ConflictBanner`, `AttachmentView`, `SaveStatusView`, `OpalCommands`, `VaultActions` |
+| App | `OpalApp` (one `Window`), `OpalAppDelegate` (saves on quit and on resign active), `AppDependencies`, `AppGraph`, `LaunchArguments` |
+| Infrastructure | `MockVaultFileStore`, `MockVaultAccess`, `MockVaultLocationStore`, `PreviewGraph` |
+
+Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`.
+Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`
+scheme's test action).
+
+Launch arguments for acceptance runs, read only in `AppDependencies`:
+`-OpalVaultPath <folder>` opens that folder without remembering it, and
+`-OpalDefaultsSuite <name>` keeps Opal's preferences in that suite instead of
+the app's own domain.
+
+## Layers
+
+| Layer | Where | What lives there |
+| --- | --- | --- |
+| Domain | `Modules/OpalKit/Sources/OpalCore/Domain/` | Value types: `Vault`, `Note`, `NotePath`, `Link`, `LinkTarget`, `Heading`, `Block`, `Tag`, `Property`, `Attachment`. Pure use cases: Link resolution (name, Alias, path, case), Backlinks, unlinked mentions, rename plan (which Links change), Daily Note name and place, search ranking, Quick Switcher match |
+| Data | `Modules/OpalKit/Sources/OpalCore/Data/` | The Vault file store, the file watcher, pure parsers (Markdown, frontmatter, Links, Tags), the Obsidian settings reader, the Index store |
+| Services | `Modules/OpalKit/Sources/OpalCore/Services/` | `VaultService` (open Vault, file tree, changes), `NoteService` (the open Note, edits, save), `LinkService` (Backlinks, unlinked mentions, rename), `SearchService`, `QuickSwitcherService`, `DailyNoteService`, `SettingsService` |
+| Design | `Modules/OpalKit/Sources/OpalDesign/` | Design tokens. A leaf module: depends on nothing in the package |
+| Presentation | `App/Opal/Presentation/` | The window (sidebar, Editor, inspector), the Quick Switcher, the Command Palette, Settings, the `@Entry` keys |
+| App | `App/Opal/App/` | The composition root. The only place that reads the home folder, saved Vault folder access and other ambient globals |
+| Infrastructure | `App/Opal/Infrastructure/` | `#if DEBUG` mocks and `PreviewGraph` |
+
+## Planned protocols
+
+| Protocol | Real implementation | Notes |
+| --- | --- | --- |
+| `VaultFileStoring` | `FileSystemVaultStore` (actor) | Lists, reads and writes files inside the Vault root only. Atomic writes. Never follows a link out of the Vault |
+| `VaultWatching` | `FSEventsVaultWatcher` | Reports file changes made outside Opal (Obsidian, git, sync tools) as an `AsyncStream` |
+| `NoteParsing` | `MarkdownNoteParser` | Pure: Note text in, Headings, Links, Embeds, Tags, Properties and Blocks out |
+| `ObsidianSettingsReading` | `ObsidianSettingsFile` | Reads `.obsidian/app.json`, `daily-notes.json` and `templates.json` when present. Read only |
+| `IndexStoring` | Planned. Choice open (see below) | The derived Index. Rebuilt from the Vault when missing, out of date or a different schema version |
+| `Clocking` | `SystemClock` | Today's date for Daily Notes |
+
+## Deliberate constraints
+
+- **The Vault is the source of truth.** Notes are plain `.md` files. Opal adds no
+  hidden file to a Note and no sidecar beside it. Everything Opal knows about a
+  Note comes from its file.
+- **The Index is derived.** It lives outside the Vault (planned:
+  `~/Library/Application Support/Opal/Indexes/<vault-id>/`). Deleting it loses
+  nothing; Opal rebuilds it on the next open.
+- **Opal never writes inside `.obsidian/`.** It reads Obsidian's settings so a
+  Vault behaves the same in both apps. Opal's own settings live outside the Vault.
+- **Opal changes only what it was asked to change.** A save writes the user's text
+  as it is. Opal never reformats frontmatter, line endings or whitespace in a part
+  of the file the user did not edit.
+- **A rename that updates Links asks first.** It shows how many Notes will change,
+  then writes each one atomically.
+- **Changes from outside win when the Note has no unsaved edits.** When a Note has
+  unsaved edits and its file changes on disk, Opal keeps both and asks the user.
+- **Obsidian syntax is kept**: wikilinks with alias, Heading and Block targets,
+  Embeds, nested Tags, YAML Properties, `aliases`. Opal may render more, but it
+  never writes syntax that Obsidian cannot read.
+- **No network.** v1 needs no server and no account.
+- **Sandboxed, with a security-scoped bookmark per Vault** ([ADR 0001](docs/adr/0001-sandboxed-app-with-security-scoped-vault-bookmarks.md)).
+- **Symbolic links are skipped.** The Folder tree leaves them out and the store
+  refuses to read or write through one, so nothing outside the Vault is touched.
+- **A Note must be UTF-8.** Opal refuses to open any other encoding rather than
+  risk rewriting it. A byte order mark is kept.
+- **Saves never overwrite a change Opal did not see.** Before writing, the store
+  re-reads the file; if it differs from what Opal last loaded or saved,
+  `NoteSaveDecisionUseCase` reports a conflict and nothing is written.
+- **Atomic writes replace the file.** Extended attributes on a Note are not
+  carried over in M1.
+- **Editor substitutions are off.** Smart quotes, smart dashes, text
+  replacement and automatic spelling correction would change text the user did
+  not type differently. They become settings in M5.
+- **One window, one Vault** until M5-08. `Window`, not `WindowGroup`.
+- **No file watcher yet.** M1 detects outside changes only when saving (and
+  ⌘R reloads the tree). FSEvents arrives in M2-07.
+- **`UserDefaultsVaultLocationStore` is `@unchecked Sendable`.** `UserDefaults`
+  is documented as thread-safe but not marked `Sendable`.
+- **Panels and Finder actions are called from Presentation.** `VaultPanels`
+  (`NSOpenPanel`, `NSSavePanel`) and `WorkspaceActions` (`NSWorkspace`) are
+  `@MainActor` AppKit calls that Data, which is never `@MainActor`, cannot own.
+
+## Open questions
+
+- **Index store.** SQLite (GRDB with FTS5) or SwiftData. Full-text search favours
+  SQLite with FTS5.
+- **Plugins.** Not in v1. Obsidian's JavaScript plugins will not run in Opal.

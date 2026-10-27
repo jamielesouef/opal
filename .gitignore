@@ -1,0 +1,7 @@
+docs/screens/*.png
+.build/
+.swiftpm/
+DerivedData/
+Opal.xcodeproj/
+.DS_Store
+xcuserdata/
