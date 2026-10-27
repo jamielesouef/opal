@@ -73,7 +73,11 @@ public final class NoteService {
     private let links: LinkService?
     private let saveDelay: Duration
 
-    private var draft = ""
+    private var draft = "" {
+        didSet {
+            links?.openNoteChanged(path, text: draft)
+        }
+    }
     private var diskText = ""
     private var isLoading = false
     private var loadError: VaultError?

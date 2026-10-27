@@ -79,4 +79,21 @@ struct OpenNoteLinksTests {
 
         #expect(harness.links.openNote?.highlights.first?.isResolved == true)
     }
+
+    @Test("NoteService keeps the open Note's Links current through open, edit and close")
+    func followsNoteService() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+        let harness = await Self.harness(vault)
+
+        await harness.notes.open(NotePath("Tomatoes.md"))
+        #expect(harness.links.openNote?.path == NotePath("Tomatoes.md"))
+        #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Tomatoes", "Watering", "Harvest"])
+
+        harness.notes.edit("# Tomatoes\n\n## Pruning\n")
+        #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Tomatoes", "Pruning"])
+
+        await harness.notes.close()
+        #expect(harness.links.openNote == nil)
+    }
 }
