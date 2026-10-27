@@ -16,6 +16,9 @@ Links, Backlinks and the Quick Switcher.
 
 ```swift
 let vault = Vault(root: url)
+// [[Not A Link]]
 ```
+
+Write a Link as `[[Name]]`.
 
 Inline maths: $e = mc^2$.

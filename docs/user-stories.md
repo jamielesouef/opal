@@ -123,7 +123,7 @@ Acceptance:
 - [unit] It ignores Links inside fenced code blocks, inline code and frontmatter.
 - [unit] It finds Headings (`#` to `######`, outside code) and Block ids (`^id` at the end of a line).
 - [unit] It reads `aliases` from frontmatter as a list or a single string. Other Properties wait for M4.
-Status: todo
+Status: done
 
 ### M2-02 Resolve a Link to its target
 As a user, I want `[[Soil]]` to find `Soil.md` wherever it lives, the way Obsidian does, so that my existing Links work.
