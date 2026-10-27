@@ -13,7 +13,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | **M1 — Open a Vault and write a Note** (built 27/10/2026) | Open an existing Obsidian Vault or a new one, browse it, and write in a Note safely | M1-01 … M1-11 |
 | **M2 — Links** (built 27/10/2026) | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
 | **M3 — Find** (built 27/10/2026) | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-06 |
-| M4 — Rich Editor | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
+| M4 — Rich Editor (stories expanded 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | M5 — Daily work | Daily Notes, Templates, rename with Link updates, Command Palette, Settings, tabs | M5-01 … M5-09 |
 
 Out of scope for v1: Graph, Canvas, plugins, sync, publishing, iOS and iPadOS, collaboration.
@@ -295,23 +295,80 @@ Status: done (measured 27/10/2026, Release: first index 5.6 s, reopen 0.54 s, Se
 
 ## M4 — Rich Editor
 
+Styling is a view of the text, never a change to it. The Editor stays a plain-text `NSTextView` on TextKit 2 ([ADR 0002](adr/0002-textkit-2-editor.md)): fonts and colours are text storage attributes, which change neither `string` nor the undo stack. Opal writes a Note only when the user edits it (M4-03, M4-05 and M4-06 are edits). The styled ranges are computed with the open Note's Links, off the main actor for large Notes (the 27/10/2026 review), and the Editor maps each style kind to attributes in one place (the 28/10/2026 review).
+
 ### M4-01 Live Markdown
-- Headings, emphasis, Links, Tags, lists, checkboxes, quotes, code and callouts are styled as you type. Marks fade when the cursor is elsewhere. Can be turned off.
+As a writer, I want the Markdown styled as I type, so that the Note reads well while I write it.
+Screens: `obsidian-03-note-live-preview.png`
+Depends: M2-06, M3-03
+Acceptance:
+- [unit] The parser returns style runs for Headings (levels 1–6), bold, italic, bold italic, strikethrough, highlight (`==text==`), inline code, code blocks, quotes, list markers, checkboxes, callouts (`> [!note] Title`), horizontal rules, Links, Embeds and Tags. Each run has a span and a kind, and the marks (`#`, `**`, `` ` ``, `[[`, `]]`) are their own runs.
+- [unit] Nothing is styled inside code or frontmatter except as code or frontmatter. Runs never overlap the text's end after an edit.
+- [unit] `TextStyleRun` replaces `LinkHighlight`; resolved and Unresolved Links keep their M2-04 colours.
+- [snap] A fixture Note with every kind above, light and dark: Headings are larger and bold, code is monospaced on a tinted background, quotes and callouts have a bar, Tags are tinted.
+- [snap] Marks are faint on lines without the cursor and full strength on the cursor's line. The text never moves sideways when the cursor changes line.
+- [unit] Styling a 1 MB Note does no parsing on the main actor (the M3-06 rule).
+- [manual] View › Live Markdown (no shortcut) turns styling off and on; plain text is the M1 Editor. The choice is kept outside the Vault.
+Status: todo
 
 ### M4-02 Reading view (⌘E)
-- The Note rendered and not editable, including tables, callouts, code with syntax colour and maths (`obsidian-04`).
+As a reader, I want the Note rendered and not editable, so that I can read it without the marks.
+Screens: `obsidian-04-note-reading-view.png`
+Depends: M4-01
+Open decision (ADR 0005 before code): render with SwiftUI and `AttributedString` (native, no new dependency, no maths), or HTML in a `WKWebView` (tables, syntax colour and maths come easily, but it needs a renderer and KaTeX in the app bundle).
+Acceptance:
+- [unit] The rendered blocks come from the same parse as M4-01: Headings, paragraphs, lists, checkboxes, quotes, callouts, tables, code blocks, horizontal rules, Links and Embeds.
+- [snap] ⌘E and the toolbar's Editor / Reading control switch views; the scroll position stays on the same Heading.
+- [snap] Tables have columns and a header row; code blocks have syntax colour for at least Swift, Python, JavaScript, JSON, YAML and shell; callouts show their type's icon and title.
+- [snap] `$…$` and `$$…$$` show as maths, or, if ADR 0005 drops maths, as code, with a note in the story.
+- [manual] Clicking a Link follows it (M2-03); Heading Links read `Note > Heading`.
+- [unit] Reading view never writes the Note.
+Status: todo
 
 ### M4-03 Properties
-- Frontmatter shows as a small form above the text (`obsidian-03`) and can be edited as YAML. Editing one Property changes only that Property's lines.
+As a user, I want my Note's Properties as a small form, so that I can read and change them without editing YAML.
+Screens: `obsidian-03-note-live-preview.png`, `obsidian-11-all-properties-pane.png`
+Depends: M4-01
+Acceptance:
+- [unit] A frontmatter parser reads text, number, checkbox, date, date-and-time and list Properties, and keeps the exact source lines of each one. Unreadable YAML is shown as YAML, never rewritten.
+- [unit] Changing one Property rewrites only that Property's lines; every other byte of the Note, including key order, quotes, comments and line endings, is unchanged. Adding a Property appends it; removing one removes only its lines.
+- [unit] Types are inferred per Property name across the Vault, from the Index, as Obsidian does (`.obsidian/types.json` is read when present, never written).
+- [snap] The form sits above the text, below the Note's name: a row per Property with an icon for its type, an Add Property button, and a way to edit the frontmatter as YAML.
+- [snap] The inspector shows the open Note's Tags (from M3-03's Later line).
+- [unit] Search reads `[property:value]` (from M3-04's Later line).
+Status: todo
 
 ### M4-04 Embeds
-- `![[Note]]`, `![[Note#Heading]]`, images and PDFs show inline.
+As a user, I want Embeds shown inline, so that I can see the embedded Note, image or PDF where it is used.
+Screens: `obsidian-03-note-live-preview.png`
+Depends: M4-01, M4-02
+Acceptance:
+- [unit] `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]`, `![[image.png]]`, `![[image.png|300]]`, `![[file.pdf]]` and `![alt](image.png)` resolve with the M2-02 rules; the Heading form takes the text up to the next Heading of the same or a higher level.
+- [snap] In the Editor and in Reading view, Embeds show below their line: a Note or a Heading’s text in a bordered box with its name, an image at its size or the width given, a PDF as a scrollable page view. The Embed's own text stays in the line and is editable.
+- [snap] An Unresolved Embed shows “‘name’ is not in this Vault” with a create action.
+- [unit] An Embed of a Note that embeds itself, directly or through others, stops after one level and says so.
+- [manual] Changing the embedded Note elsewhere updates the Embed.
+Status: todo
 
 ### M4-05 Checkboxes
-- Clicking a checkbox toggles `[ ]` and `[x]` and changes nothing else in the line.
+As a user, I want to tick a task with one click, so that I do not have to type the `x`.
+Screens: `obsidian-03-note-live-preview.png`
+Depends: M4-01
+Acceptance:
+- [unit] Toggling a checkbox changes only the one character between `[` and `]` (space to `x`, `x` or `X` to space) and nothing else in the line or the Note.
+- [snap] With live Markdown on, `- [ ]` and `- [x]` show as checkboxes; done tasks are struck through and faint. Reading view shows the same.
+- [manual] Clicking the checkbox toggles it; the toggle is one undo step and is saved like any edit.
+Status: todo
 
 ### M4-06 Paste and drop images
-- A pasted or dropped image is saved as an Attachment (place from `attachmentFolderPath`) and an Embed is inserted.
+As a user, I want to paste or drop an image into a Note, so that I can add it without the Finder.
+Depends: M4-04
+Acceptance:
+- [unit] The Attachment's place follows `attachmentFolderPath` from `.obsidian/app.json` (Vault root, a named Folder, the Note's Folder, or a subfolder of it) and Opal's own setting when there is no `app.json`.
+- [unit] The name is `Pasted image YYYYMMDDHHmmss.png` for a paste and the file's own name for a drop; a name that is taken gets ` 1`, ` 2`… The file is written atomically and never replaces an existing file.
+- [unit] The Embed `![[name.png]]` is inserted at the cursor (or the drop point) as one undo step, using the shortest Link form the Vault's `newLinkFormat` asks for.
+- [manual] Paste from Screenshot and drag from Finder both work; the image shows inline (M4-04).
+Status: todo
 
 ## M5 — Daily work
 
