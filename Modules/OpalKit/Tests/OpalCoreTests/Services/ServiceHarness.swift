@@ -40,7 +40,7 @@ struct ServiceHarness {
         index = IndexService(vault: vault) { root throws(IndexError) in
             try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
         }
-        links = LinkService(vault: vault)
+        links = LinkService(vault: vault, index: index)
         notes = NoteService(vault: vault, links: links, index: index, saveDelay: .seconds(3600))
         recents = StubRecentNotesStore()
         navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)

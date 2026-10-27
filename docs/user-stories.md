@@ -249,7 +249,7 @@ Depends: M3-01
 Acceptance:
 - [unit] `LinkService` builds the Link map from the parsed Notes in the Index; it reads no Note file when nothing changed.
 - [unit] All M2 Link tests still pass.
-Status: todo
+Status: done
 
 ### M3-03 Tags
 As a user, I want Opal to know my Tags, so that I can find Notes by topic.

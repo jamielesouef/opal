@@ -41,6 +41,7 @@ public final class LinkService {
     // MARK: - Private
 
     private let vault: VaultService
+    private let index: IndexService?
 
     private var parsed: [NotePath: ParsedNote] = [:]
     private var paths: [NotePath] = []
@@ -53,8 +54,9 @@ public final class LinkService {
 
     // MARK: - Init
 
-    public init(vault: VaultService) {
+    public init(vault: VaultService, index: IndexService? = nil) {
         self.vault = vault
+        self.index = index
     }
 
     // MARK: - Intent
@@ -77,7 +79,9 @@ public final class LinkService {
 
         let missing = notes.filter { parsed[$0] == nil }
         pendingBuilds += 1
-        let read = await Self.readAndParse(Array(missing), store: store)
+        let indexed = await indexedNotes(for: missing)
+        let read = await Self.readAndParse(Array(missing.subtracting(indexed.keys)), store: store)
+            .merging(indexed) { fromFile, _ in fromFile }
         pendingBuilds -= 1
         guard rootURL == store.rootURL else {
             return
@@ -159,6 +163,19 @@ public final class LinkService {
     }
 
     // MARK: - Private
+
+    private func indexedNotes(for paths: Set<NotePath>) async -> [NotePath: ParsedNote] {
+        guard paths.isEmpty == false, let index, index.loadState == .ready, let store = index.store else {
+            return [:]
+        }
+
+        do {
+            return try await store.parsedNotes().filter { paths.contains($0.key) }
+        } catch {
+            AppLog.error("Reading Links from the Index failed: \(error)")
+            return [:]
+        }
+    }
 
     private func refreshOpenNote() {
         guard let source = openNoteSource else {

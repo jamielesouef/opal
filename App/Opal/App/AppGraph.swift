@@ -38,7 +38,7 @@ struct AppGraph {
         let indexService = IndexService(vault: vaultService) { root throws(IndexError) in
             try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
         }
-        let linkService = LinkService(vault: vaultService)
+        let linkService = LinkService(vault: vaultService, index: indexService)
         let noteService = NoteService(vault: vaultService, links: linkService, index: indexService)
         self.indexService = indexService
         self.vaultService = vaultService
