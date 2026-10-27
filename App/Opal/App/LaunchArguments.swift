@@ -19,6 +19,8 @@ struct LaunchArguments {
         static let quickOpen = "-OpalQuickOpen"
         static let typeText = "-OpalTypeText"
         static let indexFolder = "-OpalIndexFolder"
+        static let search = "-OpalSearch"
+        static let sidebarPane = "-OpalSidebarPane"
     }
 
     // MARK: - Stored
@@ -30,6 +32,8 @@ struct LaunchArguments {
     let quickOpen: String?
     let typeText: String?
     let indexFolderURL: URL?
+    let search: String?
+    let sidebarPane: SidebarPane?
 
     // MARK: - Init
 
@@ -40,6 +44,8 @@ struct LaunchArguments {
         appearance = Self.value(after: Constants.appearance, in: arguments)
         quickOpen = Self.value(after: Constants.quickOpen, in: arguments)
         typeText = Self.value(after: Constants.typeText, in: arguments)
+        search = Self.value(after: Constants.search, in: arguments)
+        sidebarPane = Self.value(after: Constants.sidebarPane, in: arguments).flatMap(SidebarPane.init(rawValue:))
         indexFolderURL = Self.value(after: Constants.indexFolder, in: arguments).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }
 

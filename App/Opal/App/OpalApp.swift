@@ -29,7 +29,12 @@ struct OpalApp: App {
 
     var body: some Scene {
         Window(String(localized: "Opal"), id: "main") {
-            RootScreen(launchNote: AppDependencies.shared.launchNote, launchQuickOpen: AppDependencies.shared.launchQuickOpen)
+            RootScreen(
+                launchNote: AppDependencies.shared.launchNote,
+                launchQuickOpen: AppDependencies.shared.launchQuickOpen,
+                launchSearch: AppDependencies.shared.launchSearch,
+                launchSidebarPane: AppDependencies.shared.launchSidebarPane
+            )
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
                 .defaultAppStorage(AppDependencies.shared.defaults)
                 .environment(\.launchTypeText, Self.launchTypeText)

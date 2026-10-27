@@ -66,3 +66,15 @@ Taken on 27/10/2026 from a Debug build, sandboxed, on a copy of the `Garden` fix
 | `opal-m2-06-link-suggestions.png` | `[[so` suggestions under the cursor | M2-09 |
 | `opal-m2-07-back-forward.png` | Back and forward in the toolbar | M2-10 |
 | `opal-m2-08-outside-change.png` | `Welcome` changed and `Peas` added by another app, shown without ⌘R | M2-08 |
+
+## Opal, Milestone 3
+
+Taken on 27/10/2026 the same way as Milestone 2, with the Index in a throwaway folder (`-OpalIndexFolder`). New set-up arguments: `-OpalSearch <query>` and `-OpalSidebarPane files|search|tags`. The indexing shot uses a generated 3,000-Note Vault.
+
+| File | Screen | Story |
+| --- | --- | --- |
+| `opal-m3-01-indexing.png` | “Indexing 600 of 3,000 Notes…” at the foot of the sidebar | M3-01 |
+| `opal-m3-02-search.png` | Search for `soil`, results grouped by Note with matches marked | M3-04 |
+| `opal-m3-02-search-dark.png` | Search for `tag:#garden`, dark | M3-03, M3-04 |
+| `opal-m3-03-tags.png` | Tags pane, nested, with Note counts | M3-03 |
+| `opal-m3-04-unlinked-mentions.png` | Backlinks tab of `Gardening Basics` with an unlinked mention and **Link** | M3-05 |

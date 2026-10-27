@@ -31,11 +31,18 @@ struct IndexStatusView: View {
                     .monospacedDigit()
             }
             .padding(AppSpacing.regular)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.bar)
+            .overlay(alignment: .top) {
+                Divider()
+            }
         case .failed:
             Label(String(localized: "Search is unavailable. Notes still open and save."), systemImage: "exclamationmark.triangle")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(AppSpacing.regular)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.bar)
                 .help(String(localized: "Opal could not open its Index. It will try again next time the Vault opens."))
         }
     }

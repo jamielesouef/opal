@@ -46,7 +46,9 @@ enum AppDependencies {
             launchNote: arguments.openNote,
             launchAppearance: appearance,
             launchQuickOpen: arguments.quickOpen,
-            launchTypeText: arguments.typeText
+            launchTypeText: arguments.typeText,
+            launchSearch: arguments.search,
+            launchSidebarPane: arguments.sidebarPane
         )
     }
 }
