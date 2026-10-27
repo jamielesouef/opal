@@ -19,11 +19,13 @@ public enum SearchSnippetUseCase {
 
     public static func result(for path: NotePath, text: String, query: SearchQuery) -> SearchResult {
         let terms = query.highlightTerms.filter { $0.isEmpty == false }
+        let frontmatterTerms = terms + query.tags
+        let rawLines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let frontmatterEnd = frontmatterLineCount(rawLines)
         var lines: [SearchLine] = []
         var count = 0
-        for (index, rawLine) in text.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
-            let line = String(rawLine)
-            let spans = matches(of: terms, in: line)
+        for (index, line) in rawLines.enumerated() {
+            let spans = matches(of: index < frontmatterEnd ? frontmatterTerms : terms, in: line)
             guard spans.isEmpty == false else {
                 continue
             }
@@ -46,6 +48,15 @@ public enum SearchSnippetUseCase {
     }
 
     // MARK: - Private
+
+    private static func frontmatterLineCount(_ lines: [String]) -> Int {
+        guard lines.first?.trimmingCharacters(in: .whitespaces) == "---" else {
+            return 0
+        }
+
+        let end = lines.dropFirst().firstIndex { $0.trimmingCharacters(in: .whitespaces) == "---" }
+        return end.map { $0 + 1 } ?? 0
+    }
 
     private static func matches(of terms: [String], in line: String) -> [TextSpan] {
         let nsLine = line as NSString

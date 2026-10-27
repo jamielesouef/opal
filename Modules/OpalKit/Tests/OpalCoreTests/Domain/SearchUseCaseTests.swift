@@ -65,4 +65,16 @@ struct SearchUseCaseTests {
         #expect(SearchSnippetUseCase.passesFilters(NotePath("Reading/The Soil Book.md"), text: "Clay", query: query) == false)
         #expect(SearchSnippetUseCase.passesFilters(NotePath("Soil.md"), text: "loam", query: query) == false)
     }
+
+    @Test("a Tag from the tags Property is marked in the frontmatter")
+    func propertyTag() {
+        let result = SearchSnippetUseCase.result(
+            for: NotePath("Soil.md"),
+            text: "---\ntags: [garden]\n---\n# Soil\nA gardening note.",
+            query: SearchQueryUseCase.parse("tag:#garden")
+        )
+
+        #expect(result.lines.map(\.text) == ["tags: [garden]"])
+        #expect(result.matchCount == 1)
+    }
 }
