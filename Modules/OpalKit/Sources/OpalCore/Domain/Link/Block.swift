@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-public struct Block: Hashable, Sendable {
+public struct Block: Hashable, Sendable, Codable {
     // MARK: - Stored
 
     public let id: String

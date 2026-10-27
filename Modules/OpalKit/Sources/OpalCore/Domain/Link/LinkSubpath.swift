@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-public enum LinkSubpath: Hashable, Sendable {
+public enum LinkSubpath: Hashable, Sendable, Codable {
     case heading(String)
     case block(String)
 }

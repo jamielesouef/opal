@@ -31,6 +31,18 @@
             folders.map { VaultEntry(path: $0, kind: .folder) } + files.keys.map { VaultEntry(path: $0, isFolder: false) }
         }
 
+        func noteStamps() throws(VaultError) -> [NotePath: FileStamp] {
+            Dictionary(uniqueKeysWithValues: files.filter { $0.key.isNote }.map { ($0.key, Self.stamp(for: $0.value)) })
+        }
+
+        func stamp(of path: NotePath) -> FileStamp? {
+            files[path].map(Self.stamp(for:))
+        }
+
+        private static func stamp(for text: String) -> FileStamp {
+            FileStamp(modified: Date(timeIntervalSince1970: Double(text.hashValue & 0xFFFF)), size: text.utf8.count)
+        }
+
         func readNote(at path: NotePath) throws(VaultError) -> String? {
             files[path]
         }

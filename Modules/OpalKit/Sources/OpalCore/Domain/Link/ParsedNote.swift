@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-public struct ParsedNote: Hashable, Sendable {
+public struct ParsedNote: Hashable, Sendable, Codable {
     // MARK: - Constants
 
     public static let empty = ParsedNote(links: [], headings: [], blocks: [], aliases: [])

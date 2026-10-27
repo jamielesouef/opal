@@ -15,6 +15,7 @@ struct VaultScreen: View {
     @Environment(\.vaultService) private var vaultService
     @Environment(\.noteService) private var notes
     @Environment(\.linkService) private var links
+    @Environment(\.indexService) private var index
     @Environment(\.navigationService) private var navigation
 
     // MARK: - State
@@ -40,6 +41,9 @@ struct VaultScreen: View {
                 VaultActions.reveal(path, vault: vaultService)
             } onOpenInDefaultApp: { path in
                 VaultActions.openInDefaultApp(path, vault: vaultService)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                IndexStatusView(state: index.loadState)
             }
             .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
         } detail: {
@@ -98,6 +102,7 @@ struct VaultScreen: View {
             QuickSwitcherView()
         }
         .task(id: vaultService.entries) {
+            await index.sync()
             await links.sync()
         }
         .onChange(of: notes.path) { _, openPath in
@@ -132,6 +137,7 @@ struct VaultScreen: View {
             .environment(\.vaultService, graph.vaultService)
             .environment(\.noteService, graph.noteService)
             .environment(\.linkService, graph.linkService)
+            .environment(\.indexService, graph.indexService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task { await graph.vaultService.start() }

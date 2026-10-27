@@ -71,6 +71,7 @@ public final class NoteService {
 
     private let vault: VaultService
     private let links: LinkService?
+    private let index: IndexService?
     private let saveDelay: Duration
 
     private var draft = "" {
@@ -88,9 +89,15 @@ public final class NoteService {
 
     // MARK: - Init
 
-    public init(vault: VaultService, links: LinkService? = nil, saveDelay: Duration = .milliseconds(800)) {
+    public init(
+        vault: VaultService,
+        links: LinkService? = nil,
+        index: IndexService? = nil,
+        saveDelay: Duration = .milliseconds(800)
+    ) {
         self.vault = vault
         self.links = links
+        self.index = index
         self.saveDelay = saveDelay
     }
 
@@ -299,5 +306,6 @@ public final class NoteService {
         diskText = text
         saveError = nil
         links?.update(path, text: text)
+        await index?.update([path])
     }
 }

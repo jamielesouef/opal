@@ -29,27 +29,37 @@ public actor FileSystemVaultStore: VaultFileStoring {
     // MARK: - VaultFileStoring
 
     public func listEntries() throws(VaultError) -> [VaultEntry] {
-        guard isDirectory(rootURL), let enumerator = fileManager.enumerator(atPath: rootURL.path) else {
-            throw .folderUnreadable
-        }
-
         var entries: [VaultEntry] = []
-        while let relative = enumerator.nextObject() as? String {
-            let path = NotePath(relative)
-            let type = enumerator.fileAttributes?[.type] as? FileAttributeType
-            guard path.isHidden == false, type != .typeSymbolicLink else {
-                enumerator.skipDescendants()
-                continue
-            }
-
+        try walk { path, type, _ in
             if type == .typeDirectory {
                 entries.append(VaultEntry(path: path, isFolder: true))
             } else if type == .typeRegular {
                 entries.append(VaultEntry(path: path, isFolder: false))
             }
         }
-
         return entries
+    }
+
+    public func noteStamps() throws(VaultError) -> [NotePath: FileStamp] {
+        var stamps: [NotePath: FileStamp] = [:]
+        try walk { path, type, attributes in
+            guard type == .typeRegular, path.isNote else {
+                return
+            }
+            stamps[path] = Self.stamp(from: attributes)
+        }
+        return stamps
+    }
+
+    public func stamp(of path: NotePath) -> FileStamp? {
+        guard path.isRoot == false, path.isWithinVault,
+              let attributes = try? fileManager.attributesOfItem(atPath: url(for: path).path),
+              attributes[.type] as? FileAttributeType == .typeRegular
+        else {
+            return nil
+        }
+
+        return Self.stamp(from: attributes)
     }
 
     public func readNote(at path: NotePath) throws(VaultError) -> String? {
@@ -131,6 +141,31 @@ public actor FileSystemVaultStore: VaultFileStoring {
     }
 
     // MARK: - Private
+
+    private func walk(_ visit: (NotePath, FileAttributeType?, [FileAttributeKey: Any]) -> Void) throws(VaultError) {
+        guard isDirectory(rootURL), let enumerator = fileManager.enumerator(atPath: rootURL.path) else {
+            throw .folderUnreadable
+        }
+
+        while let relative = enumerator.nextObject() as? String {
+            let path = NotePath(relative)
+            let attributes = enumerator.fileAttributes ?? [:]
+            let type = attributes[.type] as? FileAttributeType
+            guard path.isHidden == false, type != .typeSymbolicLink else {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            visit(path, type, attributes)
+        }
+    }
+
+    private static func stamp(from attributes: [FileAttributeKey: Any]) -> FileStamp {
+        FileStamp(
+            modified: attributes[.modificationDate] as? Date ?? .distantPast,
+            size: (attributes[.size] as? NSNumber)?.intValue ?? 0
+        )
+    }
 
     private func checkedURL(for path: NotePath) throws(VaultError) -> URL {
         guard path.isRoot == false, path.isWithinVault else {

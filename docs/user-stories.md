@@ -241,7 +241,7 @@ Acceptance:
 - [unit] Changes from outside (M2-08) and Opal's own saves update the Index.
 - [unit] Tests and acceptance runs point the Index at a temporary folder (`-OpalIndexFolder`).
 - [snap] While the Index is built, the sidebar foot shows “Indexing 120 of 2,000 Notes…”.
-Status: todo
+Status: done (the [snap] line is not shot yet: the screen was locked)
 
 ### M3-02 The Link map reads the Index
 As a user, I want Backlinks ready as soon as the Vault opens, without Opal reading every Note again.

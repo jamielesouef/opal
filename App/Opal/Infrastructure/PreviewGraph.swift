@@ -32,7 +32,11 @@
                 locations: MockVaultLocationStore(),
                 launchVaultURL: openingGarden ? gardenRoot : nil
             ) { _ in store }
-            return AppGraph(vaultService: vaultService, defaults: UserDefaults(suiteName: previewDefaultsSuite) ?? .standard)
+            return AppGraph(
+                vaultService: vaultService,
+                indexBaseURL: FileManager().temporaryDirectory.appending(component: "OpalPreviewIndexes"),
+                defaults: UserDefaults(suiteName: previewDefaultsSuite) ?? .standard
+            )
         }
     }
 #endif

@@ -14,6 +14,10 @@ enum AppDependencies {
 
     static let shared = makeGraph()
 
+    private static func defaultIndexBaseURL() -> URL {
+        URL.applicationSupportDirectory.appending(path: "Opal/Indexes", directoryHint: .isDirectory)
+    }
+
     static func makeGraph() -> AppGraph {
         let arguments = LaunchArguments(ProcessInfo.processInfo.arguments)
         let defaults = arguments.defaultsSuite.flatMap(UserDefaults.init(suiteName:)) ?? .standard
@@ -37,6 +41,7 @@ enum AppDependencies {
 
         return AppGraph(
             vaultService: vaultService,
+            indexBaseURL: arguments.indexFolderURL ?? defaultIndexBaseURL(),
             defaults: defaults,
             launchNote: arguments.openNote,
             launchAppearance: appearance,

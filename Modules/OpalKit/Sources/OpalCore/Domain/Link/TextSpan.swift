@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-public struct TextSpan: Hashable, Sendable {
+public struct TextSpan: Hashable, Sendable, Codable {
     // MARK: - Stored
 
     public let location: Int

@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-public struct Heading: Hashable, Sendable {
+public struct Heading: Hashable, Sendable, Codable {
     // MARK: - Stored
 
     public let level: Int

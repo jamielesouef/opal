@@ -19,6 +19,8 @@ struct ServiceHarness {
     let navigation: NavigationService
     let switcher: QuickSwitcherService
     let recents: StubRecentNotesStore
+    let index: IndexService
+    let indexFolder: URL
 
     // MARK: - Init
 
@@ -33,12 +35,18 @@ struct ServiceHarness {
         self.store = store
         self.locations = locations
         vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL, makeWatcher: makeWatcher) { _ in store }
+        let indexFolder = FileManager().temporaryDirectory.appending(component: "OpalIndexTests-\(UUID().uuidString)")
+        self.indexFolder = indexFolder
+        index = IndexService(vault: vault) { root throws(IndexError) in
+            try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
+        }
         links = LinkService(vault: vault)
-        notes = NoteService(vault: vault, links: links, saveDelay: .seconds(3600))
+        notes = NoteService(vault: vault, links: links, index: index, saveDelay: .seconds(3600))
         recents = StubRecentNotesStore()
         navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
         switcher = QuickSwitcherService(vault: vault, links: links, navigation: navigation)
-        vault.onExternalChange = { [links, notes] paths in
+        vault.onExternalChange = { [links, notes, index] paths in
+            await index.update(paths)
             await links.refresh(paths)
             await notes.reloadIfUnchanged(paths)
         }

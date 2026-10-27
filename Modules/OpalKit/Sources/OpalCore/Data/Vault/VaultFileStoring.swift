@@ -12,6 +12,8 @@ public protocol VaultFileStoring: Sendable {
 
     func listEntries() async throws(VaultError) -> [VaultEntry]
     func readNote(at path: NotePath) async throws(VaultError) -> String?
+    func noteStamps() async throws(VaultError) -> [NotePath: FileStamp]
+    func stamp(of path: NotePath) async -> FileStamp?
     func writeNote(_ text: String, at path: NotePath) async throws(VaultError)
     func createNote(at path: NotePath, text: String) async throws(VaultError)
     func createFolder(at path: NotePath) async throws(VaultError)
