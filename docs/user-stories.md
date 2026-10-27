@@ -134,7 +134,7 @@ Acceptance:
 - [unit] An Alias resolves when no Note has that name (`[[Dirt]]` → `Soil.md`).
 - [unit] `[[seedlings.png]]` resolves to an Attachment.
 - [unit] A Link that matches nothing is an Unresolved Link.
-Status: todo
+Status: done
 
 ### M2-03 Follow a Link (⌘-click)
 As a user, I want to ⌘-click a Link to open its target, so that I can move through my Notes.
