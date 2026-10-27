@@ -31,6 +31,12 @@ public final class LinkService {
     }
 
     public private(set) var map = LinkMap.empty
+    public private(set) var openNote: OpenNoteLinks?
+
+    // MARK: - Constants
+
+    public static let mainActorParseLimit = 64 * 1024
+    public static let largeNoteDelay = Duration.milliseconds(200)
 
     // MARK: - Private
 
@@ -42,6 +48,8 @@ public final class LinkService {
     private var pendingBuilds = 0
     private var generation = 0
     @ObservationIgnored private var rebuildTask: Task<Void, Never>?
+    @ObservationIgnored private var openNoteTask: Task<Void, Never>?
+    private var openNoteSource: (path: NotePath, text: String)?
 
     // MARK: - Init
 
@@ -109,6 +117,40 @@ public final class LinkService {
         await rebuildTask?.value
     }
 
+    public func openNoteChanged(_ path: NotePath?, text: String) {
+        openNoteTask?.cancel()
+        guard let path else {
+            openNoteSource = nil
+            openNote = nil
+            return
+        }
+
+        openNoteSource = (path, text)
+        let map = map
+        guard text.utf16.count > Self.mainActorParseLimit else {
+            openNote = Self.analyse(path: path, text: text, map: map)
+            return
+        }
+
+        openNoteTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: Self.largeNoteDelay)
+            } catch {
+                return
+            }
+
+            let analysed = await Self.analyseConcurrently(path: path, text: text, map: map)
+            guard Task.isCancelled == false, let self else {
+                return
+            }
+            openNote = analysed
+        }
+    }
+
+    public func waitForOpenNote() async {
+        await openNoteTask?.value
+    }
+
     // MARK: - Reads
 
     public func parse(_ text: String) -> ParsedNote {
@@ -116,10 +158,34 @@ public final class LinkService {
     }
 
     public func link(at offset: Int, in text: String) -> Link? {
-        parse(text).links.first { $0.span.contains(offset) }
+        let parsed = openNote.flatMap { $0.textLength == text.utf16.count ? $0.parsed : nil } ?? MarkdownNoteParser.parse(text)
+        return parsed.links.first { $0.span.contains(offset) }
     }
 
     // MARK: - Private
+
+    private func refreshOpenNote() {
+        guard let source = openNoteSource else {
+            return
+        }
+
+        openNoteChanged(source.path, text: source.text)
+    }
+
+    private nonisolated static func analyse(path: NotePath, text: String, map: LinkMap) -> OpenNoteLinks {
+        let parsed = MarkdownNoteParser.parse(text)
+        return OpenNoteLinks(
+            path: path,
+            textLength: text.utf16.count,
+            parsed: parsed,
+            highlights: map.highlights(in: parsed, from: path)
+        )
+    }
+
+    @concurrent
+    private nonisolated static func analyseConcurrently(path: NotePath, text: String, map: LinkMap) async -> OpenNoteLinks {
+        analyse(path: path, text: text, map: map)
+    }
 
     private func reset() {
         generation += 1
@@ -146,6 +212,7 @@ public final class LinkService {
             pendingBuilds -= 1
             if current == generation {
                 map = built
+                refreshOpenNote()
             }
         }
     }
