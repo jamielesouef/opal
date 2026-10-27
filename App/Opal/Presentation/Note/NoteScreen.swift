@@ -105,6 +105,7 @@ struct NoteScreen: View {
             .environment(\.noteService, graph.noteService)
             .environment(\.linkService, graph.linkService)
             .environment(\.navigationService, graph.navigationService)
+            .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task {
                 await graph.vaultService.start()
                 await graph.noteService.open(NotePath("Welcome.md"))

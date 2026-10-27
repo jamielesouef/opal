@@ -19,7 +19,7 @@ struct OpalApp: App {
 
     var body: some Scene {
         Window(String(localized: "Opal"), id: "main") {
-            RootScreen(launchNote: AppDependencies.shared.launchNote)
+            RootScreen(launchNote: AppDependencies.shared.launchNote, launchQuickOpen: AppDependencies.shared.launchQuickOpen)
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
                 .defaultAppStorage(AppDependencies.shared.defaults)
         }
@@ -28,7 +28,8 @@ struct OpalApp: App {
             OpalCommands(
                 vault: AppDependencies.shared.vaultService,
                 notes: AppDependencies.shared.noteService,
-                navigation: AppDependencies.shared.navigationService
+                navigation: AppDependencies.shared.navigationService,
+                switcher: AppDependencies.shared.quickSwitcherService
             )
         }
     }

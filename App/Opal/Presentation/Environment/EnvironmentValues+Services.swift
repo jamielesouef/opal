@@ -24,9 +24,14 @@ private let defaultNavigationService = MainActor.assumeIsolated {
     AppDependencies.shared.navigationService
 }
 
+private let defaultQuickSwitcherService = MainActor.assumeIsolated {
+    AppDependencies.shared.quickSwitcherService
+}
+
 extension EnvironmentValues {
     @Entry var vaultService: VaultService = defaultVaultService
     @Entry var noteService: NoteService = defaultNoteService
     @Entry var linkService: LinkService = defaultLinkService
     @Entry var navigationService: NavigationService = defaultNavigationService
+    @Entry var quickSwitcherService: QuickSwitcherService = defaultQuickSwitcherService
 }

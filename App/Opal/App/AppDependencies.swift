@@ -37,7 +37,8 @@ enum AppDependencies {
             vaultService: vaultService,
             defaults: defaults,
             launchNote: arguments.openNote,
-            launchAppearance: appearance
+            launchAppearance: appearance,
+            launchQuickOpen: arguments.quickOpen
         )
     }
 }

@@ -94,6 +94,9 @@ struct VaultScreen: View {
 
             Task { await navigation.open(newSelection) }
         }
+        .sheet(isPresented: $navigation.isQuickSwitcherShown) {
+            QuickSwitcherView()
+        }
         .task(id: vaultService.entries) {
             await links.sync()
         }
@@ -130,6 +133,7 @@ struct VaultScreen: View {
             .environment(\.noteService, graph.noteService)
             .environment(\.linkService, graph.linkService)
             .environment(\.navigationService, graph.navigationService)
+            .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task { await graph.vaultService.start() }
     }
 #endif

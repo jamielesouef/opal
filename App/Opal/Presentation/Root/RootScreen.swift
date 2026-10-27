@@ -15,10 +15,12 @@ struct RootScreen: View {
     @Environment(\.vaultService) private var vault
     @Environment(\.noteService) private var notes
     @Environment(\.navigationService) private var navigation
+    @Environment(\.quickSwitcherService) private var switcher
 
     // MARK: - Input
 
     var launchNote: NotePath?
+    var launchQuickOpen: String?
 
     // MARK: - View
 
@@ -28,6 +30,9 @@ struct RootScreen: View {
                 await vault.start()
                 if let launchNote, vault.isOpen {
                     await navigation.open(launchNote)
+                }
+                if let launchQuickOpen, vault.isOpen {
+                    await VaultActions.showQuickSwitcher(query: launchQuickOpen, switcher: switcher, navigation: navigation)
                 }
             }
     }
@@ -60,6 +65,7 @@ struct RootScreen: View {
             .environment(\.noteService, graph.noteService)
             .environment(\.linkService, graph.linkService)
             .environment(\.navigationService, graph.navigationService)
+            .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }
 
     #Preview("Garden Vault") {
@@ -69,5 +75,6 @@ struct RootScreen: View {
             .environment(\.noteService, graph.noteService)
             .environment(\.linkService, graph.linkService)
             .environment(\.navigationService, graph.navigationService)
+            .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }
 #endif

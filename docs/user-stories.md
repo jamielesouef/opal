@@ -191,7 +191,7 @@ Acceptance:
 - [snap] A panel over the window: a search field and a list with name, Folder, and the Alias when it matched.
 - [manual] ↑ ↓ move, Return opens, Esc closes. With no match, Return creates a Note with the typed name (placed as in M1-07).
 - Later: ⌘Return opens in a new tab, when tabs exist (M5-06).
-Status: todo
+Status: done
 
 ### M2-08 Changes from outside
 As a user who also uses Obsidian, git or a sync tool, I want Opal to show their changes without ⌘R.

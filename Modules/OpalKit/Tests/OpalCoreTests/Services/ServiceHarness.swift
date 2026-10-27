@@ -17,6 +17,8 @@ struct ServiceHarness {
     let notes: NoteService
     let links: LinkService
     let navigation: NavigationService
+    let switcher: QuickSwitcherService
+    let recents: StubRecentNotesStore
 
     // MARK: - Init
 
@@ -32,7 +34,9 @@ struct ServiceHarness {
         vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL) { _ in store }
         links = LinkService(vault: vault)
         notes = NoteService(vault: vault, links: links, saveDelay: .seconds(3600))
-        navigation = NavigationService(vault: vault, notes: notes, links: links)
+        recents = StubRecentNotesStore()
+        navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
+        switcher = QuickSwitcherService(vault: vault, links: links, navigation: navigation)
     }
 
     // MARK: - Steps

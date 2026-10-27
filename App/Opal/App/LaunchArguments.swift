@@ -16,6 +16,7 @@ struct LaunchArguments {
         static let defaultsSuite = "-OpalDefaultsSuite"
         static let openNote = "-OpalOpenNote"
         static let appearance = "-OpalAppearance"
+        static let quickOpen = "-OpalQuickOpen"
     }
 
     // MARK: - Stored
@@ -24,6 +25,7 @@ struct LaunchArguments {
     let defaultsSuite: String?
     let openNote: NotePath?
     let appearance: String?
+    let quickOpen: String?
 
     // MARK: - Init
 
@@ -32,6 +34,7 @@ struct LaunchArguments {
         defaultsSuite = Self.value(after: Constants.defaultsSuite, in: arguments)
         openNote = Self.value(after: Constants.openNote, in: arguments).map(NotePath.init)
         appearance = Self.value(after: Constants.appearance, in: arguments)
+        quickOpen = Self.value(after: Constants.quickOpen, in: arguments)
     }
 
     // MARK: - Private

@@ -14,6 +14,7 @@ struct OpalCommands: Commands {
     let vault: VaultService
     let notes: NoteService
     let navigation: NavigationService
+    let switcher: QuickSwitcherService
 
     // MARK: - Commands
 
@@ -44,6 +45,14 @@ struct OpalCommands: Commands {
         }
 
         CommandMenu(String(localized: "Go")) {
+            Button(String(localized: "Quick Open…")) {
+                Task { await VaultActions.showQuickSwitcher(switcher: switcher, navigation: navigation) }
+            }
+            .keyboardShortcut("o")
+            .disabled(vault.isOpen == false)
+
+            Divider()
+
             Button(String(localized: "Back")) {
                 Task { await navigation.goBack() }
             }

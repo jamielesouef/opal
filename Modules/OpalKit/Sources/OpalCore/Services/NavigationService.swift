@@ -15,6 +15,7 @@ public final class NavigationService {
 
     public private(set) var history = NavigationHistory()
     public private(set) var reveal: RevealRequest?
+    public private(set) var recentNotes: [NotePath] = []
     public var isInspectorShown = true
     public var isQuickSwitcherShown = false
 
@@ -23,15 +24,18 @@ public final class NavigationService {
     private let vault: VaultService
     private let notes: NoteService
     private let links: LinkService
+    private let recents: any RecentNotesStoring
 
     private var nextRevealID = 0
+    private var recentsRoot: URL?
 
     // MARK: - Init
 
-    public init(vault: VaultService, notes: NoteService, links: LinkService) {
+    public init(vault: VaultService, notes: NoteService, links: LinkService, recents: any RecentNotesStoring) {
         self.vault = vault
         self.notes = notes
         self.links = links
+        self.recents = recents
     }
 
     // MARK: - Intent
@@ -41,6 +45,7 @@ public final class NavigationService {
             history.visit(from: notes.path, to: path)
             reveal = nil
             await notes.open(path)
+            await record(path)
         }
 
         guard let line else {
@@ -80,6 +85,7 @@ public final class NavigationService {
 
         reveal = nil
         await notes.open(path)
+        await record(path)
     }
 
     public func goForward() async {
@@ -89,5 +95,27 @@ public final class NavigationService {
 
         reveal = nil
         await notes.open(path)
+        await record(path)
+    }
+
+    public func loadRecentNotes() async {
+        guard let root = vault.store?.rootURL, root != recentsRoot else {
+            return
+        }
+
+        recentsRoot = root
+        recentNotes = await recents.recentNotes(forVaultAt: root)
+    }
+
+    // MARK: - Private
+
+    private func record(_ path: NotePath) async {
+        guard notes.path == path, let root = vault.store?.rootURL else {
+            return
+        }
+
+        await loadRecentNotes()
+        recentNotes = QuickSwitcherMatchUseCase.recording(path, in: recentNotes)
+        await recents.setRecentNotes(recentNotes, forVaultAt: root)
     }
 }
