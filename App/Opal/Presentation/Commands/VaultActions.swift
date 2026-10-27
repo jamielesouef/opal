@@ -53,6 +53,14 @@ enum VaultActions {
         }
     }
 
+    static func follow(_ link: Link, from source: NotePath, vault: VaultService, navigation: NavigationService) async {
+        guard case let .attachment(path) = await navigation.follow(link, from: source) else {
+            return
+        }
+
+        openInDefaultApp(path, vault: vault)
+    }
+
     static func reveal(_ path: NotePath, vault: VaultService) {
         guard let url = vault.url(for: path) else {
             return

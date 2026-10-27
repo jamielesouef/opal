@@ -12,6 +12,12 @@ import OpalCore
 final class OpalAppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - NSApplicationDelegate
 
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        if let name = AppDependencies.shared.launchAppearance {
+            NSApp.appearance = NSAppearance(named: name)
+        }
+    }
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task {
             await AppDependencies.shared.noteService.flush()

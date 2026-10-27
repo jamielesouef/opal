@@ -15,6 +15,8 @@ struct ServiceHarness {
     let locations: StubVaultLocationStore
     let vault: VaultService
     let notes: NoteService
+    let links: LinkService
+    let navigation: NavigationService
 
     // MARK: - Init
 
@@ -28,7 +30,9 @@ struct ServiceHarness {
         self.store = store
         self.locations = locations
         vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL) { _ in store }
-        notes = NoteService(vault: vault, saveDelay: .seconds(3600))
+        links = LinkService(vault: vault)
+        notes = NoteService(vault: vault, links: links, saveDelay: .seconds(3600))
+        navigation = NavigationService(vault: vault, notes: notes, links: links)
     }
 
     // MARK: - Steps
@@ -36,5 +40,11 @@ struct ServiceHarness {
     @MainActor
     func openVault() async {
         await vault.open(folderURL: store.rootURL)
+    }
+
+    @MainActor
+    func openVaultWithLinks() async {
+        await openVault()
+        await links.sync()
     }
 }

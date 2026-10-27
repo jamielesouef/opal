@@ -13,6 +13,8 @@ struct NoteScreen: View {
 
     @Environment(\.vaultService) private var vault
     @Environment(\.noteService) private var notes
+    @Environment(\.linkService) private var links
+    @Environment(\.navigationService) private var navigation
 
     // MARK: - View
 
@@ -57,8 +59,14 @@ struct NoteScreen: View {
     // MARK: - Editor
 
     private func editor(_ note: Note) -> some View {
-        MarkdownTextView(text: note.text) { text in
+        MarkdownTextView(
+            text: note.text,
+            highlights: links.map.highlights(in: links.parse(note.text), from: note.path),
+            reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil }
+        ) { text in
             notes.edit(text)
+        } onFollowLink: { offset in
+            followLink(at: offset)
         }
         .id(note.path)
         .safeAreaInset(edge: .top, spacing: 0) {
@@ -75,6 +83,18 @@ struct NoteScreen: View {
             }
         }
     }
+
+    // MARK: - Links
+
+    private func followLink(at offset: Int) {
+        guard let path = notes.path, let text = notes.loadState.note?.text, let link = links.link(at: offset, in: text) else {
+            return
+        }
+
+        Task {
+            await VaultActions.follow(link, from: path, vault: vault, navigation: navigation)
+        }
+    }
 }
 
 #if DEBUG
@@ -83,6 +103,8 @@ struct NoteScreen: View {
         NoteScreen()
             .environment(\.vaultService, graph.vaultService)
             .environment(\.noteService, graph.noteService)
+            .environment(\.linkService, graph.linkService)
+            .environment(\.navigationService, graph.navigationService)
             .task {
                 await graph.vaultService.start()
                 await graph.noteService.open(NotePath("Welcome.md"))

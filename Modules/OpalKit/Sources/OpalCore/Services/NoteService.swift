@@ -19,6 +19,18 @@ public final class NoteService {
         case failed(NotePath, VaultError)
         case editing(Note)
         case conflict(Note, diskText: String)
+
+        public var note: Note? {
+            switch self {
+            case let .editing(note),
+                 let .conflict(note, _):
+                note
+            case .noNote,
+                 .loading,
+                 .failed:
+                nil
+            }
+        }
     }
 
     public enum SaveStatus: Hashable, Sendable {
@@ -58,6 +70,7 @@ public final class NoteService {
     // MARK: - Private
 
     private let vault: VaultService
+    private let links: LinkService?
     private let saveDelay: Duration
 
     private var draft = ""
@@ -71,8 +84,9 @@ public final class NoteService {
 
     // MARK: - Init
 
-    public init(vault: VaultService, saveDelay: Duration = .milliseconds(800)) {
+    public init(vault: VaultService, links: LinkService? = nil, saveDelay: Duration = .milliseconds(800)) {
         self.vault = vault
+        self.links = links
         self.saveDelay = saveDelay
     }
 
@@ -258,5 +272,6 @@ public final class NoteService {
 
         diskText = text
         saveError = nil
+        links?.update(path, text: text)
     }
 }

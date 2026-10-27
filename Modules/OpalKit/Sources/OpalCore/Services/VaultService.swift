@@ -37,6 +37,7 @@ public final class VaultService: SingleFlightRefreshing {
     public private(set) var tree: [VaultTreeNode] = []
     public private(set) var appSettings = ObsidianAppSettings.defaults
     public private(set) var store: (any VaultFileStoring)?
+    public private(set) var entries: [VaultEntry] = []
 
     // MARK: - SingleFlightRefreshing
 
@@ -50,7 +51,6 @@ public final class VaultService: SingleFlightRefreshing {
     private let makeStore: @Sendable (URL) -> any VaultFileStoring
 
     private var vault: Vault?
-    private var entries: [VaultEntry] = []
     private var kinds: [NotePath: VaultItemKind] = [:]
     private var isOpening = false
     private var error: VaultError?
@@ -120,6 +120,15 @@ public final class VaultService: SingleFlightRefreshing {
         try await store.createNote(at: path, text: "")
         insert(VaultEntry(path: path, kind: .note))
         return path
+    }
+
+    public func createNote(at path: NotePath) async throws(VaultError) {
+        guard let store else {
+            throw .noVaultOpen
+        }
+
+        try await store.createNote(at: path, text: "")
+        insert(VaultEntry(path: path, kind: .note))
     }
 
     public func createFolder(near selection: NotePath?) async throws(VaultError) -> NotePath {

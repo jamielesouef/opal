@@ -145,7 +145,7 @@ Acceptance:
 - [manual] ⌘-click on a Link opens its target. On a Heading or Block Link, the Editor scrolls to that line and puts the cursor there.
 - [manual] A Link to an Attachment opens it in its default app.
 - [manual] A plain click places the cursor as usual. The pointer is a hand only while ⌘ is held over a Link.
-Status: todo
+Status: done
 
 ### M2-04 Unresolved Links
 As a user, I want to see which Links have no Note yet, and create it by following the Link.
@@ -155,7 +155,7 @@ Acceptance:
 - [snap] An Unresolved Link shows fainter than a resolved Link (`[[Ideas That Do Not Exist Yet]]` in `Welcome`).
 - [unit] Following it plans a new Note: a bare name goes where M1-07 places new Notes; a name with a Folder (`[[Ideas/New]]`) goes in that Folder.
 - [manual] The new Note opens and appears in the sidebar. Its Link now shows as resolved.
-Status: todo
+Status: done
 
 ### M2-05 Backlinks
 As a user, I want to see the Notes that link to the open Note, each with the line in context, so that I can see how it connects.

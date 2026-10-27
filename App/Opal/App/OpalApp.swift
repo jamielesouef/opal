@@ -19,7 +19,7 @@ struct OpalApp: App {
 
     var body: some Scene {
         Window(String(localized: "Opal"), id: "main") {
-            RootScreen()
+            RootScreen(launchNote: AppDependencies.shared.launchNote)
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
         }
         .defaultSize(width: EditorMetrics.windowDefaultWidth, height: EditorMetrics.windowDefaultHeight)

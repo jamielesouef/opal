@@ -14,6 +14,11 @@ struct RootScreen: View {
 
     @Environment(\.vaultService) private var vault
     @Environment(\.noteService) private var notes
+    @Environment(\.navigationService) private var navigation
+
+    // MARK: - Input
+
+    var launchNote: NotePath?
 
     // MARK: - View
 
@@ -21,6 +26,9 @@ struct RootScreen: View {
         content
             .task {
                 await vault.start()
+                if let launchNote, vault.isOpen {
+                    await navigation.open(launchNote)
+                }
             }
     }
 
@@ -50,6 +58,8 @@ struct RootScreen: View {
         RootScreen()
             .environment(\.vaultService, graph.vaultService)
             .environment(\.noteService, graph.noteService)
+            .environment(\.linkService, graph.linkService)
+            .environment(\.navigationService, graph.navigationService)
     }
 
     #Preview("Garden Vault") {
@@ -57,5 +67,7 @@ struct RootScreen: View {
         RootScreen()
             .environment(\.vaultService, graph.vaultService)
             .environment(\.noteService, graph.noteService)
+            .environment(\.linkService, graph.linkService)
+            .environment(\.navigationService, graph.navigationService)
     }
 #endif

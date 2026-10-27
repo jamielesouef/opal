@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-import Foundation
+import AppKit
 import OpalCore
 
 @MainActor
@@ -24,6 +24,15 @@ enum AppDependencies {
             launchVaultURL: arguments.vaultURL
         ) { FileSystemVaultStore(rootURL: $0) }
 
-        return AppGraph(vaultService: vaultService, noteService: NoteService(vault: vaultService))
+        let appearance: NSAppearance.Name? = switch arguments.appearance {
+        case "light":
+            .aqua
+        case "dark":
+            .darkAqua
+        default:
+            nil
+        }
+
+        return AppGraph(vaultService: vaultService, launchNote: arguments.openNote, launchAppearance: appearance)
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import OpalCore
 import OpalDesign
 import SwiftUI
 
@@ -13,7 +14,10 @@ struct MarkdownTextView: NSViewRepresentable {
     // MARK: - Input
 
     let text: String
+    var highlights: [LinkHighlight] = []
+    var reveal: RevealRequest?
     var onChange: (String) -> Void = { _ in }
+    var onFollowLink: (Int) -> Void = { _ in }
 
     // MARK: - NSViewRepresentable
 
@@ -23,23 +27,40 @@ struct MarkdownTextView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = FocusingTextView.scrollableTextView()
-        guard let textView = scrollView.documentView as? NSTextView else {
+        guard let textView = scrollView.documentView as? FocusingTextView else {
             return scrollView
         }
 
+        let coordinator = context.coordinator
         configure(textView)
         textView.string = text
-        textView.delegate = context.coordinator
+        textView.delegate = coordinator
+        textView.isLink = { [weak coordinator] offset in
+            coordinator?.isLink(at: offset) ?? false
+        }
+        textView.onFollowLink = { [weak coordinator] offset in
+            coordinator?.onFollowLink(offset)
+        }
+        coordinator.onFollowLink = onFollowLink
+        coordinator.apply(highlights, to: textView)
+        coordinator.apply(reveal, to: textView)
         return scrollView
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        context.coordinator.onChange = onChange
-        guard let textView = scrollView.documentView as? NSTextView, textView.string != text else {
+        let coordinator = context.coordinator
+        coordinator.onChange = onChange
+        coordinator.onFollowLink = onFollowLink
+        guard let textView = scrollView.documentView as? NSTextView else {
             return
         }
 
-        textView.string = text
+        if textView.string != text {
+            textView.string = text
+        }
+
+        coordinator.apply(highlights, to: textView)
+        coordinator.apply(reveal, to: textView)
     }
 
     // MARK: - Helpers
@@ -62,13 +83,24 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.textColor = .textColor
         textView.backgroundColor = .textBackgroundColor
         textView.textContainerInset = NSSize(width: EditorMetrics.textInset, height: EditorMetrics.textInset)
+        textView.typingAttributes = [
+            .font: NSFont.systemFont(ofSize: EditorMetrics.fontSize),
+            .foregroundColor: NSColor.textColor
+        ]
     }
 }
 
 #if DEBUG
     #Preview("Note") {
-        MarkdownTextView(text: "---\ntags: [garden]\n---\n# Soil\n\nSoil is a mix of sand, silt, clay and organic matter.\n")
-            .frame(width: 600, height: 300)
+        let text = "# Soil\n\nSee [[Tomatoes]] and [[Nowhere]].\n"
+        MarkdownTextView(
+            text: text,
+            highlights: [
+                LinkHighlight(span: TextSpan(location: 12, length: 12), isResolved: true),
+                LinkHighlight(span: TextSpan(location: 29, length: 11), isResolved: false)
+            ]
+        )
+        .frame(width: 600, height: 300)
     }
 
     #Preview("Empty") {

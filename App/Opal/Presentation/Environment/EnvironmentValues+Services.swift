@@ -16,7 +16,17 @@ private let defaultNoteService = MainActor.assumeIsolated {
     AppDependencies.shared.noteService
 }
 
+private let defaultLinkService = MainActor.assumeIsolated {
+    AppDependencies.shared.linkService
+}
+
+private let defaultNavigationService = MainActor.assumeIsolated {
+    AppDependencies.shared.navigationService
+}
+
 extension EnvironmentValues {
     @Entry var vaultService: VaultService = defaultVaultService
     @Entry var noteService: NoteService = defaultNoteService
+    @Entry var linkService: LinkService = defaultLinkService
+    @Entry var navigationService: NavigationService = defaultNavigationService
 }

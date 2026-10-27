@@ -14,6 +14,8 @@ struct VaultScreen: View {
 
     @Environment(\.vaultService) private var vaultService
     @Environment(\.noteService) private var notes
+    @Environment(\.linkService) private var links
+    @Environment(\.navigationService) private var navigation
 
     // MARK: - State
 
@@ -54,7 +56,10 @@ struct VaultScreen: View {
                 return
             }
 
-            Task { await notes.open(newSelection) }
+            Task { await navigation.open(newSelection) }
+        }
+        .task(id: vaultService.entries) {
+            await links.sync()
         }
         .onChange(of: notes.path) { _, openPath in
             guard let openPath else {
@@ -87,6 +92,8 @@ struct VaultScreen: View {
         VaultScreen(vault: Vault(rootURL: PreviewGraph.gardenRoot))
             .environment(\.vaultService, graph.vaultService)
             .environment(\.noteService, graph.noteService)
+            .environment(\.linkService, graph.linkService)
+            .environment(\.navigationService, graph.navigationService)
             .task { await graph.vaultService.start() }
     }
 #endif
