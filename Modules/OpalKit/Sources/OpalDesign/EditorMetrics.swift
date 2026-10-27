@@ -15,6 +15,7 @@ public enum EditorMetrics {
     public static let inspectorMinWidth: CGFloat = 220
     public static let inspectorIdealWidth: CGFloat = 280
     public static let inspectorMaxWidth: CGFloat = 420
+    public static let suggestionWidth: CGFloat = 320
     public static let switcherWidth: CGFloat = 560
     public static let switcherHeight: CGFloat = 380
     public static let welcomeWidth: CGFloat = 420

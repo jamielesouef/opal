@@ -13,6 +13,10 @@ final class FocusingTextView: NSTextView {
     var isLink: (Int) -> Bool = { _ in false }
     var onFollowLink: (Int) -> Void = { _ in }
 
+    // MARK: - Commands
+
+    var handleCommand: (Selector) -> Bool = { _ in false }
+
     // MARK: - NSView
 
     override func viewDidMoveToWindow() {
@@ -38,6 +42,24 @@ final class FocusingTextView: NSTextView {
         }
 
         NSCursor.pointingHand.set()
+    }
+
+    // MARK: - NSTextView
+
+    override func doCommand(by selector: Selector) {
+        guard handleCommand(selector) == false else {
+            return
+        }
+
+        super.doCommand(by: selector)
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let resigned = super.resignFirstResponder()
+        if resigned {
+            _ = handleCommand(#selector(NSResponder.cancelOperation(_:)))
+        }
+        return resigned
     }
 
     // MARK: - Private

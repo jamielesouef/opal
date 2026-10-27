@@ -16,8 +16,11 @@ struct MarkdownTextView: NSViewRepresentable {
     let text: String
     var highlights: [LinkHighlight] = []
     var reveal: RevealRequest?
+    var typeOnAppear: String?
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
+    var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
+    var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
 
     // MARK: - NSViewRepresentable
 
@@ -41,9 +44,25 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.onFollowLink = { [weak coordinator] offset in
             coordinator?.onFollowLink(offset)
         }
+        textView.handleCommand = { [weak coordinator, weak textView] selector in
+            guard let textView, let coordinator else {
+                return false
+            }
+            return coordinator.handleCommand(selector, in: textView)
+        }
         coordinator.onFollowLink = onFollowLink
+        coordinator.linkSuggestions = linkSuggestions
+        coordinator.linkInsertion = linkInsertion
         coordinator.apply(highlights, to: textView)
         coordinator.apply(reveal, to: textView)
+        if let typeOnAppear {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(1))
+                let end = NSRange(location: (textView.string as NSString).length, length: 0)
+                textView.setSelectedRange(end)
+                textView.insertText(typeOnAppear, replacementRange: end)
+            }
+        }
         return scrollView
     }
 
@@ -51,6 +70,8 @@ struct MarkdownTextView: NSViewRepresentable {
         let coordinator = context.coordinator
         coordinator.onChange = onChange
         coordinator.onFollowLink = onFollowLink
+        coordinator.linkSuggestions = linkSuggestions
+        coordinator.linkInsertion = linkInsertion
         guard let textView = scrollView.documentView as? NSTextView else {
             return
         }
@@ -61,6 +82,10 @@ struct MarkdownTextView: NSViewRepresentable {
 
         coordinator.apply(highlights, to: textView)
         coordinator.apply(reveal, to: textView)
+    }
+
+    static func dismantleNSView(_ scrollView: NSScrollView, coordinator: MarkdownTextViewCoordinator) {
+        coordinator.hideSuggestions()
     }
 
     // MARK: - Helpers

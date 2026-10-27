@@ -34,4 +34,5 @@ extension EnvironmentValues {
     @Entry var linkService: LinkService = defaultLinkService
     @Entry var navigationService: NavigationService = defaultNavigationService
     @Entry var quickSwitcherService: QuickSwitcherService = defaultQuickSwitcherService
+    @Entry var launchTypeText: String?
 }

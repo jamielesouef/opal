@@ -20,6 +20,7 @@ struct AppGraph {
     let launchNote: NotePath?
     let launchAppearance: NSAppearance.Name?
     let launchQuickOpen: String?
+    let launchTypeText: String?
     let defaults: UserDefaults
 
     // MARK: - Init
@@ -29,7 +30,8 @@ struct AppGraph {
         defaults: UserDefaults,
         launchNote: NotePath? = nil,
         launchAppearance: NSAppearance.Name? = nil,
-        launchQuickOpen: String? = nil
+        launchQuickOpen: String? = nil,
+        launchTypeText: String? = nil
     ) {
         let linkService = LinkService(vault: vaultService)
         let noteService = NoteService(vault: vaultService, links: linkService)
@@ -37,6 +39,7 @@ struct AppGraph {
         self.launchNote = launchNote
         self.launchAppearance = launchAppearance
         self.launchQuickOpen = launchQuickOpen
+        self.launchTypeText = launchTypeText
         self.defaults = defaults
         self.noteService = noteService
         self.linkService = linkService

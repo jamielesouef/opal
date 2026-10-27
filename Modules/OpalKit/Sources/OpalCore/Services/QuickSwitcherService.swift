@@ -34,6 +34,26 @@ public final class QuickSwitcherService {
         newNotePath != nil && results.isEmpty
     }
 
+    // MARK: - Link suggestions
+
+    public func linkSuggestions(for query: String) -> [LinkSuggestion] {
+        LinkSuggestionUseCase.suggestions(
+            for: query,
+            candidates: candidates,
+            unresolved: links.map.unresolvedTargets,
+            recent: navigation.recentNotes
+        )
+    }
+
+    public func linkInsertion(for suggestion: LinkSuggestion, from source: NotePath) -> String {
+        LinkSuggestionUseCase.insertion(
+            for: suggestion,
+            from: source,
+            resolver: links.map.resolver,
+            useMarkdownLinks: vault.appSettings.useMarkdownLinks
+        )
+    }
+
     // MARK: - Private
 
     private let vault: VaultService

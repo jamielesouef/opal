@@ -15,6 +15,16 @@ struct OpalApp: App {
 
     @NSApplicationDelegateAdaptor(OpalAppDelegate.self) private var appDelegate
 
+    // MARK: - Launch
+
+    private static var launchTypeText: String? {
+        #if DEBUG
+            AppDependencies.shared.launchTypeText
+        #else
+            nil
+        #endif
+    }
+
     // MARK: - Scene
 
     var body: some Scene {
@@ -22,6 +32,7 @@ struct OpalApp: App {
             RootScreen(launchNote: AppDependencies.shared.launchNote, launchQuickOpen: AppDependencies.shared.launchQuickOpen)
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
                 .defaultAppStorage(AppDependencies.shared.defaults)
+                .environment(\.launchTypeText, Self.launchTypeText)
         }
         .defaultSize(width: EditorMetrics.windowDefaultWidth, height: EditorMetrics.windowDefaultHeight)
         .commands {

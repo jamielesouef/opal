@@ -40,7 +40,8 @@ enum AppDependencies {
             defaults: defaults,
             launchNote: arguments.openNote,
             launchAppearance: appearance,
-            launchQuickOpen: arguments.quickOpen
+            launchQuickOpen: arguments.quickOpen,
+            launchTypeText: arguments.typeText
         )
     }
 }

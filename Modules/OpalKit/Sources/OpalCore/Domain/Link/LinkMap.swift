@@ -16,6 +16,7 @@ public struct LinkMap: Sendable {
 
     public let parsed: [NotePath: ParsedNote]
     public let resolver: LinkResolver
+    public let unresolvedTargets: [String]
 
     private let backlinksByTarget: [NotePath: [Backlink]]
 
@@ -24,9 +25,14 @@ public struct LinkMap: Sendable {
     public init(paths: [NotePath], parsed: [NotePath: ParsedNote]) {
         let resolver = LinkResolver(paths: paths, aliases: parsed.compactMapValues { $0.aliases.isEmpty ? nil : $0.aliases })
         var backlinks: [NotePath: [Backlink]] = [:]
+        var unresolved: [String: String] = [:]
         for (source, note) in parsed {
             for link in note.links {
-                guard let target = resolver.resolve(link.target, from: source), target != source else {
+                guard let target = resolver.resolve(link.target, from: source) else {
+                    unresolved[link.target.lowercased()] = unresolved[link.target.lowercased()] ?? link.target
+                    continue
+                }
+                guard target != source else {
                     continue
                 }
                 backlinks[target, default: []].append(Backlink(source: source, link: link))
@@ -35,6 +41,7 @@ public struct LinkMap: Sendable {
 
         self.parsed = parsed
         self.resolver = resolver
+        unresolvedTargets = unresolved.values.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
         backlinksByTarget = backlinks.mapValues { links in
             links.sorted { lhs, rhs in
                 if lhs.source != rhs.source {

@@ -17,6 +17,7 @@ struct LaunchArguments {
         static let openNote = "-OpalOpenNote"
         static let appearance = "-OpalAppearance"
         static let quickOpen = "-OpalQuickOpen"
+        static let typeText = "-OpalTypeText"
     }
 
     // MARK: - Stored
@@ -26,6 +27,7 @@ struct LaunchArguments {
     let openNote: NotePath?
     let appearance: String?
     let quickOpen: String?
+    let typeText: String?
 
     // MARK: - Init
 
@@ -35,6 +37,7 @@ struct LaunchArguments {
         openNote = Self.value(after: Constants.openNote, in: arguments).map(NotePath.init)
         appearance = Self.value(after: Constants.appearance, in: arguments)
         quickOpen = Self.value(after: Constants.quickOpen, in: arguments)
+        typeText = Self.value(after: Constants.typeText, in: arguments)
     }
 
     // MARK: - Private

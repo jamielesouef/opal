@@ -215,7 +215,7 @@ Acceptance:
 - [manual] ↑ ↓ choose, Return or Tab inserts, Esc closes. The insert is one undo step.
 - [unit] The inserted Link is the shortest path that resolves to the chosen Note; an Alias inserts `[[Note|Alias]]`; `useMarkdownLinks: true` inserts `[Name](path.md)` with spaces as `%20`.
 - Later: `#` Headings and `^` Blocks of the chosen Note inside `[[`.
-Status: todo
+Status: done
 
 ### M2-10 Back and forward
 As a user who follows Links, I want to go back to the Note I came from.

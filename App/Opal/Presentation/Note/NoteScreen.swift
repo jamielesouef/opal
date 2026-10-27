@@ -15,6 +15,8 @@ struct NoteScreen: View {
     @Environment(\.noteService) private var notes
     @Environment(\.linkService) private var links
     @Environment(\.navigationService) private var navigation
+    @Environment(\.quickSwitcherService) private var switcher
+    @Environment(\.launchTypeText) private var launchTypeText
 
     // MARK: - View
 
@@ -62,11 +64,16 @@ struct NoteScreen: View {
         MarkdownTextView(
             text: note.text,
             highlights: links.map.highlights(in: links.parse(note.text), from: note.path),
-            reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil }
+            reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
+            typeOnAppear: launchTypeText
         ) { text in
             notes.edit(text)
         } onFollowLink: { offset in
             followLink(at: offset)
+        } linkSuggestions: { query in
+            switcher.linkSuggestions(for: query)
+        } linkInsertion: { suggestion in
+            switcher.linkInsertion(for: suggestion, from: note.path)
         }
         .id(note.path)
         .safeAreaInset(edge: .top, spacing: 0) {
