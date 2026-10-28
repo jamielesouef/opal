@@ -26,6 +26,11 @@ struct NoteScreen: View {
     // MARK: - State
 
     @AppStorage(EditorPreferences.liveMarkdownKey) private var isLiveMarkdown = true
+    @AppStorage(EditorPreferences.fontDesignKey) private var fontDesign = EditorFontDesign.system
+    @AppStorage(EditorPreferences.fontSizeKey) private var fontSize = Double(EditorStyle.defaults.size)
+    @AppStorage(EditorPreferences.lineSpacingKey) private var lineSpacing = Double(EditorStyle.defaults.lineSpacing)
+    @AppStorage(EditorPreferences.lineWidthKey) private var lineWidth = Double(EditorStyle.defaults.lineWidth)
+    @AppStorage(EditorPreferences.checksSpellingKey) private var checksSpelling = EditorStyle.defaults.checksSpelling
     @State private var readingBlocks: [ReadingBlock] = []
     @State private var readingTopLine = 0
 
@@ -37,6 +42,10 @@ struct NoteScreen: View {
 
     private var document: NoteDocument? {
         path.flatMap(notes.document(for:))
+    }
+
+    private var style: EditorStyle {
+        EditorStyle(design: fontDesign, size: fontSize, lineSpacing: lineSpacing, lineWidth: lineWidth, checksSpelling: checksSpelling)
     }
 
     private var isFocused: Bool {
@@ -122,7 +131,8 @@ struct NoteScreen: View {
             insertion: isFocused ? templates.insertion.flatMap { $0.path == note.path ? $0 : nil } : nil,
             initialTopOffset: navigation.topOffset(inPane: pane),
             typeOnAppear: isFocused ? launch.typeText : nil,
-            takesFocusOnAppear: isFocused
+            takesFocusOnAppear: isFocused,
+            style: style
         ) { text in
             document.edit(text)
         } onFollowLink: { offset in
@@ -139,6 +149,7 @@ struct NoteScreen: View {
             Task { await navigation.focusPane(pane) }
         }
         .id(note.path)
+        .id(style)
         .safeAreaInset(edge: .top, spacing: 0) {
             VStack(spacing: 0) {
                 if case .conflict = document.loadState {

@@ -37,5 +37,10 @@ struct OpalApp: App {
                 defaults: AppDependencies.shared.defaults
             )
         }
+
+        Settings {
+            SettingsScreen()
+                .defaultAppStorage(AppDependencies.shared.defaults)
+        }
     }
 }

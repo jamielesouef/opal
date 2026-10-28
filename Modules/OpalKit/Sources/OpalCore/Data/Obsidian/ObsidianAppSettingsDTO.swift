@@ -13,8 +13,20 @@ struct ObsidianAppSettingsDTO: Decodable {
     let attachmentFolderPath: String?
     let useMarkdownLinks: Bool?
     let newLinkFormat: String?
+    let alwaysUpdateLinks: Bool?
 
     // MARK: - Domain
+
+    func toVaultSettings() -> VaultSettings {
+        VaultSettings(
+            newFileLocation: newFileLocation.flatMap(NewFileLocation.init(rawValue:)),
+            newFileFolderPath: newFileFolderPath,
+            attachmentFolderPath: attachmentFolderPath,
+            useMarkdownLinks: useMarkdownLinks,
+            newLinkFormat: newLinkFormat.flatMap(LinkFormat.init(rawValue:)),
+            alwaysUpdateLinks: alwaysUpdateLinks
+        )
+    }
 
     func toDomain() -> ObsidianAppSettings {
         let defaults = ObsidianAppSettings.defaults

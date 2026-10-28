@@ -35,9 +35,21 @@ public final class VaultService: SingleFlightRefreshing {
     }
 
     public private(set) var tree: [VaultTreeNode] = []
-    public private(set) var appSettings = ObsidianAppSettings.defaults
+    public private(set) var vaultSettings = VaultSettings()
+    public var opalSettings = OpalSettings.defaults
+
+    public var appSettings: ObsidianAppSettings {
+        SettingsUseCase.appSettings(opalSettings, vault: vaultSettings)
+    }
+
+    public var dailyNoteSettings: DailyNoteSettings {
+        SettingsUseCase.dailyNoteSettings(opalSettings, vault: vaultSettings)
+    }
+
+    public var linkUpdate: LinkUpdate {
+        SettingsUseCase.linkUpdate(opalSettings, vault: vaultSettings)
+    }
     public private(set) var propertyTypes: [String: PropertyType] = [:]
-    public private(set) var dailyNoteSettings = DailyNoteSettings.defaults
     public private(set) var templateSettings = TemplateSettings.defaults
     public private(set) var store: (any VaultFileStoring)?
     public private(set) var entries: [VaultEntry] = []
@@ -289,18 +301,17 @@ public final class VaultService: SingleFlightRefreshing {
             return
         }
 
-        let settings = await ObsidianAppSettingsParser.parse(
-            newStore.readObsidianSettings(named: ObsidianAppSettingsParser.fileName)
+        let settings = await ObsidianVaultSettingsParser.parse(
+            app: newStore.readObsidianSettings(named: ObsidianAppSettingsParser.fileName),
+            dailyNotes: newStore.readObsidianSettings(named: ObsidianDailyNotesParser.fileName)
         )
 
         let types = await ObsidianTypesParser.parse(newStore.readObsidianSettings(named: ObsidianTypesParser.fileName))
-        let daily = await ObsidianDailyNotesParser.parse(newStore.readObsidianSettings(named: ObsidianDailyNotesParser.fileName))
         let templates = await ObsidianTemplatesParser.parse(newStore.readObsidianSettings(named: ObsidianTemplatesParser.fileName))
 
         store = newStore
-        appSettings = settings
+        vaultSettings = settings
         propertyTypes = types
-        dailyNoteSettings = daily ?? .defaults
         templateSettings = templates ?? .defaults
         vault = Vault(rootURL: folderURL)
         apply(listed, tree: await Self.tree(from: listed))
@@ -331,9 +342,8 @@ public final class VaultService: SingleFlightRefreshing {
         accessedURL = nil
         vault = nil
         store = nil
-        appSettings = .defaults
+        vaultSettings = VaultSettings()
         propertyTypes = [:]
-        dailyNoteSettings = .defaults
         templateSettings = .defaults
         apply([])
     }

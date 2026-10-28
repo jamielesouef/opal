@@ -21,6 +21,7 @@ struct MarkdownTextView: NSViewRepresentable {
     var initialTopOffset = 0
     var typeOnAppear: String?
     var takesFocusOnAppear = true
+    var style = EditorStyle.defaults
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
     var onScroll: (Int) -> Void = { _ in }
@@ -42,6 +43,8 @@ struct MarkdownTextView: NSViewRepresentable {
         }
 
         let coordinator = context.coordinator
+        coordinator.style = style
+        textView.editorStyle = style
         configure(textView)
         textView.takesFocusOnAppear = takesFocusOnAppear
         textView.onFocus = onFocus
@@ -151,7 +154,7 @@ struct MarkdownTextView: NSViewRepresentable {
 
     // MARK: - Helpers
 
-    private func configure(_ textView: NSTextView) {
+    private func configure(_ textView: FocusingTextView) {
         textView.isRichText = false
         textView.importsGraphics = false
         textView.allowsUndo = true
@@ -164,12 +167,13 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.isAutomaticLinkDetectionEnabled = false
         textView.isAutomaticDataDetectionEnabled = false
         textView.isAutomaticTextCompletionEnabled = false
-        textView.isContinuousSpellCheckingEnabled = true
-        textView.font = .systemFont(ofSize: EditorMetrics.fontSize)
+        textView.isContinuousSpellCheckingEnabled = style.checksSpelling
+        textView.font = style.font()
+        textView.defaultParagraphStyle = style.paragraph
         textView.textColor = .textColor
         textView.backgroundColor = .textBackgroundColor
-        textView.textContainerInset = NSSize(width: EditorMetrics.textInset, height: EditorMetrics.textInset)
-        textView.typingAttributes = MarkdownStyler.baseAttributes
+        textView.textContainerInset = NSSize(width: style.horizontalInset(forWidth: textView.frame.width), height: EditorMetrics.textInset)
+        textView.typingAttributes = style.baseAttributes
     }
 }
 

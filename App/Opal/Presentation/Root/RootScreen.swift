@@ -20,11 +20,22 @@ struct RootScreen: View {
     @Environment(\.launchRequest) private var launch
     @Environment(\.dailyNoteService) private var dailyNotes
     @Environment(\.templateService) private var templates
+    @Environment(\.openSettings) private var openSettings
+
+    // MARK: - Preferences
+
+    @AppStorage(EditorPreferences.appearanceKey) private var appearance = AppearanceChoice.system
+    @AppStorage(EditorPreferences.settingsTabKey) private var settingsTab = SettingsTab.editor
 
     // MARK: - View
 
     var body: some View {
         content
+            .onChange(of: appearance, initial: true) { _, choice in
+                if AppDependencies.shared.launchAppearance == nil {
+                    NSApp.appearance = choice.appearance
+                }
+            }
             .task {
                 await vault.start()
                 if vault.isOpen {
@@ -39,6 +50,10 @@ struct RootScreen: View {
                 if let split = launch.splitNote, vault.isOpen {
                     await navigation.splitRight()
                     await navigation.open(split)
+                }
+                if let tab = launch.settingsTab.flatMap(SettingsTab.init(rawValue:)) {
+                    settingsTab = tab
+                    openSettings()
                 }
                 if launch.opensDailyNote, vault.isOpen {
                     await dailyNotes.openToday()

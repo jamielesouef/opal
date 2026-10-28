@@ -24,6 +24,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     private var lastInsertionID: Int?
     private var appliedLength: Int?
     var lastText: String?
+    var style = EditorStyle.defaults
     private var marks: [TextSpan] = []
     private var activeRange = NSRange(location: NSNotFound, length: 0)
     private var styled = IndexSet()
@@ -272,7 +273,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
 
         styled.formUnion(missing)
         for range in missing.rangeView {
-            MarkdownStyler.apply(styles, to: storage, in: NSRange(location: range.lowerBound, length: range.count), activeRange: activeRange)
+            MarkdownStyler.apply(styles, to: storage, in: NSRange(location: range.lowerBound, length: range.count), activeRange: activeRange, style: style)
         }
     }
 

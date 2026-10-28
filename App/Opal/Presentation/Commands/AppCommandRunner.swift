@@ -20,12 +20,13 @@ struct AppCommandRunner {
     let dailyNotes: DailyNoteService
     let templates: TemplateService
     let toggleLiveMarkdown: () -> Void
+    let openSettings: () -> Void
 
     // MARK: - State
 
     func isEnabled(_ command: AppCommand) -> Bool {
         switch command {
-        case .openVault, .createVault, .toggleInspector, .toggleLiveMarkdown:
+        case .settings, .openVault, .createVault, .toggleInspector, .toggleLiveMarkdown:
             true
         case .newNote, .newFolder, .reloadVault, .quickSwitcher, .dailyNote, .searchVault, .back, .forward, .newTab, .closeTab, .nextTab, .previousTab:
             vault.isOpen
@@ -44,6 +45,8 @@ struct AppCommandRunner {
         }
 
         switch command {
+        case .settings:
+            openSettings()
         case .newNote:
             Task { await VaultActions.createNote(vault: vault, navigation: navigation) }
         case .duplicateNote:

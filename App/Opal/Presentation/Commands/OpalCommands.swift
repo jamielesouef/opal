@@ -19,6 +19,10 @@ struct OpalCommands: Commands {
     let dailyNotes: DailyNoteService
     let templates: TemplateService
 
+    // MARK: - Environment
+
+    @Environment(\.openSettings) private var openSettings
+
     // MARK: - Preferences
 
     @AppStorage private var isLiveMarkdown: Bool
@@ -47,13 +51,18 @@ struct OpalCommands: Commands {
             search: search,
             dailyNotes: dailyNotes,
             templates: templates,
-            toggleLiveMarkdown: { isLiveMarkdown.toggle() }
+            toggleLiveMarkdown: { isLiveMarkdown.toggle() },
+            openSettings: { openSettings() }
         )
     }
 
     // MARK: - Commands
 
     var body: some Commands {
+        CommandGroup(replacing: .appSettings) {
+            runner.button(.settings)
+        }
+
         CommandGroup(replacing: .newItem) {
             runner.button(.newNote)
             runner.button(.newTab)

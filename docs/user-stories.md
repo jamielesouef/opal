@@ -399,7 +399,7 @@ Acceptance:
 - [unit] When the Note is missing it is created from the Template with `{{date}}`, `{{time}}`, `{{title}}` and `{{date:FORMAT}}` filled in; a missing Template gives an empty Note. An existing Daily Note is opened, never overwritten.
 - [snap] Go › Today's Daily Note (⌥⌘D) and a toolbar button (calendar icon) open it.
 - [manual] Opening it twice in a day opens the same Note.
-Status: done (28/10/2026; `DailyNoteUseCaseTests`, `DailyNoteServiceTests`, `opal-m5-01-daily-note.png`). Until Settings (M5-11) exist, a Vault without `daily-notes.json` uses the defaults.
+Status: done (28/10/2026; `DailyNoteUseCaseTests`, `DailyNoteServiceTests`, `opal-m5-01-daily-note.png`). A Vault without `daily-notes.json` uses Opal's Daily Notes settings (M5-11).
 
 ### M5-02 Insert a Template
 As a writer, I want to insert a Template at the cursor, so that I can reuse a structure.
@@ -421,7 +421,7 @@ Acceptance:
 - [snap] Rename… in the Folder tree's context menu, or Return on a selected Note, edits the name in place.
 - [snap] When other Notes link to it, a sheet says "Update Links in N Notes?" with Update, Don't Update and Cancel; a setting (M5-11) can choose always or never.
 - [unit] The file is renamed first, then each linking Note is written atomically; the open Note, its tab and the history follow the new path. The Index and Link map are updated.
-Status: done (28/10/2026; `RenameUseCaseTests`, `RenameServiceTests`, `opal-m5-03-rename-inline.png`). The "Update Links" sheet always asks until Settings (M5-11) add always and never. Typing a name, Return and the sheet are [manual].
+Status: done (28/10/2026; `RenameUseCaseTests`, `RenameServiceTests`, `opal-m5-03-rename-inline.png`). Settings › Files and Links chooses Ask, Always or Never for the "Update Links" sheet (M5-11). Typing a name, Return and the sheet are [manual].
 
 ### M5-04 Rename a Folder
 As a user, I want to rename a Folder and keep Links into it working.
@@ -494,7 +494,13 @@ Acceptance:
 - [snap] A standard Settings window with Editor (font, size, line width, line spacing, spell check, live Markdown), Files and Links (new Note location, Attachment folder, wikilinks or Markdown links, update Links on rename: ask, always, never), Daily Notes (Folder, format with a live preview, Template) and Appearance (system, light, dark).
 - [unit] Settings live in Opal's preferences (the `-OpalDefaultsSuite` suite in tests), never in the Vault. Where the Vault's `.obsidian` files set a value, that value wins and the setting says "Set by this Vault's Obsidian settings".
 - [manual] Changing a setting applies at once to the open Editor.
-Status: todo
+UX:
+- Flow: Opal › Settings… (⌘,), or Settings… in the Command Palette -> the Settings window opens on the last tab -> each change applies at once -> Close (⌘W) or Escape. No Save button and no confirmation.
+- Surface: the standard Settings window (a place people come back to beside the work), with a toolbar of four tabs: Editor, Files and Links, Daily Notes, Appearance. Grouped `Form` rows.
+- States: with no Vault open, Files and Links and Daily Notes show Opal's values and say "Open a Vault to see its Obsidian settings." When the Vault's `.obsidian` sets a value, the control is disabled and shows "Set by this Vault's Obsidian settings" under it. An unknown date format shows the preview as written.
+- Words: Font, Size, Line width, Line spacing, "Check spelling while typing", Live Markdown; "Where new Notes go" (Vault root, Same Folder as the open Note, In this Folder), Attachment Folder, "Use Markdown Links" (off writes `[[wikilinks]]`), "Update Links when a Note or Folder is renamed or moved" (Ask, Always, Never); Daily Notes: Folder, Date format with "Today: 2026-10-29", Template; Appearance: System, Light, Dark.
+- Access: every row is a native control with a label, so VoiceOver reads the label and value. The tabs are reachable with ⌘, then Tab.
+Status: done (29/10/2026; `SettingsServiceTests`, `opal-m5-11-settings-*.png`, `opal-m5-11-editor-style.png`). Files and Links and Daily Notes live in `OpalSettings`, saved as JSON in Opal's preferences. Each key the Vault's `app.json` or `daily-notes.json` sets wins and is marked; `alwaysUpdateLinks: true` means Always. Editor and Appearance are Opal-only and live in the same preferences suite (`@AppStorage`). Changing an Editor setting rebuilds the Editor, so the caret goes back to the start. Reading view keeps the default font. `-OpalAppearance` still wins over the Appearance setting. Settings… is also in the Command Palette. Changing settings live is [manual].
 
 ### M5-12 More than one window
 As a user with two Vaults, I want each in its own window.

@@ -7,6 +7,7 @@
 
 import AppKit
 import OpalCore
+import OpalDesign
 
 final class FocusingTextView: NSTextView {
     // MARK: - Links
@@ -23,9 +24,18 @@ final class FocusingTextView: NSTextView {
     // MARK: - Focus
 
     var takesFocusOnAppear = true
+    var editorStyle = EditorStyle.defaults
     var onFocus: () -> Void = {}
 
     // MARK: - NSView
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        let inset = editorStyle.horizontalInset(forWidth: newSize.width)
+        if textContainerInset.width != inset {
+            textContainerInset = NSSize(width: inset, height: EditorMetrics.textInset)
+        }
+    }
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()

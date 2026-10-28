@@ -23,6 +23,7 @@ struct AppGraph {
     let dailyNoteService: DailyNoteService
     let templateService: TemplateService
     let renameService: RenameService
+    let settingsService: SettingsService
     let launchRequest: LaunchRequest
     let launchAppearance: NSAppearance.Name?
     let launchSnapshotURL: URL?
@@ -64,6 +65,8 @@ struct AppGraph {
         templateService = TemplateService(vault: vaultService, notes: noteService, clock: SystemClock())
         dailyNoteService = DailyNoteService(vault: vaultService, links: linkService, navigation: navigationService, clock: SystemClock())
         mentionService = MentionService(vault: vaultService, index: indexService, links: linkService, notes: noteService)
+        settingsService = SettingsService(vault: vaultService, store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock())
+        settingsService.load()
         vaultService.onExternalChange = { [linkService, noteService, indexService] paths in
             await indexService.update(paths)
             await linkService.refresh(paths)

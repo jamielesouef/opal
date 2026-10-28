@@ -24,4 +24,5 @@ struct LaunchRequest {
     var showsCommandPalette = false
     var extraTabs: [NotePath] = []
     var splitNote: NotePath?
+    var settingsTab: String?
 }

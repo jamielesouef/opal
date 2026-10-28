@@ -20,25 +20,15 @@ enum MarkdownStyler {
         static let windowMargin = 3000
     }
 
-    // MARK: - Base
-
-    static var baseFont: NSFont {
-        .systemFont(ofSize: EditorMetrics.fontSize)
-    }
-
-    static var baseAttributes: [NSAttributedString.Key: Any] {
-        [.font: baseFont, .foregroundColor: NSColor.textColor, .paragraphStyle: NSParagraphStyle.default]
-    }
-
     // MARK: - Apply
 
-    static func apply(_ runs: [TextStyleRun], to storage: NSTextStorage, in window: NSRange, activeRange: NSRange) {
-        let styled = NSMutableAttributedString(string: (storage.string as NSString).substring(with: window), attributes: baseAttributes)
+    static func apply(_ runs: [TextStyleRun], to storage: NSTextStorage, in window: NSRange, activeRange: NSRange, style editorStyle: EditorStyle) {
+        let styled = NSMutableAttributedString(string: (storage.string as NSString).substring(with: window), attributes: editorStyle.baseAttributes)
         let localActive = NSRange(location: activeRange.location == NSNotFound ? NSNotFound : activeRange.location - window.location, length: activeRange.length)
         for run in slice(runs, in: window).sorted(by: { phase($0.kind) < phase($1.kind) }) where run.span.upperBound <= storage.length {
             let range = NSIntersectionRange(NSRange(location: run.span.location, length: run.span.length), window)
             let local = NSRange(location: range.location - window.location, length: range.length)
-            style(run.kind, range: local, in: styled, isActive: touches(local, localActive))
+            style(run.kind, range: local, in: styled, isActive: touches(local, localActive), editorStyle: editorStyle)
         }
 
         storage.beginEditing()
@@ -127,40 +117,40 @@ enum MarkdownStyler {
         }
     }
 
-    private static func style(_ kind: TextStyleKind, range: NSRange, in storage: NSMutableAttributedString, isActive: Bool) {
+    private static func style(_ kind: TextStyleKind, range: NSRange, in storage: NSMutableAttributedString, isActive: Bool, editorStyle: EditorStyle) {
         switch kind {
         case let .heading(level):
             let scale = EditorMetrics.headingScales[min(max(level, 1), EditorMetrics.headingScales.count) - 1]
-            storage.addAttribute(.font, value: NSFont.systemFont(ofSize: EditorMetrics.fontSize * scale, weight: .bold), range: range)
+            storage.addAttribute(.font, value: editorStyle.font(scale: scale, weight: .bold), range: range)
         case .bold:
-            addTrait(.boldFontMask, range: range, in: storage)
+            addTrait(.boldFontMask, range: range, in: storage, base: editorStyle.font())
         case .italic:
-            addTrait(.italicFontMask, range: range, in: storage)
+            addTrait(.italicFontMask, range: range, in: storage, base: editorStyle.font())
         case .strikethrough:
             storage.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range)
         case .highlight:
             storage.addAttribute(.backgroundColor, value: NSColor.systemYellow.withAlphaComponent(Constants.highlightAlpha), range: range)
         case .inlineCode:
-            storage.addAttributes([.font: codeFont, .backgroundColor: NSColor.quaternarySystemFill], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .backgroundColor: NSColor.quaternarySystemFill], range: range)
         case .codeBlock:
-            storage.addAttributes([.font: codeFont, MarkdownBlock.key: MarkdownBlock.code.rawValue], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, MarkdownBlock.key: MarkdownBlock.code.rawValue], range: range)
         case .quote:
-            storage.addAttributes([.foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: indented, MarkdownBlock.key: MarkdownBlock.quote.rawValue], range: range)
+            storage.addAttributes([.foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: editorStyle.indentedParagraph, MarkdownBlock.key: MarkdownBlock.quote.rawValue], range: range)
         case .callout:
-            storage.addAttributes([.paragraphStyle: indented, MarkdownBlock.key: MarkdownBlock.callout.rawValue], range: range)
+            storage.addAttributes([.paragraphStyle: editorStyle.indentedParagraph, MarkdownBlock.key: MarkdownBlock.callout.rawValue], range: range)
         case .calloutTitle:
-            addTrait(.boldFontMask, range: range, in: storage)
+            addTrait(.boldFontMask, range: range, in: storage, base: editorStyle.font())
             storage.addAttribute(.foregroundColor, value: NSColor.controlAccentColor, range: range)
         case .doneTask:
             storage.addAttributes([.strikethroughStyle: NSUnderlineStyle.single.rawValue, .foregroundColor: NSColor.secondaryLabelColor], range: range)
         case .listMarker, .horizontalRule:
             storage.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: range)
         case let .checkbox(isDone):
-            storage.addAttributes([.font: codeFont, .foregroundColor: isDone ? NSColor.secondaryLabelColor : NSColor.controlAccentColor], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: isDone ? NSColor.secondaryLabelColor : NSColor.controlAccentColor], range: range)
         case .tag:
             storage.addAttributes([.foregroundColor: NSColor.controlAccentColor, .backgroundColor: NSColor.controlAccentColor.withAlphaComponent(Constants.tagAlpha)], range: range)
         case .frontmatter:
-            storage.addAttributes([.font: codeFont, .foregroundColor: NSColor.secondaryLabelColor], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: NSColor.secondaryLabelColor], range: range)
         case let .link(isResolved):
             let color = isResolved ? NSColor.controlAccentColor : NSColor.controlAccentColor.withAlphaComponent(Constants.unresolvedAlpha)
             storage.addAttribute(.foregroundColor, value: color, range: range)
@@ -169,24 +159,13 @@ enum MarkdownStyler {
         }
     }
 
-    private static var codeFont: NSFont {
-        .monospacedSystemFont(ofSize: EditorMetrics.fontSize * EditorMetrics.codeScale, weight: .regular)
-    }
-
-    private static var indented: NSParagraphStyle {
-        let style = NSMutableParagraphStyle()
-        style.firstLineHeadIndent = EditorMetrics.blockIndent
-        style.headIndent = EditorMetrics.blockIndent
-        return style
-    }
-
     private static func markColor(isActive: Bool) -> NSColor {
         isActive ? .secondaryLabelColor : .quaternaryLabelColor
     }
 
-    private static func addTrait(_ trait: NSFontTraitMask, range: NSRange, in storage: NSMutableAttributedString) {
+    private static func addTrait(_ trait: NSFontTraitMask, range: NSRange, in storage: NSMutableAttributedString, base: NSFont) {
         storage.enumerateAttribute(.font, in: range) { value, subrange, _ in
-            let font = (value as? NSFont) ?? baseFont
+            let font = (value as? NSFont) ?? base
             storage.addAttribute(.font, value: NSFontManager.shared.convert(font, toHaveTrait: trait), range: subrange)
         }
     }

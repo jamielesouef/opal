@@ -20,6 +20,7 @@ struct CommandPaletteView: View {
     // MARK: - Environment
 
     @Environment(\.vaultService) private var vault
+    @Environment(\.openSettings) private var openSettings
     @Environment(\.noteService) private var notes
     @Environment(\.navigationService) private var navigation
     @Environment(\.quickSwitcherService) private var switcher
@@ -111,7 +112,8 @@ struct CommandPaletteView: View {
             search: search,
             dailyNotes: dailyNotes,
             templates: templates,
-            toggleLiveMarkdown: { isLiveMarkdown.toggle() }
+            toggleLiveMarkdown: { isLiveMarkdown.toggle() },
+            openSettings: { openSettings() }
         )
     }
 

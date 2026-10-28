@@ -24,5 +24,7 @@ Use these terms in code, docs, issues and tests. Do not use the _Avoid_ words.
 | **Editor** | The view that edits one Note's Markdown text. | composer |
 | **Reading view** | A Note rendered, not editable. | preview mode |
 | **Quick Switcher** | The keyboard panel that opens a Note by name or Alias. | finder, launcher |
+| **Settings** | Opal's own choices, kept in Opal's preferences and never in the Vault. Where a Vault's Obsidian settings set the same thing, the Vault's value wins. | Preferences, options, config |
+| **Live Markdown** | The Editor styles Markdown as you type and dims its marks. Off shows plain text with coloured Links. | WYSIWYG, rich text |
 | **Command Palette** | The keyboard panel that runs any command by name. | action menu |
 | **Graph** | A view of Notes as points and Links as lines. Not in v1. | map, network |

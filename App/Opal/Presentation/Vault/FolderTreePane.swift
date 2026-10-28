@@ -122,7 +122,7 @@ struct FolderTreePane: View {
         case let .success(plan) where plan.linkingNotes.isEmpty:
             perform(PendingRename(path: path, plan: plan), updatingLinks: false)
         case let .success(plan):
-            pending = PendingRename(path: path, plan: plan)
+            confirm(PendingRename(path: path, plan: plan))
         case .failure(.unchanged):
             break
         case let .failure(failure):
@@ -135,7 +135,7 @@ struct FolderTreePane: View {
         case let .success(plan) where plan.linkingNotes.isEmpty:
             perform(PendingRename(path: path, plan: plan), updatingLinks: true)
         case let .success(plan):
-            pending = PendingRename(path: path, plan: plan)
+            confirm(PendingRename(path: path, plan: plan))
         case .failure(.sameFolder), .failure(.unchanged):
             break
         case let .failure(failure):
@@ -161,6 +161,17 @@ struct FolderTreePane: View {
             } catch {
                 problem = error.message
             }
+        }
+    }
+
+    private func confirm(_ rename: PendingRename) {
+        switch vaultService.linkUpdate {
+        case .ask:
+            pending = rename
+        case .always:
+            perform(rename, updatingLinks: true)
+        case .never:
+            perform(rename, updatingLinks: false)
         }
     }
 

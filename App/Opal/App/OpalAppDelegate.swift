@@ -67,7 +67,9 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
         private func snapshotAndQuit(to url: URL) {
             Task {
                 try? await Task.sleep(for: Constants.snapshotDelay)
-                let window = NSApp.windows.first { $0.isVisible && $0.sheetParent == nil }
+                let settingsTitle = AppDependencies.shared.launchRequest.settingsTab.flatMap(SettingsTab.init(rawValue:))?.title
+                let visible = NSApp.windows.filter { $0.isVisible && $0.sheetParent == nil }
+                let window = visible.first { $0.title == settingsTitle } ?? visible.first
                 write(window?.contentView, to: url)
                 if let sheet = window?.attachedSheet {
                     write(sheet.contentView, to: url.deletingPathExtension().appendingPathExtension("sheet.png"))

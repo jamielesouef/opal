@@ -114,3 +114,5 @@ Acceptance flags with no value (`-OpalReadingView`, `-OpalDailyNote`, `-OpalTemp
 | `opal-m5-09-tabs.png` | Three tabs (`-OpalTabs Soil.md,Tomatoes.md`) above the Editor | M5-09 |
 | `opal-m5-10-split.png` | Soil and Tomatoes side by side (`-OpalSplit Tomatoes.md`); the inspector follows the focused right pane | M5-10 |
 | `opal-m5-10-split-same-note-dark.png` | Soil in both panes, dark | M5-10 |
+| `opal-m5-11-settings-editor.png`, `-files.png`, `-daily.png`, `-appearance.png` | Settings tabs (`-OpalSettings <tab>`). Files and Links and Daily Notes show the `Garden` Vault's values marked "Set by this Vault's Obsidian settings"; the toolbar is blank in `cacheDisplay` | M5-11 |
+| `opal-m5-11-editor-style.png` | Serif, 18 pt, line spacing 1.4, Narrow line width | M5-11 |
