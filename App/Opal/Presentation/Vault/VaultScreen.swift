@@ -76,6 +76,19 @@ struct VaultScreen: View {
 
             ToolbarItem(placement: .primaryAction) {
                 Button {
+                    navigation.isReadingView.toggle()
+                } label: {
+                    Label(
+                        navigation.isReadingView ? String(localized: "Editor") : String(localized: "Reading View"),
+                        systemImage: navigation.isReadingView ? "pencil" : "book"
+                    )
+                }
+                .help(navigation.isReadingView ? String(localized: "Edit the Note (⌘E)") : String(localized: "Read the Note without its Markdown (⌘E)"))
+                .disabled(notes.path == nil)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
                     navigation.isInspectorShown.toggle()
                 } label: {
                     Label(String(localized: "Inspector"), systemImage: "sidebar.trailing")

@@ -19,6 +19,7 @@ struct MarkdownTextView: NSViewRepresentable {
     var typeOnAppear: String?
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
+    var onScroll: (Int) -> Void = { _ in }
     var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
 
@@ -60,6 +61,7 @@ struct MarkdownTextView: NSViewRepresentable {
                     return
                 }
                 coordinator.styleVisibleText(in: textView)
+                coordinator.onScroll(textView.characterIndexForInsertion(at: textView.visibleRect.origin))
             }
         }
         textView.onToggleCheckbox = { [weak coordinator, weak textView] offset in
@@ -75,6 +77,7 @@ struct MarkdownTextView: NSViewRepresentable {
             return coordinator.handleCommand(selector, in: textView)
         }
         coordinator.onFollowLink = onFollowLink
+        coordinator.onScroll = onScroll
         coordinator.linkSuggestions = linkSuggestions
         coordinator.linkInsertion = linkInsertion
         coordinator.apply(styles, to: textView)
@@ -94,6 +97,7 @@ struct MarkdownTextView: NSViewRepresentable {
         let coordinator = context.coordinator
         coordinator.onChange = onChange
         coordinator.onFollowLink = onFollowLink
+        coordinator.onScroll = onScroll
         coordinator.linkSuggestions = linkSuggestions
         coordinator.linkInsertion = linkInsertion
         guard let textView = scrollView.documentView as? NSTextView else {

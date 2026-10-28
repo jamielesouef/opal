@@ -89,6 +89,12 @@ struct OpalCommands: Commands {
         }
 
         CommandGroup(after: .sidebar) {
+            Button(navigation.isReadingView ? String(localized: "Editor") : String(localized: "Reading View")) {
+                navigation.isReadingView.toggle()
+            }
+            .keyboardShortcut("e")
+            .disabled(notes.path == nil)
+
             Toggle(String(localized: "Live Markdown"), isOn: $isLiveMarkdown)
 
             Divider()

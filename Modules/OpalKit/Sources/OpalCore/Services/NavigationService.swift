@@ -17,6 +17,8 @@ public final class NavigationService {
     public private(set) var reveal: RevealRequest?
     public private(set) var recentNotes: [NotePath] = []
     public var isInspectorShown = true
+    public var isReadingView = false
+    @ObservationIgnored public var editorTopOffset = 0
     public var isQuickSwitcherShown = false
     public var sidebarPane = SidebarPane.files
 

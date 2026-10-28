@@ -21,11 +21,20 @@ struct NoteScreen: View {
     // MARK: - State
 
     @AppStorage(EditorPreferences.liveMarkdownKey) private var isLiveMarkdown = true
+    @State private var readingBlocks: [ReadingBlock] = []
+    @State private var readingTopLine = 0
 
     // MARK: - View
 
     var body: some View {
         content
+            .onChange(of: navigation.isReadingView) { _, isReading in
+                guard isReading == false, let path = notes.path else {
+                    return
+                }
+
+                Task { await navigation.open(path, line: readingTopLine) }
+            }
     }
 
     // MARK: - Load state
@@ -58,7 +67,11 @@ struct NoteScreen: View {
             }
         case let .editing(note),
              let .conflict(note, _):
-            editor(note)
+            if navigation.isReadingView {
+                reading(note)
+            } else {
+                editor(note)
+            }
         }
     }
 
@@ -74,6 +87,8 @@ struct NoteScreen: View {
             notes.edit(text)
         } onFollowLink: { offset in
             followLink(at: offset)
+        } onScroll: { offset in
+            navigation.editorTopOffset = offset
         } linkSuggestions: { query in
             switcher.linkSuggestions(for: query)
         } linkInsertion: { suggestion in
@@ -92,6 +107,19 @@ struct NoteScreen: View {
                     Divider()
                 }
             }
+        }
+    }
+
+    // MARK: - Reading view
+
+    private func reading(_ note: Note) -> some View {
+        ReadingView(blocks: readingBlocks, startLine: TextLineUseCase.line(atOffset: navigation.editorTopOffset, in: note.text)) { line in
+            readingTopLine = line
+        } onFollowLink: { link in
+            Task { await VaultActions.follow(link, from: note.path, vault: vault, navigation: navigation) }
+        }
+        .task(id: ReadingKey(path: note.path, length: note.text.utf16.count)) {
+            readingBlocks = await links.readingBlocks(of: note.path, text: note.text)
         }
     }
 

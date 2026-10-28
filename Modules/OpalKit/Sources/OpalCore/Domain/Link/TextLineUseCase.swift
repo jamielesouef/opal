@@ -27,6 +27,10 @@ public enum TextLineUseCase {
         return text.utf16.count
     }
 
+    public static func line(atOffset offset: Int, in text: String) -> Int {
+        text.utf16.prefix(max(offset, 0)).reduce(0) { $0 + ($1 == 0x0A ? 1 : 0) }
+    }
+
     public static func lineStartOffsets(in text: String) -> [Int] {
         var offsets = [0]
         var offset = 0

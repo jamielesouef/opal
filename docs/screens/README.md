@@ -88,3 +88,7 @@ Taken on 28/10/2026 from a Debug build with `-OpalSnapshot <png>`: the app draws
 | `opal-m4-01-live-markdown-light.png`, `-dark` | Every live Markdown style, with the cursor on the last line | M4-01 |
 | `opal-m4-01-cursor-line.png` | `-OpalTypeText " and **more** [[Soil]]"`: marks on the cursor's line are full strength, the line above is faint | M4-01 |
 | `opal-m4-05-checkboxes.png` | An open task with accent brackets; a done task struck through and faint | M4-05 |
+| `opal-m4-02-reading-view.png` | Reading view (`-OpalReadingView`) of the live Markdown fixture: Headings, emphasis, Links shown by name, a quote, a callout with its icon, checkboxes | M4-02 |
+| `opal-m4-02-reading-table-code-dark.png` | Reading view, dark: a table, Python with syntax colour, `Tomatoes > Watering` | M4-02 |
+
+In these shots, Links look paler than in the app because `cacheDisplay` does not draw SwiftUI's link tint faithfully.

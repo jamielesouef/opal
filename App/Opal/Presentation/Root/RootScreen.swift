@@ -28,6 +28,9 @@ struct RootScreen: View {
                 if let note = launch.note, vault.isOpen {
                     await navigation.open(note)
                 }
+                if launch.isReadingView {
+                    navigation.isReadingView = true
+                }
                 if let pane = launch.sidebarPane, vault.isOpen {
                     navigation.sidebarPane = pane
                 }

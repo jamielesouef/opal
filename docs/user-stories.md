@@ -317,7 +317,7 @@ Status: done (28/10/2026; `MarkdownStyleParserTests`, snapshots `opal-m4-01-*`; 
 As a reader, I want the Note rendered and not editable, so that I can read it without the marks.
 Screens: `obsidian-04-note-reading-view.png`
 Depends: M4-01
-Open decision (ADR 0005 before code): render with SwiftUI and `AttributedString` (native, no new dependency, no maths), or HTML in a `WKWebView` (tables, syntax colour and maths come easily, but it needs a renderer and KaTeX in the app bundle).
+Decided in [ADR 0005](adr/0005-reading-view-in-swiftui.md): native SwiftUI and `AttributedString`, built from the M4-01 parse; no maths.
 Acceptance:
 - [unit] The rendered blocks come from the same parse as M4-01: Headings, paragraphs, lists, checkboxes, quotes, callouts, tables, code blocks, horizontal rules, Links and Embeds.
 - [snap] ⌘E and the toolbar's Editor / Reading control switch views; the scroll position stays on the same Heading.
@@ -325,7 +325,7 @@ Acceptance:
 - [snap] `$…$` and `$$…$$` show as maths, or, if ADR 0005 drops maths, as code, with a note in the story.
 - [manual] Clicking a Link follows it (M2-03); Heading Links read `Note > Heading`.
 - [unit] Reading view never writes the Note.
-Status: todo
+Status: done (28/10/2026; `MarkdownReadingParserTests`, `CodeTokenizerTests`, `ReadingViewTests`, snapshots `opal-m4-02-*`). Per ADR 0005, maths is not rendered: `$$…$$` blocks show as code and inline `$…$` as written. For you to check [manual]: clicking a Link, and the scroll position when you switch with ⌘E.
 
 ### M4-03 Properties
 As a user, I want my Note's Properties as a small form, so that I can read and change them without editing YAML.

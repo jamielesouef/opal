@@ -157,6 +157,11 @@ public final class LinkService {
 
     // MARK: - Reads
 
+    public func readingBlocks(of path: NotePath, text: String) async -> [ReadingBlock] {
+        let analysed = openNote.flatMap { $0.path == path && $0.textLength == text.utf16.count ? $0 : nil }
+        return await Self.readingConcurrently(path: path, text: text, analysed: analysed, map: map)
+    }
+
     public func link(at offset: Int, in text: String) -> Link? {
         let parsed = openNote.flatMap { $0.textLength == text.utf16.count ? $0.parsed : nil } ?? MarkdownNoteParser.parse(text)
         return parsed.links.first { $0.span.contains(offset) }
@@ -204,6 +209,12 @@ public final class LinkService {
     @concurrent
     private nonisolated static func analyseConcurrently(path: NotePath, text: String, map: LinkMap) async -> OpenNoteLinks {
         analyse(path: path, text: text, map: map)
+    }
+
+    @concurrent
+    private nonisolated static func readingConcurrently(path: NotePath, text: String, analysed: OpenNoteLinks?, map: LinkMap) async -> [ReadingBlock] {
+        let note = analysed ?? analyse(path: path, text: text, map: map)
+        return MarkdownReadingParser.blocks(in: text, parsed: note.parsed, styles: note.styles)
     }
 
     private func reset() {

@@ -44,12 +44,12 @@ constraint here.
 
 | Layer | Built |
 | --- | --- |
-| Domain | `TextStyleRun` + `TextStyleKind` (Links, marks, Headings, emphasis, code, quotes, callouts, lists, checkboxes, rules, Tags, frontmatter, done tasks). `CheckboxToggleUseCase` + `CheckboxToggle` (the one character a click changes). `TextSpan.shifted(by:)` |
-| Data | `MarkdownStyleParser` (pure: text and `ParsedNote` in, style runs out; shares line, fence and code helpers with `MarkdownNoteParser`) |
-| Services | `LinkService.openNote.styles`: Link colours plus Markdown style runs, sorted by location and computed with the Links (off the main actor for large Notes). Not stored in the Index |
+| Domain | `TextStyleRun` + `TextStyleKind` (Links, marks, Headings, emphasis, code, quotes, callouts, lists, checkboxes, rules, Tags, frontmatter, done tasks). `CheckboxToggleUseCase` + `CheckboxToggle` (the one character a click changes). `TextSpan.shifted(by:)`, `TextLineUseCase.line(atOffset:in:)`. Reading view: `ReadingBlock` + `ReadingBlockKind`, `ReadingInline` + `ReadingInlineStyle`, `CodeToken` + `CodeTokenKind` |
+| Data | `MarkdownStyleParser` (pure: text and `ParsedNote` in, style runs out; shares line, fence and code helpers with `MarkdownNoteParser`), `MarkdownReadingParser` + `ReadingInlineBuilder` (reading blocks from the same parse, [ADR 0005](docs/adr/0005-reading-view-in-swiftui.md)), `CodeTokenizer` (keywords, strings, numbers, comments for Swift, Python, JavaScript, JSON, YAML, shell) |
+| Services | `LinkService.openNote.styles`: Link colours plus Markdown style runs, sorted by location and computed with the Links (off the main actor for large Notes). Not stored in the Index. `LinkService.readingBlocks(of:text:)` builds reading blocks off the main actor. `NavigationService.isReadingView` and `editorTopOffset` |
 | Design | `EditorMetrics` Heading scales, code scale, block indent and bar width |
-| Presentation | `MarkdownStyler` (style kind to text storage attributes, only in a window around what is on screen; mark fading), `MarkdownBlock` + `MarkdownBlockFragment` (TextKit 2 layout fragments draw quote bars, callout and code block backgrounds), `EditorPreferences`; View › Live Markdown; clicking a checkbox toggles it as one undo step |
-| App | Debug-only `-OpalSnapshot <png>` draws the window to a PNG and quits |
+| Presentation | `MarkdownStyler` (style kind to text storage attributes, only in a window around what is on screen; mark fading), `MarkdownBlock` + `MarkdownBlockFragment` (TextKit 2 layout fragments draw quote bars, callout and code block backgrounds), `EditorPreferences`; View › Live Markdown; clicking a checkbox toggles it as one undo step. `ReadingView` + `ReadingBlockView` + `ReadingText` + `CalloutStyle` + `ReadingKey` (Presentation/Reading); View › Reading View (⌘E) and a toolbar button |
+| App | Debug-only `-OpalSnapshot <png>` draws the window to a PNG and quits; `-OpalReadingView` opens in Reading view |
 
 Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`, `IndexStoring`.
 Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`

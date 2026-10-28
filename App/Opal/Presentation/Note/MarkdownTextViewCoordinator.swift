@@ -14,6 +14,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
 
     var onChange: (String) -> Void
     var onFollowLink: (Int) -> Void = { _ in }
+    var onScroll: (Int) -> Void = { _ in }
     var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     private(set) var styles: [TextStyleRun] = []

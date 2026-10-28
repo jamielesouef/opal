@@ -15,4 +15,5 @@ struct LaunchRequest {
     var search: String?
     var sidebarPane: SidebarPane?
     var typeText: String?
+    var isReadingView = false
 }

@@ -26,3 +26,15 @@ let soil = "# not a heading **not bold**"
 ```
 
 A paragraph with a block id. ^styles-block
+
+| Plant | Water | Sun |
+| --- | :-: | --- |
+| Peas | **daily** | full |
+| Tomatoes | `2 L` | [[Soil]] |
+
+```python
+def grow(seeds=3):  # sow in spring
+    return "peas" * seeds
+```
+
+See [[Tomatoes#Watering]].

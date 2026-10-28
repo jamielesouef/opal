@@ -22,6 +22,7 @@ struct LaunchArguments {
         static let search = "-OpalSearch"
         static let sidebarPane = "-OpalSidebarPane"
         static let snapshot = "-OpalSnapshot"
+        static let readingView = "-OpalReadingView"
     }
 
     // MARK: - Stored
@@ -36,6 +37,7 @@ struct LaunchArguments {
     let search: String?
     let sidebarPane: SidebarPane?
     let snapshotURL: URL?
+    let isReadingView: Bool
 
     // MARK: - Derived
 
@@ -45,7 +47,7 @@ struct LaunchArguments {
         #else
             let typed: String? = nil
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView)
     }
 
     var appearanceName: NSAppearance.Name? {
@@ -70,6 +72,7 @@ struct LaunchArguments {
         typeText = Self.value(after: Constants.typeText, in: arguments)
         search = Self.value(after: Constants.search, in: arguments)
         sidebarPane = Self.value(after: Constants.sidebarPane, in: arguments).flatMap(SidebarPane.init(rawValue:))
+        isReadingView = arguments.contains(Constants.readingView)
         snapshotURL = Self.value(after: Constants.snapshot, in: arguments).map { URL(filePath: $0) }
         indexFolderURL = Self.value(after: Constants.indexFolder, in: arguments).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }
