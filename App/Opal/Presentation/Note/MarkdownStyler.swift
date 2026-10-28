@@ -17,7 +17,7 @@ enum MarkdownStyler {
         static let unresolvedAlpha: CGFloat = 0.55
         static let highlightAlpha: CGFloat = 0.35
         static let tagAlpha: CGFloat = 0.12
-        static let windowMargin = 10000
+        static let windowMargin = 3000
     }
 
     // MARK: - Base

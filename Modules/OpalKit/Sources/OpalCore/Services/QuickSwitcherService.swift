@@ -16,14 +16,12 @@ public final class QuickSwitcherService {
     public var query = "" {
         didSet {
             selectedIndex = 0
+            scheduleSearch()
         }
     }
 
     public private(set) var selectedIndex = 0
-
-    public var results: [SwitcherMatch] {
-        QuickSwitcherMatchUseCase.matches(query: query, candidates: candidates, recent: navigation.recentNotes)
-    }
+    public private(set) var results: [SwitcherMatch] = []
 
     public var selected: SwitcherMatch? {
         let results = results
@@ -31,18 +29,13 @@ public final class QuickSwitcherService {
     }
 
     public var canCreate: Bool {
-        newNotePath != nil && results.isEmpty
+        newNotePath != nil && results.isEmpty && resultsQuery == query
     }
 
     // MARK: - Link suggestions
 
-    public func linkSuggestions(for query: String) -> [LinkSuggestion] {
-        LinkSuggestionUseCase.suggestions(
-            for: query,
-            candidates: candidates,
-            unresolved: links.map.unresolvedTargets,
-            recent: navigation.recentNotes
-        )
+    public func linkSuggestions(for query: String) async -> [LinkSuggestion] {
+        await Self.suggestions(for: query, candidates: candidates, unresolved: links.map.unresolvedTargets, recent: navigation.recentNotes)
     }
 
     public func linkInsertion(for suggestion: LinkSuggestion, from source: NotePath) -> String {
@@ -60,11 +53,22 @@ public final class QuickSwitcherService {
     private let links: LinkService
     private let navigation: NavigationService
 
+    @ObservationIgnored private var cachedCandidates: (key: [Int], candidates: [SwitcherCandidate])?
+    @ObservationIgnored private var searchTask: Task<Void, Never>?
+    private var resultsQuery: String?
+
     private var candidates: [SwitcherCandidate] {
+        let key = [vault.entriesRevision, links.mapRevision]
+        if let cachedCandidates, cachedCandidates.key == key {
+            return cachedCandidates.candidates
+        }
+
         let parsed = links.map.parsed
-        return vault.entries
+        let built = vault.entries
             .filter { $0.kind == .note }
             .map { SwitcherCandidate(path: $0.path, aliases: parsed[$0.path]?.aliases ?? []) }
+        cachedCandidates = (key, built)
+        return built
     }
 
     private var newNotePath: NotePath? {
@@ -84,6 +88,12 @@ public final class QuickSwitcherService {
     public func prepare(query newQuery: String = "") async {
         query = newQuery
         await navigation.loadRecentNotes()
+        scheduleSearch()
+        await waitForResults()
+    }
+
+    public func waitForResults() async {
+        await searchTask?.value
     }
 
     public func moveSelection(by delta: Int) {
@@ -105,6 +115,11 @@ public final class QuickSwitcherService {
 
     @discardableResult
     public func confirm() async -> NotePath? {
+        if resultsQuery != query {
+            scheduleSearch()
+            await waitForResults()
+        }
+
         if let selected {
             await navigation.open(selected.path)
             return selected.path
@@ -123,5 +138,38 @@ public final class QuickSwitcherService {
         await links.sync()
         await navigation.open(path)
         return path
+    }
+
+    // MARK: - Search
+
+    private func scheduleSearch() {
+        searchTask?.cancel()
+        let query = query
+        let candidates = candidates
+        let recent = navigation.recentNotes
+        searchTask = Task { [weak self] in
+            let found = await Self.matches(for: query, candidates: candidates, recent: recent)
+            guard Task.isCancelled == false, let self, self.query == query else {
+                return
+            }
+
+            results = found
+            resultsQuery = query
+        }
+    }
+
+    @concurrent
+    private nonisolated static func matches(for query: String, candidates: [SwitcherCandidate], recent: [NotePath]) async -> [SwitcherMatch] {
+        QuickSwitcherMatchUseCase.matches(query: query, candidates: candidates, recent: recent)
+    }
+
+    @concurrent
+    private nonisolated static func suggestions(
+        for query: String,
+        candidates: [SwitcherCandidate],
+        unresolved: [String],
+        recent: [NotePath]
+    ) async -> [LinkSuggestion] {
+        LinkSuggestionUseCase.suggestions(for: query, candidates: candidates, unresolved: unresolved, recent: recent)
     }
 }

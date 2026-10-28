@@ -11,5 +11,5 @@ struct ReadingKey: Hashable {
     // MARK: - Stored
 
     let path: NotePath
-    let text: Int
+    let revision: Int
 }

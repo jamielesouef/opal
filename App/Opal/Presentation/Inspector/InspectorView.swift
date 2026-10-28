@@ -61,8 +61,7 @@ struct InspectorView: View {
 
     @ViewBuilder
     private var content: some View {
-        if let path = notes.path, notes.loadState.note != nil {
-            let parsed = links.openNote.flatMap { $0.path == path ? $0.parsed : nil } ?? .empty
+        if let path = notes.path, notes.isReady {
             switch pane {
             case .backlinks:
                 BacklinksView(
@@ -76,20 +75,24 @@ struct InspectorView: View {
                     pendingMention = mention
                 }
             case .outgoing:
-                OutgoingLinksView(links: links.map.outgoing(from: path, in: parsed)) { outgoing in
+                OutgoingLinksView(links: links.map.outgoing(from: path, in: parsed(path))) { outgoing in
                     Task { await VaultActions.follow(outgoing.link, from: path, vault: vault, navigation: navigation) }
                 }
             case .outline:
-                OutlineView(headings: parsed.headings) { heading in
+                OutlineView(headings: parsed(path).headings) { heading in
                     Task { await navigation.open(path, line: heading.line) }
                 }
             case .tags:
-                NoteTagsView(tags: parsed.tags) { tag in
+                NoteTagsView(tags: parsed(path).tags) { tag in
                     search.show(query: TagTreeUseCase.searchQuery(forTag: tag))
                 }
             }
         } else {
             ContentUnavailableView(String(localized: "No Note Open"), systemImage: "text.document")
         }
+    }
+
+    private func parsed(_ path: NotePath) -> ParsedNote {
+        links.openNote.flatMap { $0.path == path ? $0.parsed : nil } ?? .empty
     }
 }

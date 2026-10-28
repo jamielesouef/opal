@@ -41,7 +41,7 @@ public final class LinkService {
 
     // MARK: - Constants
 
-    public static let mainActorParseLimit = 64 * 1024
+    public static let largeNoteLimit = 64 * 1024
     public static let largeNoteDelay = Duration.milliseconds(200)
 
     // MARK: - Private
@@ -137,16 +137,14 @@ public final class LinkService {
 
         openNoteSource = (path, text)
         let map = map
-        guard text.utf16.count > Self.mainActorParseLimit else {
-            openNote = Self.analyse(path: path, text: text, map: map)
-            return
-        }
-
+        let delay = text.utf16.count > Self.largeNoteLimit ? Self.largeNoteDelay : .zero
         openNoteTask = Task { [weak self] in
-            do {
-                try await Task.sleep(for: Self.largeNoteDelay)
-            } catch {
-                return
+            if delay > .zero {
+                do {
+                    try await Task.sleep(for: delay)
+                } catch {
+                    return
+                }
             }
 
             let analysed = await Self.analyseConcurrently(path: path, text: text, map: map)
@@ -231,7 +229,8 @@ public final class LinkService {
             textLength: text.utf16.count,
             parsed: parsed,
             styles: (map.linkStyles(in: parsed, from: path) + MarkdownStyleParser.runs(in: text, parsed: parsed))
-                .sorted { $0.span.location < $1.span.location }
+                .sorted { $0.span.location < $1.span.location },
+            frontmatter: FrontmatterParser.parse(text)
         )
     }
 

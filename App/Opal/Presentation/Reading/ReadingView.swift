@@ -14,7 +14,7 @@ struct ReadingView: View {
 
     let source: NotePath
     let blocks: [ReadingBlock]
-    let startLine: Int
+    let startLine: () -> Int
     var onTopLine: (Int) -> Void = { _ in }
     var onFollowLink: (OpalCore.Link) -> Void = { _ in }
     var onToggleCheckbox: (Int) -> Void = { _ in }
@@ -65,6 +65,7 @@ struct ReadingView: View {
     // MARK: - Scroll
 
     private func scrollToStart() {
+        let startLine = startLine()
         position = blocks.last { $0.line <= startLine && $0.isHeading }?.id ?? blocks.last { $0.line <= startLine }?.id
     }
 

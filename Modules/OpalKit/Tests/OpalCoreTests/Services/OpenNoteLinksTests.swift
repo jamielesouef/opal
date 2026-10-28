@@ -22,17 +22,21 @@ struct OpenNoteLinksTests {
 
     // MARK: - Tests
 
-    @Test("a small Note is parsed at once, and follows each edit")
+    @Test("a small Note is analysed off the main actor without a pause, and follows each edit")
     func smallNote() async throws {
         let vault = try FixtureVault()
         defer { vault.remove() }
         let harness = await Self.harness(vault)
 
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "# Welcome\n\nSee [[Soil]] and [[Nowhere]].\n")
+
+        await harness.links.waitForOpenNote()
         #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Welcome"])
         #expect(harness.links.openNote?.styles.filter(\.kind.isLink).map(\.kind) == [.link(isResolved: true), .link(isResolved: false)])
 
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "# Hello\n")
+
+        await harness.links.waitForOpenNote()
         #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Hello"])
         #expect(harness.links.openNote?.styles.filter(\.kind.isLink).isEmpty == true)
     }
@@ -42,7 +46,7 @@ struct OpenNoteLinksTests {
         let vault = try FixtureVault()
         defer { vault.remove() }
         let harness = await Self.harness(vault)
-        let text = "# Big\n" + String(repeating: "Text about [[Soil]].\n", count: LinkService.mainActorParseLimit / 10)
+        let text = "# Big\n" + String(repeating: "Text about [[Soil]].\n", count: LinkService.largeNoteLimit / 10)
 
         harness.links.openNoteChanged(NotePath("Big.md"), text: text)
         #expect(harness.links.openNote == nil)
@@ -62,6 +66,7 @@ struct OpenNoteLinksTests {
         defer { vault.remove() }
         let harness = await Self.harness(vault)
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "# Welcome\n")
+        await harness.links.waitForOpenNote()
 
         harness.links.openNoteChanged(nil, text: "")
 
@@ -74,11 +79,13 @@ struct OpenNoteLinksTests {
         defer { vault.remove() }
         let harness = await Self.harness(vault)
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "See [[Peas]].\n")
+        await harness.links.waitForOpenNote()
         #expect(harness.links.openNote?.styles.filter(\.kind.isLink).first?.kind == .link(isResolved: false))
 
         try vault.write("# Peas\n", to: "Peas.md")
         await harness.vault.handleExternalChanges([NotePath("Peas.md")])
         await harness.links.sync()
+        await harness.links.waitForOpenNote()
 
         #expect(harness.links.openNote?.styles.filter(\.kind.isLink).first?.kind == .link(isResolved: true))
     }
@@ -90,10 +97,12 @@ struct OpenNoteLinksTests {
         let harness = await Self.harness(vault)
 
         await harness.notes.open(NotePath("Tomatoes.md"))
+        await harness.links.waitForOpenNote()
         #expect(harness.links.openNote?.path == NotePath("Tomatoes.md"))
         #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Tomatoes", "Watering", "Harvest"])
 
         harness.notes.edit("# Tomatoes\n\n## Pruning\n")
+        await harness.links.waitForOpenNote()
         #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Tomatoes", "Pruning"])
 
         await harness.notes.close()

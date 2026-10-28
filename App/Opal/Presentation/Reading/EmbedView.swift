@@ -112,9 +112,17 @@ struct EmbedView: View {
             Text(path.name)
                 .foregroundStyle(.secondary)
                 .task(id: path) {
-                    image = vault.url(for: path).flatMap(NSImage.init(contentsOf:))
+                    guard let url = vault.url(for: path), let data = await Self.read(url) else {
+                        return
+                    }
+                    image = NSImage(data: data)
                 }
         }
+    }
+
+    @concurrent
+    private nonisolated static func read(_ url: URL) async -> Data? {
+        try? Data(contentsOf: url)
     }
 
     // MARK: - Intent

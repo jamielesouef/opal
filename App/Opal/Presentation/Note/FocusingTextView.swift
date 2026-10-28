@@ -63,7 +63,7 @@ final class FocusingTextView: NSTextView {
         }
 
         if board.string(forType: .string) == nil, let data = pngData(on: board) {
-            attach([(data, nil)], at: selectedRange())
+            attach(data: [(data, nil)], at: selectedRange())
             return
         }
 
@@ -85,11 +85,14 @@ final class FocusingTextView: NSTextView {
         return true
     }
 
-    private func imageFiles(on board: NSPasteboard) -> [(Data, String?)] {
+    private func imageFiles(on board: NSPasteboard) -> [URL] {
         let urls = board.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
-        return urls
-            .filter { EmbedUseCase.media(of: NotePath($0.lastPathComponent)) == .image }
-            .compactMap { url in (try? Data(contentsOf: url)).map { ($0, url.lastPathComponent) } }
+        return urls.filter { EmbedUseCase.media(of: NotePath($0.lastPathComponent)) == .image }
+    }
+
+    @concurrent
+    private nonisolated static func read(_ urls: [URL]) async -> [(Data, String?)] {
+        urls.compactMap { url in (try? Data(contentsOf: url)).map { ($0, url.lastPathComponent) } }
     }
 
     private func pngData(on board: NSPasteboard) -> Data? {
@@ -100,7 +103,13 @@ final class FocusingTextView: NSTextView {
         return board.data(forType: .tiff).flatMap(NSBitmapImageRep.init(data:))?.representation(using: .png, properties: [:])
     }
 
-    private func attach(_ files: [(Data, String?)], at range: NSRange) {
+    private func attach(_ urls: [URL], at range: NSRange) {
+        Task {
+            attach(data: await Self.read(urls), at: range)
+        }
+    }
+
+    private func attach(data files: [(Data, String?)], at range: NSRange) {
         Task {
             var embeds: [String] = []
             for (data, name) in files {

@@ -15,11 +15,13 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     var onChange: (String) -> Void
     var onFollowLink: (Int) -> Void = { _ in }
     var onScroll: (Int) -> Void = { _ in }
-    var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
+    var linkSuggestions: (String) async -> [LinkSuggestion] = { _ in [] }
+    private var suggestionTask: Task<Void, Never>?
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     private(set) var styles: [TextStyleRun] = []
     private var lastRevealID: Int?
     private var appliedLength: Int?
+    var lastText: String?
     private var marks: [TextSpan] = []
     private var activeRange = NSRange(location: NSNotFound, length: 0)
     private var styled = IndexSet()
@@ -42,7 +44,9 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             return
         }
 
-        onChange(textView.string)
+        let text = textView.string
+        lastText = text
+        onChange(text)
         updateSuggestions(in: textView)
     }
 
@@ -102,6 +106,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     }
 
     func hideSuggestions() {
+        suggestionTask?.cancel()
         suggestions = []
         suggestionPanel.hide()
     }
@@ -115,17 +120,29 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             return
         }
 
-        let found = linkSuggestions(query.text)
-        guard found.isEmpty == false else {
-            hideSuggestions()
-            return
-        }
+        suggestionTask?.cancel()
+        suggestionTask = Task { [weak self, weak textView] in
+            guard let self else {
+                return
+            }
 
-        if found != suggestions {
-            selectedSuggestion = 0
+            let found = await linkSuggestions(query.text)
+            guard Task.isCancelled == false, let textView, linkQuery(in: textView) == query else {
+                return
+            }
+
+            guard found.isEmpty == false else {
+                suggestions = []
+                suggestionPanel.hide()
+                return
+            }
+
+            if found != suggestions {
+                selectedSuggestion = 0
+            }
+            suggestions = found
+            showSuggestions(in: textView)
         }
-        suggestions = found
-        showSuggestions(in: textView)
     }
 
     private func showSuggestions(in textView: NSTextView) {
@@ -175,8 +192,10 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         styles.contains { $0.kind.isLink && $0.span.contains(offset) }
     }
 
-    func apply(_ newStyles: [TextStyleRun], to textView: NSTextView) {
-        guard let storage = textView.textStorage, newStyles != styles || storage.length != appliedLength else {
+    func apply(_ newStyles: [TextStyleRun], forLength length: Int?, to textView: NSTextView) {
+        guard let storage = textView.textStorage, length == nil || length == storage.length,
+              newStyles != styles || storage.length != appliedLength
+        else {
             return
         }
 

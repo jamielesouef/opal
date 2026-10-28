@@ -49,3 +49,32 @@ Problem: the Properties form and the faint YAML in the Editor show the same line
 ## Top recommendation
 
 None is Strong. If you pick one, take the Editor speed probe first, because it guards the area that broke twice today. Then `NoteRenderer`.
+
+## Addendum: main-thread audit (requested by the user after beachballs)  [Strong, done]
+
+Signal: "Opal (not responding)" while opening and typing in Notes. Time Profiler traces of a Debug build on a generated Vault of 5,000 Notes (`/tmp`, never a real Vault) showed where the main actor spent its time per keystroke:
+
+| Work on the main actor | Share of main-thread time while typing |
+| --- | --- |
+| `[[` suggestions: `QuickSwitcherMatchUseCase.matches` over every Note, plus rebuilding the candidate list on each call | 35% |
+| Window layout from views invalidated by every keystroke (toolbar save status, inspector, Properties inset) | 21% |
+| Restyling the Editor window after each analysis | 3% |
+| Parse, style runs and frontmatter for Notes under 64 KB (synchronous before) | measured separately: 45 ms per keystroke in Debug at 60 KB |
+
+Changes, one theme, in one commit:
+- `LinkService.openNoteChanged` analyses every Note off the main actor (`@concurrent`): no pause for small Notes, 200 ms for Notes over 64 KB. The analysis also carries the frontmatter and the Link-only runs, so the Properties form and "live Markdown off" no longer parse or filter in a view body. The Editor applies runs only when their text length matches the text view.
+- Property edits re-read the frontmatter from the current draft when the user acts, so a stale analysis can never edit the wrong lines.
+- `QuickSwitcherService.results` is stored and computed off the main actor; `linkSuggestions(for:)` is `async`. Candidates are cached by `VaultService.entriesRevision` and `LinkService.mapRevision`.
+- Fewer views observe the draft: the toolbar save status reads `NoteService.isUnsaved` (set when the draft or disk text changes) in its own `SaveStatusItem`; the inspector uses `NoteService.isReady` and reads the parsed Note only in the panes that need it; Reading view keys on `NoteService.revision` instead of hashing the text.
+- The Editor compares new text against the text it last reported rather than bridging `NSTextView.string` on every update, and restyles 3,000 characters either side of the screen instead of 10,000.
+- Image Embeds and dropped image files are read off the main actor.
+
+Proof (Debug build; probe: open a Note, then type 52 characters at 60 ms intervals):
+
+| Case | Before | After |
+| --- | --- | --- |
+| 33 KB Note, Garden Vault: average per keystroke | 15 ms (11 main-thread gaps over 50 ms) | 3 ms (1 gap) |
+| 5,000-Note Vault: average per keystroke | 31–42 ms (up to 29 gaps over 50 ms, worst 238 ms) | 1.6 ms (2 gaps, worst 59 ms) |
+| 1 MB Note: average per keystroke | 3 ms | 3 ms |
+
+225 tests pass; tests that read the open Note's analysis now await `waitForOpenNote()`.

@@ -15,12 +15,13 @@ struct MarkdownTextView: NSViewRepresentable {
 
     let text: String
     var styles: [TextStyleRun] = []
+    var stylesLength: Int?
     var reveal: RevealRequest?
     var typeOnAppear: String?
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
     var onScroll: (Int) -> Void = { _ in }
-    var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
+    var linkSuggestions: (String) async -> [LinkSuggestion] = { _ in [] }
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     var onAttach: (Data, String?) async -> String? = { _, _ in nil }
 
@@ -39,6 +40,7 @@ struct MarkdownTextView: NSViewRepresentable {
         let coordinator = context.coordinator
         configure(textView)
         textView.string = text
+        coordinator.lastText = text
         textView.delegate = coordinator
         if let layoutManager = textView.textLayoutManager {
             layoutManager.delegate = coordinator
@@ -82,7 +84,7 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.onScroll = onScroll
         coordinator.linkSuggestions = linkSuggestions
         coordinator.linkInsertion = linkInsertion
-        coordinator.apply(styles, to: textView)
+        coordinator.apply(styles, forLength: stylesLength, to: textView)
         coordinator.apply(reveal, to: textView)
         if let typeOnAppear {
             Task { @MainActor in
@@ -108,12 +110,15 @@ struct MarkdownTextView: NSViewRepresentable {
 
         textView.onAttach = onAttach
 
-        if textView.string != text {
-            textView.string = text
-            textView.undoManager?.removeAllActions()
+        if text != coordinator.lastText {
+            coordinator.lastText = text
+            if textView.string != text {
+                textView.string = text
+                textView.undoManager?.removeAllActions()
+            }
         }
 
-        coordinator.apply(styles, to: textView)
+        coordinator.apply(styles, forLength: stylesLength, to: textView)
         coordinator.apply(reveal, to: textView)
     }
 

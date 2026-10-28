@@ -39,6 +39,7 @@ public final class VaultService: SingleFlightRefreshing {
     public private(set) var propertyTypes: [String: PropertyType] = [:]
     public private(set) var store: (any VaultFileStoring)?
     public private(set) var entries: [VaultEntry] = []
+    public private(set) var entriesRevision = 0
 
     // MARK: - SingleFlightRefreshing
 
@@ -304,6 +305,7 @@ public final class VaultService: SingleFlightRefreshing {
 
     private func apply(_ newEntries: [VaultEntry]) {
         entries = newEntries
+        entriesRevision += 1
         kinds = Dictionary(newEntries.map { ($0.path, $0.kind) }) { first, _ in first }
         tree = VaultTreeUseCase.tree(from: newEntries)
     }

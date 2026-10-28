@@ -55,7 +55,7 @@ public final class NoteService {
     }
 
     public var saveStatus: SaveStatus {
-        switch (saveError, draft == diskText) {
+        switch (saveError, isUnsaved == false) {
         case (let error?, _):
             .failed(error)
         case (nil, true):
@@ -67,6 +67,10 @@ public final class NoteService {
 
     public private(set) var path: NotePath?
 
+    public var isReady: Bool {
+        path != nil && isLoading == false && loadError == nil
+    }
+
     // MARK: - Private
 
     private let vault: VaultService
@@ -74,12 +78,22 @@ public final class NoteService {
     private let index: IndexService?
     private let saveDelay: Duration
 
+    public private(set) var revision = 0
+
     private var draft = "" {
         didSet {
+            revision += 1
+            isUnsaved = draft != diskText
             links?.openNoteChanged(path, text: draft)
         }
     }
-    private var diskText = ""
+    private var diskText = "" {
+        didSet {
+            isUnsaved = draft != diskText
+        }
+    }
+
+    private var isUnsaved = false
     private var isLoading = false
     private var loadError: VaultError?
     private var conflictDiskText: String?
@@ -165,7 +179,11 @@ public final class NoteService {
     // MARK: - Properties
 
     public var frontmatter: Frontmatter? {
-        loadState.note.flatMap { FrontmatterParser.parse($0.text) }
+        guard let open = links?.openNote, open.path == path, open.textLength == draft.utf16.count else {
+            return nil
+        }
+
+        return open.frontmatter
     }
 
     public func type(of property: Property) -> PropertyType {
@@ -173,7 +191,11 @@ public final class NoteService {
     }
 
     public func setProperty(_ property: Property, to value: PropertyValue) {
-        edit(PropertyEditUseCase.set(property, to: value, type: type(of: property), in: draft))
+        guard let current = currentProperty(property.key) else {
+            return
+        }
+
+        edit(PropertyEditUseCase.set(current, to: value, type: type(of: current), in: draft))
     }
 
     public func attach(_ data: Data, named fileName: String?) async -> String? {
@@ -200,16 +222,29 @@ public final class NoteService {
     }
 
     public func removeProperty(_ property: Property) {
-        edit(PropertyEditUseCase.remove(property, from: draft))
+        guard let current = currentProperty(property.key) else {
+            return
+        }
+
+        edit(PropertyEditUseCase.remove(current, from: draft))
     }
 
     public func addProperty(named key: String) {
         let name = key.trimmingCharacters(in: .whitespaces)
-        guard name.isEmpty == false, frontmatter?.properties.contains(where: { $0.key == name }) != true else {
+        guard name.isEmpty == false else {
             return
         }
 
-        edit(PropertyEditUseCase.add(key: name, type: vault.propertyTypes[name] ?? .text, to: draft, frontmatter: frontmatter))
+        let current = FrontmatterParser.parse(draft)
+        guard current?.properties.contains(where: { $0.key == name }) != true else {
+            return
+        }
+
+        edit(PropertyEditUseCase.add(key: name, type: vault.propertyTypes[name] ?? .text, to: draft, frontmatter: current))
+    }
+
+    private func currentProperty(_ key: String) -> Property? {
+        FrontmatterParser.parse(draft)?.properties.first { $0.key == key }
     }
 
     public func flush() async {

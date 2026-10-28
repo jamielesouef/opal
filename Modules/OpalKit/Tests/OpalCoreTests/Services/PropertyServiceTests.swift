@@ -21,6 +21,7 @@ struct PropertyServiceTests {
         let path = NotePath("Welcome.md")
         let before = try vault.text(path.rawValue)
         await harness.navigation.open(path)
+        await harness.links.waitForOpenNote()
 
         let created = try #require(harness.notes.frontmatter?.properties.first { $0.key == "created" })
         harness.notes.setProperty(created, to: .text("2026-02-01"))
@@ -39,6 +40,7 @@ struct PropertyServiceTests {
         let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
         await harness.openVault()
         await harness.navigation.open(NotePath("Welcome.md"))
+        await harness.links.waitForOpenNote()
 
         #expect(harness.vault.propertyTypes == ["created": .text, "rating": .number])
         let created = try #require(harness.notes.frontmatter?.properties.first { $0.key == "created" })
@@ -52,9 +54,11 @@ struct PropertyServiceTests {
         let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
         await harness.openVault()
         await harness.navigation.open(NotePath("Welcome.md"))
+        await harness.links.waitForOpenNote()
 
         harness.notes.addProperty(named: "status")
         harness.notes.addProperty(named: "status")
+        await harness.links.waitForOpenNote()
 
         #expect(harness.notes.frontmatter?.properties.map(\.key) == ["aliases", "tags", "created", "status"])
     }

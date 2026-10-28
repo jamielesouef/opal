@@ -49,3 +49,15 @@ Bugs found while building, with the rule each one taught.
 - Cause: on every scroll, the Editor compared the new style window with the last one. Any movement meant "not contained", so it reset and restyled 20,000 characters each frame. That forced TextKit 2 to lay them out again. With live Markdown off, it still reset the base attributes.
 - Fix: the coordinator keeps an `IndexSet` of what it has styled since the last analysis and styles only the part of the window not yet styled. Now: 3.2 ms average down and 2.5 ms up, at most 1 step over 16 ms. Toggling live Markdown blocks the main actor for at most about 50 ms.
 - Rule: work done on scroll must be proportional to what newly came into view, never to the window size.
+
+## 28/10/2026: beachballs when opening and typing in Notes
+- Symptom: "Opal (not responding)" while opening Notes and typing in them, worst in a large Vault and in Debug builds.
+- Cause: per-keystroke work on the main actor. The `[[` suggestion matcher ran over every Note, and the Quick Switcher recomputed `results` on every read. Notes under 64 KB were analysed synchronously (45 ms in Debug at 60 KB). The frontmatter was parsed in view bodies. Every keystroke invalidated the toolbar and the inspector.
+- Fix: analysis, matching and suggestions are `@concurrent` with stored results; fewer views observe the draft. Typing in a 5,000-Note Vault went from 31–42 ms to 1.6 ms per keystroke (see the 28/10/2026 M4 review addendum).
+- Rule: nothing that grows with the Note or the Vault runs on the main actor per keystroke. Compute it off the main actor into stored state, and let only the view that shows a value observe it.
+
+## 28/10/2026: a test script copied files into the real Vault
+- Symptom: `Big.md` and `Mid.md` (test files) appeared in the user's real Obsidian Vault.
+- Cause: the acceptance script took its source Vault from `${VAULT:-fixture}`. The user's shell exports `VAULT` pointing at their real Vault, so the "copy" was a symlink to it. Nothing was typed into a real Note (the probe found no Note to type into), and Opal never writes `.obsidian`.
+- Fix: the two files were moved to the Trash, identical to the test copies. The scripts now use `OPAL_TEST_VAULT`, refuse any source outside `/private/tmp` or the repo fixtures, copy with `cp -RL`, stop if the copy is a symlink, and kill only test apps by full path.
+- Rule: test scripts never read generic environment variables for paths. Check the resolved source against an allow-list before copying.

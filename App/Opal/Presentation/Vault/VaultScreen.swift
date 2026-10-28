@@ -71,7 +71,7 @@ struct VaultScreen: View {
             }
 
             ToolbarItem(placement: .status) {
-                SaveStatusView(status: notes.saveStatus, hasNote: notes.path != nil)
+                SaveStatusItem()
             }
 
             ToolbarItem(placement: .primaryAction) {

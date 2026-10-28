@@ -81,6 +81,7 @@ struct NoteScreen: View {
         MarkdownTextView(
             text: note.text,
             styles: styles(for: note),
+            stylesLength: links.openNote.flatMap { $0.path == note.path ? $0.textLength : nil },
             reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
             typeOnAppear: launch.typeText
         ) { text in
@@ -90,7 +91,7 @@ struct NoteScreen: View {
         } onScroll: { offset in
             navigation.editorTopOffset = offset
         } linkSuggestions: { query in
-            switcher.linkSuggestions(for: query)
+            await switcher.linkSuggestions(for: query)
         } linkInsertion: { suggestion in
             switcher.linkInsertion(for: suggestion, from: note.path)
         } onAttach: { data, name in
@@ -127,7 +128,9 @@ struct NoteScreen: View {
     // MARK: - Reading view
 
     private func reading(_ note: Note) -> some View {
-        ReadingView(source: note.path, blocks: readingBlocks, startLine: TextLineUseCase.line(atOffset: navigation.editorTopOffset, in: note.text)) { line in
+        ReadingView(source: note.path, blocks: readingBlocks) {
+            TextLineUseCase.line(atOffset: navigation.editorTopOffset, in: note.text)
+        } onTopLine: { line in
             readingTopLine = line
         } onFollowLink: { link in
             Task { await VaultActions.follow(link, from: note.path, vault: vault, navigation: navigation) }
@@ -139,7 +142,7 @@ struct NoteScreen: View {
                 properties
             }
         }
-        .task(id: ReadingKey(path: note.path, text: note.text.hashValue)) {
+        .task(id: ReadingKey(path: note.path, revision: notes.revision)) {
             readingBlocks = await links.readingBlocks(of: note.path, text: note.text)
         }
     }
@@ -151,7 +154,7 @@ struct NoteScreen: View {
             return []
         }
 
-        return isLiveMarkdown ? open.styles : open.styles.filter(\.kind.isLink)
+        return isLiveMarkdown ? open.styles : open.linkStyles
     }
 
     // MARK: - Links
