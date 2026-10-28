@@ -65,6 +65,11 @@ public struct NavigationHistory: Hashable, Sendable {
         return next
     }
 
+    public mutating func move(from old: NotePath, to new: NotePath) {
+        back = back.map { $0 == old ? new : $0 }
+        forward = forward.map { $0 == old ? new : $0 }
+    }
+
     public mutating func remove(_ path: NotePath) {
         back.removeAll { $0 == path }
         forward.removeAll { $0 == path }

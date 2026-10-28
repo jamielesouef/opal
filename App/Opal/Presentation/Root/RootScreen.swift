@@ -83,6 +83,7 @@ struct RootScreen: View {
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.templateService, graph.templateService)
+            .environment(\.renameService, graph.renameService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }
@@ -98,6 +99,7 @@ struct RootScreen: View {
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.templateService, graph.templateService)
+            .environment(\.renameService, graph.renameService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }

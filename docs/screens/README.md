@@ -104,3 +104,4 @@ Taken the same way as Milestone 4 (`-OpalSnapshot`). `-OpalDailyNote` opens toda
 | --- | --- | --- |
 | `opal-m5-01-daily-note.png` | Today's Daily Note created from `Templates/Daily` in `Daily Notes/` | M5-01 |
 | `opal-m5-02-insert-template.png` | Edit › Insert Template… (`-OpalTemplates`): the Templates Folder from `templates.json`. Sheets are captured as a separate `-sheet.png` | M5-02 |
+| `opal-m5-03-rename-inline.png` | `Soil` being renamed in place in the Folder tree (`-OpalRename Soil.md`) | M5-03 |

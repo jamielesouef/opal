@@ -48,6 +48,10 @@ private let defaultTemplateService = MainActor.assumeIsolated {
     AppDependencies.shared.templateService
 }
 
+private let defaultRenameService = MainActor.assumeIsolated {
+    AppDependencies.shared.renameService
+}
+
 extension EnvironmentValues {
     @Entry var vaultService: VaultService = defaultVaultService
     @Entry var noteService: NoteService = defaultNoteService
@@ -57,6 +61,7 @@ extension EnvironmentValues {
     @Entry var mentionService: MentionService = defaultMentionService
     @Entry var dailyNoteService: DailyNoteService = defaultDailyNoteService
     @Entry var templateService: TemplateService = defaultTemplateService
+    @Entry var renameService: RenameService = defaultRenameService
     @Entry var navigationService: NavigationService = defaultNavigationService
     @Entry var quickSwitcherService: QuickSwitcherService = defaultQuickSwitcherService
     @Entry var launchRequest = LaunchRequest()

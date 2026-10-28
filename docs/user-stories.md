@@ -421,7 +421,7 @@ Acceptance:
 - [snap] Rename… in the Folder tree's context menu, or Return on a selected Note, edits the name in place.
 - [snap] When other Notes link to it, a sheet says "Update Links in N Notes?" with Update, Don't Update and Cancel; a setting (M5-11) can choose always or never.
 - [unit] The file is renamed first, then each linking Note is written atomically; the open Note, its tab and the history follow the new path. The Index and Link map are updated.
-Status: todo
+Status: done (28/10/2026; `RenameUseCaseTests`, `RenameServiceTests`, `opal-m5-03-rename-inline.png`). The "Update Links" sheet always asks until Settings (M5-11) add always and never. Typing a name, Return and the sheet are [manual].
 
 ### M5-04 Rename a Folder
 As a user, I want to rename a Folder and keep Links into it working.

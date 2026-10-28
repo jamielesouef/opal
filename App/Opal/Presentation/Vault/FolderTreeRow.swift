@@ -12,29 +12,31 @@ struct FolderTreeRow: View {
     // MARK: - State
 
     @State private var isExpanded = false
+    @State private var draftName = ""
+    @FocusState private var isNameFocused: Bool
 
     // MARK: - Binding
 
     @Binding var expandedFolders: Set<NotePath>
+    @Binding var renaming: NotePath?
 
     // MARK: - Input
 
     let node: VaultTreeNode
-    var onReveal: (NotePath) -> Void = { _ in }
-    var onOpenInDefaultApp: (NotePath) -> Void = { _ in }
+    var actions = FolderTreeActions()
 
     // MARK: - Init
 
     init(
         node: VaultTreeNode,
         expandedFolders: Binding<Set<NotePath>>,
-        onReveal: @escaping (NotePath) -> Void = { _ in },
-        onOpenInDefaultApp: @escaping (NotePath) -> Void = { _ in }
+        renaming: Binding<NotePath?> = .constant(nil),
+        actions: FolderTreeActions = FolderTreeActions()
     ) {
         self.node = node
         _expandedFolders = expandedFolders
-        self.onReveal = onReveal
-        self.onOpenInDefaultApp = onOpenInDefaultApp
+        _renaming = renaming
+        self.actions = actions
     }
 
     // MARK: - View
@@ -43,12 +45,7 @@ struct FolderTreeRow: View {
         if let children = node.children {
             DisclosureGroup(isExpanded: $isExpanded) {
                 ForEach(children) { child in
-                    FolderTreeRow(
-                        node: child,
-                        expandedFolders: $expandedFolders,
-                        onReveal: onReveal,
-                        onOpenInDefaultApp: onOpenInDefaultApp
-                    )
+                    FolderTreeRow(node: child, expandedFolders: $expandedFolders, renaming: $renaming, actions: actions)
                 }
             } label: {
                 label
@@ -73,21 +70,50 @@ struct FolderTreeRow: View {
 
     // MARK: - Label
 
+    @ViewBuilder
     private var label: some View {
-        Label(node.displayName, systemImage: symbol)
-            .lineLimit(1)
+        if renaming == node.path {
+            Label {
+                TextField(String(localized: "Name"), text: $draftName)
+                    .textFieldStyle(.plain)
+                    .focused($isNameFocused)
+                    .onSubmit {
+                        renaming = nil
+                        actions.rename(node.path, draftName)
+                    }
+                    .onExitCommand {
+                        renaming = nil
+                    }
+                    .onAppear {
+                        draftName = node.displayName
+                        isNameFocused = true
+                    }
+            } icon: {
+                Image(systemName: symbol)
+            }
             .tag(node.path)
-            .contextMenu {
-                Button(String(localized: "Reveal in Finder")) {
-                    onReveal(node.path)
-                }
+        } else {
+            Label(node.displayName, systemImage: symbol)
+                .lineLimit(1)
+                .tag(node.path)
+                .contextMenu {
+                    Button(String(localized: "Rename…")) {
+                        renaming = node.path
+                    }
 
-                if node.kind == .attachment {
-                    Button(String(localized: "Open in Default App")) {
-                        onOpenInDefaultApp(node.path)
+                    Divider()
+
+                    Button(String(localized: "Reveal in Finder")) {
+                        actions.reveal(node.path)
+                    }
+
+                    if node.kind == .attachment {
+                        Button(String(localized: "Open in Default App")) {
+                            actions.openInDefaultApp(node.path)
+                        }
                     }
                 }
-            }
+        }
     }
 
     // MARK: - Helpers

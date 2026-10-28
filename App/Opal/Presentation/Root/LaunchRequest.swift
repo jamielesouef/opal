@@ -18,4 +18,5 @@ struct LaunchRequest {
     var isReadingView = false
     var opensDailyNote = false
     var showsTemplates = false
+    var renaming: NotePath?
 }

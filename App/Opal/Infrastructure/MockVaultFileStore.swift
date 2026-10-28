@@ -59,6 +59,10 @@
             files[path] = ""
         }
 
+        func moveItem(from source: NotePath, to destination: NotePath) throws(VaultError) {
+            files[destination] = files.removeValue(forKey: source)
+        }
+
         func createFolder(at path: NotePath) throws(VaultError) {
             folders.insert(path)
         }

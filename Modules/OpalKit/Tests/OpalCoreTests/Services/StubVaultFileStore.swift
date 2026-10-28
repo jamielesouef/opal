@@ -95,6 +95,14 @@ actor StubVaultFileStore: VaultFileStoring {
         attachments[path] = data
     }
 
+    func moveItem(from source: NotePath, to destination: NotePath) throws(VaultError) {
+        guard let text = files.removeValue(forKey: source) else {
+            throw .notFound(source)
+        }
+
+        files[destination] = text
+    }
+
     func createFolder(at path: NotePath) throws(VaultError) {
         guard folders.contains(path) == false else {
             throw .alreadyExists(path)

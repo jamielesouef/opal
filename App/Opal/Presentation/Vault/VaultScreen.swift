@@ -193,6 +193,7 @@ struct VaultScreen: View {
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.templateService, graph.templateService)
+            .environment(\.renameService, graph.renameService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task { await graph.vaultService.start() }

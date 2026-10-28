@@ -22,6 +22,7 @@ struct AppGraph {
     let mentionService: MentionService
     let dailyNoteService: DailyNoteService
     let templateService: TemplateService
+    let renameService: RenameService
     let launchRequest: LaunchRequest
     let launchAppearance: NSAppearance.Name?
     let launchSnapshotURL: URL?
@@ -59,6 +60,7 @@ struct AppGraph {
         self.navigationService = navigationService
         quickSwitcherService = QuickSwitcherService(vault: vaultService, links: linkService, navigation: navigationService)
         searchService = SearchService(index: indexService, navigation: navigationService)
+        renameService = RenameService(vault: vaultService, links: linkService, notes: noteService, navigation: navigationService)
         templateService = TemplateService(vault: vaultService, notes: noteService, clock: SystemClock())
         dailyNoteService = DailyNoteService(vault: vaultService, links: linkService, navigation: navigationService, clock: SystemClock())
         mentionService = MentionService(vault: vaultService, index: indexService, links: linkService, notes: noteService)

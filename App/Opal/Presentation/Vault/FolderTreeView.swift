@@ -13,13 +13,13 @@ struct FolderTreeView: View {
 
     @Binding var selection: NotePath?
     @Binding var expandedFolders: Set<NotePath>
+    @Binding var renaming: NotePath?
 
     // MARK: - Input
 
     let vaultName: String
     let tree: [VaultTreeNode]
-    var onReveal: (NotePath) -> Void = { _ in }
-    var onOpenInDefaultApp: (NotePath) -> Void = { _ in }
+    var actions = FolderTreeActions()
 
     // MARK: - View
 
@@ -27,16 +27,18 @@ struct FolderTreeView: View {
         List(selection: $selection) {
             Section(vaultName) {
                 ForEach(tree) { node in
-                    FolderTreeRow(
-                        node: node,
-                        expandedFolders: $expandedFolders,
-                        onReveal: onReveal,
-                        onOpenInDefaultApp: onOpenInDefaultApp
-                    )
+                    FolderTreeRow(node: node, expandedFolders: $expandedFolders, renaming: $renaming, actions: actions)
                 }
             }
         }
         .listStyle(.sidebar)
+        .onKeyPress(.return) {
+            guard renaming == nil, let selection else {
+                return .ignored
+            }
+            renaming = selection
+            return .handled
+        }
         .overlay {
             if tree.isEmpty {
                 ContentUnavailableView(
@@ -56,6 +58,7 @@ struct FolderTreeView: View {
         FolderTreeView(
             selection: $selection,
             expandedFolders: $expanded,
+            renaming: .constant(nil),
             vaultName: "Garden",
             tree: VaultTreeUseCase.tree(from: [
                 VaultEntry(path: NotePath("Areas"), isFolder: true),
@@ -72,7 +75,7 @@ struct FolderTreeView: View {
     #Preview("Empty Vault") {
         @Previewable @State var selection: NotePath?
         @Previewable @State var expanded: Set<NotePath> = []
-        FolderTreeView(selection: $selection, expandedFolders: $expanded, vaultName: "New Vault", tree: [])
+        FolderTreeView(selection: $selection, expandedFolders: $expanded, renaming: .constant(nil), vaultName: "New Vault", tree: [])
             .frame(width: 260, height: 400)
     }
 #endif

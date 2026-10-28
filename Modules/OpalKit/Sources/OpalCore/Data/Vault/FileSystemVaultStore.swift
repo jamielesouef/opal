@@ -131,6 +131,32 @@ public actor FileSystemVaultStore: VaultFileStoring {
         }
     }
 
+    public func moveItem(from source: NotePath, to destination: NotePath) throws(VaultError) {
+        let from = try checkedURL(for: source)
+        let to = try checkedURL(for: destination)
+        guard fileManager.fileExists(atPath: from.path), isSymbolicLink(from) == false else {
+            throw .notFound(source)
+        }
+
+        let caseOnly = source.rawValue.lowercased() == destination.rawValue.lowercased()
+        guard caseOnly || fileManager.fileExists(atPath: to.path) == false else {
+            throw .alreadyExists(destination)
+        }
+
+        do {
+            try fileManager.createDirectory(at: to.deletingLastPathComponent(), withIntermediateDirectories: true)
+            if caseOnly {
+                let step = from.deletingLastPathComponent().appending(path: ".opal-rename-\(UUID().uuidString)")
+                try fileManager.moveItem(at: from, to: step)
+                try fileManager.moveItem(at: step, to: to)
+            } else {
+                try fileManager.moveItem(at: from, to: to)
+            }
+        } catch {
+            throw .writeFailed(destination)
+        }
+    }
+
     public func createFolder(at path: NotePath) throws(VaultError) {
         let url = try checkedURL(for: path)
         guard fileManager.fileExists(atPath: url.path) == false else {

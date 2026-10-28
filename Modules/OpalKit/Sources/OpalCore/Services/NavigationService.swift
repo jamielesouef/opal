@@ -85,7 +85,12 @@ public final class NavigationService {
         return destination
     }
 
-    public func goBack() async {
+    public func move(from old: NotePath, to new: NotePath) {
+        history.move(from: old, to: new)
+        recentNotes = recentNotes.map { $0 == old ? new : $0 }
+    }
+
+        public func goBack() async {
         guard let path = history.goBack(from: notes.path) else {
             return
         }
