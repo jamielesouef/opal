@@ -20,6 +20,7 @@ public enum TextStyleKind: Hashable, Sendable {
     case calloutTitle
     case listMarker
     case checkbox(isDone: Bool)
+    case doneTask
     case horizontalRule
     case tag
     case frontmatter
@@ -28,6 +29,13 @@ public enum TextStyleKind: Hashable, Sendable {
 
     public var isLink: Bool {
         guard case .link = self else {
+            return false
+        }
+        return true
+    }
+
+    public var isCheckbox: Bool {
+        guard case .checkbox = self else {
             return false
         }
         return true

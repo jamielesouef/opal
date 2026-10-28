@@ -360,7 +360,8 @@ Acceptance:
 - [unit] Toggling a checkbox changes only the one character between `[` and `]` (space to `x`, `x` or `X` to space) and nothing else in the line or the Note.
 - [snap] With live Markdown on, `- [ ]` and `- [x]` show as checkboxes; done tasks are struck through and faint. Reading view shows the same.
 - [manual] Clicking the checkbox toggles it; the toggle is one undo step and is saved like any edit.
-Status: todo
+- Later (with M4-02): draw a checkbox in place of the `[ ]` brackets in the Editor, and show checkboxes in Reading view.
+Status: done (28/10/2026; `CheckboxToggleUseCaseTests`, `opal-m4-05-checkboxes.png`; clicking is [manual] and yours to check)
 
 ### M4-06 Paste and drop images
 As a user, I want to paste or drop an image into a Note, so that I can add it without the Finder.

@@ -44,11 +44,11 @@ constraint here.
 
 | Layer | Built |
 | --- | --- |
-| Domain | `TextStyleRun` + `TextStyleKind` (Links, marks, Headings, emphasis, code, quotes, callouts, lists, checkboxes, rules, Tags, frontmatter). `TextSpan.shifted(by:)` |
+| Domain | `TextStyleRun` + `TextStyleKind` (Links, marks, Headings, emphasis, code, quotes, callouts, lists, checkboxes, rules, Tags, frontmatter, done tasks). `CheckboxToggleUseCase` + `CheckboxToggle` (the one character a click changes). `TextSpan.shifted(by:)` |
 | Data | `MarkdownStyleParser` (pure: text and `ParsedNote` in, style runs out; shares line, fence and code helpers with `MarkdownNoteParser`) |
 | Services | `LinkService.openNote.styles`: Link colours plus Markdown style runs, sorted by location and computed with the Links (off the main actor for large Notes). Not stored in the Index |
 | Design | `EditorMetrics` Heading scales, code scale, block indent and bar width |
-| Presentation | `MarkdownStyler` (style kind to text storage attributes, only in a window around what is on screen; mark fading), `MarkdownBlock` + `MarkdownBlockFragment` (TextKit 2 layout fragments draw quote bars, callout and code block backgrounds), `EditorPreferences`; View › Live Markdown |
+| Presentation | `MarkdownStyler` (style kind to text storage attributes, only in a window around what is on screen; mark fading), `MarkdownBlock` + `MarkdownBlockFragment` (TextKit 2 layout fragments draw quote bars, callout and code block backgrounds), `EditorPreferences`; View › Live Markdown; clicking a checkbox toggles it as one undo step |
 | App | Debug-only `-OpalSnapshot <png>` draws the window to a PNG and quits |
 
 Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`, `IndexStoring`.

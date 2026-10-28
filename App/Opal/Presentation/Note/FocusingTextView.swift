@@ -12,6 +12,7 @@ final class FocusingTextView: NSTextView {
 
     var isLink: (Int) -> Bool = { _ in false }
     var onFollowLink: (Int) -> Void = { _ in }
+    var onToggleCheckbox: (Int) -> Bool = { _ in false }
 
     // MARK: - Commands
 
@@ -27,12 +28,17 @@ final class FocusingTextView: NSTextView {
     // MARK: - NSResponder
 
     override func mouseDown(with event: NSEvent) {
-        guard event.modifierFlags.contains(.command), let offset = linkOffset(at: event) else {
-            super.mouseDown(with: event)
+        if event.modifierFlags.contains(.command), let offset = linkOffset(at: event) {
+            onFollowLink(offset)
             return
         }
 
-        onFollowLink(offset)
+        let offset = characterIndexForInsertion(at: convert(event.locationInWindow, from: nil))
+        if event.modifierFlags.isDisjoint(with: [.command, .shift, .option, .control]), event.clickCount == 1, onToggleCheckbox(offset) {
+            return
+        }
+
+        super.mouseDown(with: event)
     }
 
     override func mouseMoved(with event: NSEvent) {

@@ -112,7 +112,7 @@ enum MarkdownStyler {
             0
         case .bold, .italic, .calloutTitle:
             1
-        case .strikethrough, .highlight, .listMarker, .tag, .link, .horizontalRule:
+        case .strikethrough, .highlight, .listMarker, .tag, .link, .horizontalRule, .doneTask:
             2
         case .mark:
             3
@@ -143,6 +143,8 @@ enum MarkdownStyler {
         case .calloutTitle:
             addTrait(.boldFontMask, range: range, in: storage)
             storage.addAttribute(.foregroundColor, value: NSColor.controlAccentColor, range: range)
+        case .doneTask:
+            storage.addAttributes([.strikethroughStyle: NSUnderlineStyle.single.rawValue, .foregroundColor: NSColor.secondaryLabelColor], range: range)
         case .listMarker, .horizontalRule:
             storage.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: range)
         case let .checkbox(isDone):

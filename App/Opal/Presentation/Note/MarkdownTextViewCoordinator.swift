@@ -187,6 +187,24 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         styleVisibleText(in: textView)
     }
 
+    func toggleCheckbox(at offset: Int, in textView: NSTextView) -> Bool {
+        guard textView.textStorage?.length == appliedLength,
+              let toggle = CheckboxToggleUseCase.toggle(at: offset, in: styles) ?? CheckboxToggleUseCase.toggle(at: offset - 1, in: styles)
+        else {
+            return false
+        }
+
+        let range = NSRange(location: toggle.span.location, length: toggle.span.length)
+        guard textView.shouldChangeText(in: range, replacementString: toggle.replacement) else {
+            return false
+        }
+
+        textView.textStorage?.replaceCharacters(in: range, with: toggle.replacement)
+        textView.didChangeText()
+        textView.undoManager?.setActionName(String(localized: "Toggle Checkbox"))
+        return true
+    }
+
     func styleVisibleText(in textView: NSTextView) {
         guard let storage = textView.textStorage, storage.length == appliedLength else {
             return

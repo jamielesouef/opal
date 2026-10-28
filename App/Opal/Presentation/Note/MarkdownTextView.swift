@@ -62,6 +62,12 @@ struct MarkdownTextView: NSViewRepresentable {
                 coordinator.styleVisibleText(in: textView)
             }
         }
+        textView.onToggleCheckbox = { [weak coordinator, weak textView] offset in
+            guard let coordinator, let textView else {
+                return false
+            }
+            return coordinator.toggleCheckbox(at: offset, in: textView)
+        }
         textView.handleCommand = { [weak coordinator, weak textView] selector in
             guard let textView, let coordinator else {
                 return false

@@ -107,6 +107,10 @@ public enum MarkdownStyleParser {
             if let box = first(Pattern.checkbox, in: line.text) {
                 let state = (line.text as NSString).substring(with: box.range(at: 2))
                 runs.append(run(box.range(at: 1), in: line, kind: .checkbox(isDone: state != " ")))
+                let taskStart = NSMaxRange(box.range)
+                if state != " ", taskStart < length {
+                    runs.append(run(NSRange(location: taskStart, length: length - taskStart), in: line, kind: .doneTask))
+                }
             }
         }
 
