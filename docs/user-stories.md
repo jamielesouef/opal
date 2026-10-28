@@ -438,7 +438,7 @@ Acceptance:
 - [unit] Moving uses the same Link plan as renaming; relative Markdown Links inside the moved Note are rewritten so they still point to the same files.
 - [snap] Dragging a row onto a Folder in the tree moves it; Move to… in the context menu shows a Folder picker.
 - [unit] A move into the same Folder, into itself or into its own subfolder is refused.
-Status: done (28/10/2026; `RenameUseCaseTests`, `RenameServiceTests.moves`, `opal-m5-05-move-to.png`). Moves always update Links (after the same dialog when other Notes link in). Drag and drop is [manual].
+Status: done (28/10/2026; `RenameUseCaseTests`, `RenameServiceTests.moves`, `opal-m5-05-move-to.png`). Moves update Links after the same dialog when other Notes link in; since M5-11 the Update Links setting (Ask, Always, Never) decides for moves too. Drag and drop is [manual].
 
 ### M5-06 Duplicate a Note
 As a user, I want to duplicate a Note to start a similar one.
@@ -495,12 +495,12 @@ Acceptance:
 - [unit] Settings live in Opal's preferences (the `-OpalDefaultsSuite` suite in tests), never in the Vault. Where the Vault's `.obsidian` files set a value, that value wins and the setting says "Set by this Vault's Obsidian settings".
 - [manual] Changing a setting applies at once to the open Editor.
 UX:
-- Flow: Opal › Settings… (⌘,), or Settings… in the Command Palette -> the Settings window opens on the last tab -> each change applies at once -> Close (⌘W) or Escape. No Save button and no confirmation.
+- Flow: Opal › Settings… (⌘,), or Settings… in the Command Palette -> the Settings window opens on the last tab -> each change applies at once -> close with ⌘W. No Save button and no confirmation.
 - Surface: the standard Settings window (a place people come back to beside the work), with a toolbar of four tabs: Editor, Files and Links, Daily Notes, Appearance. Grouped `Form` rows.
 - States: with no Vault open, Files and Links and Daily Notes show Opal's values and say "Open a Vault to see its Obsidian settings." When the Vault's `.obsidian` sets a value, the control is disabled and shows "Set by this Vault's Obsidian settings" under it. An unknown date format shows the preview as written.
 - Words: Font, Size, Line width, Line spacing, "Check spelling while typing", Live Markdown; "Where new Notes go" (Vault root, Same Folder as the open Note, In this Folder), Attachment Folder, "Use Markdown Links" (off writes `[[wikilinks]]`), "Update Links when a Note or Folder is renamed or moved" (Ask, Always, Never); Daily Notes: Folder, Date format with "Today: 2026-10-29", Template; Appearance: System, Light, Dark.
 - Access: every row is a native control with a label, so VoiceOver reads the label and value. The tabs are reachable with ⌘, then Tab.
-Status: done (29/10/2026; `SettingsServiceTests`, `opal-m5-11-settings-*.png`, `opal-m5-11-editor-style.png`). Files and Links and Daily Notes live in `OpalSettings`, saved as JSON in Opal's preferences. Each key the Vault's `app.json` or `daily-notes.json` sets wins and is marked; `alwaysUpdateLinks: true` means Always. Editor and Appearance are Opal-only and live in the same preferences suite (`@AppStorage`). Changing an Editor setting rebuilds the Editor, so the caret goes back to the start. Reading view keeps the default font. `-OpalAppearance` still wins over the Appearance setting. Settings… is also in the Command Palette. Changing settings live is [manual].
+Status: done (29/10/2026; `SettingsServiceTests`, `opal-m5-11-settings-*.png`, `opal-m5-11-editor-style.png`). Files and Links and Daily Notes live in `OpalSettings`, saved as JSON in Opal's preferences. Each key the Vault's `app.json` or `daily-notes.json` sets wins and is marked; `alwaysUpdateLinks: true` means Always. Font offers the four system designs (System, Serif, Rounded, Monospaced) rather than every installed font, on purpose; a full font picker can come later. Editor and Appearance are Opal-only and live in the same preferences suite (`@AppStorage`). Changing an Editor setting rebuilds the Editor, so the caret goes back to the start. Reading view keeps the default font. `-OpalAppearance` still wins over the Appearance setting. Settings… is also in the Command Palette. Changing settings live is [manual].
 
 ### M5-12 More than one window
 As a user with two Vaults, I want each in its own window.
