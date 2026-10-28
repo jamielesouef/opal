@@ -21,7 +21,7 @@ struct TemplateServiceTests {
         let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
         await harness.openVault()
         await harness.navigation.open(NotePath("Soil.md"))
-        let service = TemplateService(vault: harness.vault, notes: harness.notes, clock: ServiceHarness.clock)
+        let service = harness.graph.templates
 
         #expect(service.templates == [NotePath("Templates/Daily.md"), NotePath("Templates/Meetings/Standup.md")])
         #expect(await service.filledText(of: NotePath("Templates/Meetings/Standup.md"), for: NotePath("Soil.md")) == "Meeting on 26 Oct for Soil")

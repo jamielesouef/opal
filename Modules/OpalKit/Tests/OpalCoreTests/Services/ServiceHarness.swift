@@ -16,6 +16,7 @@ struct ServiceHarness {
     // MARK: - Stored
 
     let store: any VaultFileStoring
+    let graph: ServiceGraph
     let locations: StubVaultLocationStore
     let vault: VaultService
     let notes: NoteService
@@ -40,24 +41,30 @@ struct ServiceHarness {
     ) {
         self.store = store
         self.locations = locations
-        vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL, makeWatcher: makeWatcher) { _ in store }
+        let vault = VaultService(access: access, locations: locations, launchVaultURL: launchVaultURL, makeWatcher: makeWatcher) { _ in store }
         let indexFolder = FileManager().temporaryDirectory.appending(component: "OpalIndexTests-\(UUID().uuidString)")
+        let recents = StubRecentNotesStore()
+        let graph = ServiceGraph(
+            vault: vault,
+            makeIndex: { root throws(IndexError) in
+                try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
+            },
+            recents: recents,
+            settingsStore: StubSettingsStore(),
+            clock: Self.clock,
+            saveDelay: .seconds(3600)
+        )
+        self.graph = graph
+        self.vault = vault
         self.indexFolder = indexFolder
-        index = IndexService(vault: vault) { root throws(IndexError) in
-            try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
-        }
-        links = LinkService(vault: vault, index: index)
-        notes = NoteService(vault: vault, links: links, index: index, clock: Self.clock, saveDelay: .seconds(3600))
-        recents = StubRecentNotesStore()
-        navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
-        switcher = QuickSwitcherService(vault: vault, links: links, navigation: navigation)
-        search = SearchService(index: index, navigation: navigation)
-        mentions = MentionService(vault: vault, index: index, links: links, notes: notes)
-        vault.onExternalChange = { [links, notes, index] paths in
-            await index.update(paths)
-            await links.refresh(paths)
-            await notes.reloadIfUnchanged(paths)
-        }
+        self.recents = recents
+        index = graph.index
+        links = graph.links
+        notes = graph.notes
+        navigation = graph.navigation
+        switcher = graph.switcher
+        search = graph.search
+        mentions = graph.mentions
     }
 
     // MARK: - Steps

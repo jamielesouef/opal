@@ -17,7 +17,7 @@ struct RenameServiceTests {
     private static func setUp(_ vault: FixtureVault) async -> (ServiceHarness, RenameService) {
         let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
         await harness.openVaultWithLinks()
-        return (harness, RenameService(vault: harness.vault, links: harness.links, notes: harness.notes, navigation: harness.navigation))
+        return (harness, harness.graph.renames)
     }
 
     // MARK: - Tests
@@ -111,7 +111,7 @@ struct RenameServiceTests {
         defer { try? FileManager().removeItem(at: trash) }
         let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL, trashFolderURL: trash))
         await harness.openVaultWithLinks()
-        let service = RenameService(vault: harness.vault, links: harness.links, notes: harness.notes, navigation: harness.navigation)
+        let service = harness.graph.renames
         let tomatoes = try vault.text("Tomatoes.md")
         await harness.navigation.open(NotePath("Soil.md"))
 
