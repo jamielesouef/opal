@@ -14,7 +14,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | **M2 — Links** (built 27/10/2026) | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
 | **M3 — Find** (built 27/10/2026) | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-06 |
 | **M4 — Rich Editor** (built 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
-| M5 — Daily work | Daily Notes, Templates, rename with Link updates, Command Palette, Settings, tabs | M5-01 … M5-09 |
+| M5 — Daily work (stories expanded 28/10/2026) | Daily Notes, Templates, rename and move with Link updates, delete, Command Palette, tabs and split view, Settings, windows | M5-01 … M5-12 |
 
 Out of scope for v1: Graph, Canvas, plugins, sync, publishing, iOS and iPadOS, collaboration.
 
@@ -387,29 +387,127 @@ Status: done (28/10/2026; `ListContinuationUseCaseTests`; checked in the running
 
 ## M5 — Daily work
 
-### M5-01 Daily Note
-- One command and a toolbar button open today's Daily Note, created from its Template when missing. Folder, name format and Template come from `.obsidian/daily-notes.json` when present (`obsidian-25`), else Opal's settings.
+Every change to a file in this milestone is one the user starts, and those that touch other Notes (Link updates) are confirmed first unless the user chose otherwise in Settings. Opal never writes `.obsidian/`: it reads `daily-notes.json`, `templates.json` and `app.json`, and keeps its own choices in its preferences. Each multi-file change writes each Note atomically, and a failure partway reports which Notes changed.
 
-### M5-02 Templates
-- Insert a Template from the Templates Folder (`.obsidian/templates.json`), with `{{date}}`, `{{time}}` and `{{title}}` filled in.
+### M5-01 Today's Daily Note
+As a writer, I want one command to open today's Daily Note, so that I can start writing without choosing a file.
+Screens: `obsidian-18-daily-note.png`, `obsidian-25-settings-daily-notes.png`
+Depends: M1-07
+Acceptance:
+- [unit] The Folder, name format and Template come from `.obsidian/daily-notes.json` when it is there, otherwise from Opal's settings (M5-11; default: Vault root, `YYYY-MM-DD`, no Template).
+- [unit] The format reads the Moment tokens Obsidian users use: `YYYY`, `YY`, `MM`, `M`, `DD`, `D`, `MMM`, `MMMM`, `ddd`, `dddd`, `[literal]`, and `/` for subfolders (`YYYY/MM/YYYY-MM-DD`). Today's date comes from `Clocking`.
+- [unit] When the Note is missing it is created from the Template with `{{date}}`, `{{time}}`, `{{title}}` and `{{date:FORMAT}}` filled in; a missing Template gives an empty Note. An existing Daily Note is opened, never overwritten.
+- [snap] Go › Today's Daily Note (⌥⌘D) and a toolbar button (calendar icon) open it.
+- [manual] Opening it twice in a day opens the same Note.
+Status: todo
 
-### M5-03 Rename with Link updates
-- Renaming or moving a Note shows how many Notes have Links to it, and updates those Links only after the user confirms, one atomic write per Note. A setting chooses ask, always or never.
+### M5-02 Insert a Template
+As a writer, I want to insert a Template at the cursor, so that I can reuse a structure.
+Depends: M5-01
+Acceptance:
+- [unit] The Templates Folder comes from `.obsidian/templates.json` (`folder`), otherwise Opal's settings. Every Note in it, and its subfolders, is a Template.
+- [unit] `{{date}}`, `{{time}}`, `{{title}}` (the open Note's name) and `{{date:FORMAT}}`/`{{time:FORMAT}}` are filled in; other text is inserted as it is. Date and time formats come from `templates.json` when set.
+- [snap] Edit › Insert Template… (⌥⌘T) shows a searchable list of Templates; Return inserts the chosen one at the cursor as one undo step.
+- [snap] With no Templates Folder, the list says where to make one.
+Status: todo
 
-### M5-04 Delete
-- Deleting a Note or Folder moves it to the macOS Trash after confirmation. Opal never deletes permanently.
+### M5-03 Rename a Note
+As a user, I want to rename a Note and keep the Links to it working.
+Screens: `obsidian-15-file-context-menu.png`, `obsidian-16-rename-inline.png`
+Depends: M3-02
+Acceptance:
+- [unit] A rename plan lists every Link to the Note (wiki and Markdown, Embeds, with `#Heading`, `#^block` and `|alias`) and the new text of each, keeping its style, subpath and alias. A Link written as a bare name stays a bare name when the new name is still unique, and gets the shortest path when not.
+- [unit] The new name may not be empty, contain `/`, `:` or `\`, start with `.`, or clash with another file in the Folder (ignoring case); a case-only rename works.
+- [snap] Rename… in the Folder tree's context menu, or Return on a selected Note, edits the name in place.
+- [snap] When other Notes link to it, a sheet says "Update Links in N Notes?" with Update, Don't Update and Cancel; a setting (M5-11) can choose always or never.
+- [unit] The file is renamed first, then each linking Note is written atomically; the open Note, its tab and the history follow the new path. The Index and Link map are updated.
+Status: todo
 
-### M5-05 Command Palette (⇧⌘P)
-- Every command, searchable by name, shows its shortcut (`obsidian-05`).
+### M5-04 Rename a Folder
+As a user, I want to rename a Folder and keep Links into it working.
+Depends: M5-03
+Acceptance:
+- [unit] Links that name a path inside the Folder are updated as in M5-03; Links by bare name are left alone.
+- [snap] Rename… and Return work on Folders as on Notes; expanded Folders stay expanded.
+Status: todo
 
-### M5-06 Tabs and split view
-- Notes open in tabs. Two Notes can be side by side. Back and forward move through history.
+### M5-05 Move a Note or Folder
+As a user, I want to move a Note or Folder to another Folder, by drag or menu, and keep Links working.
+Depends: M5-03, M5-04
+Acceptance:
+- [unit] Moving uses the same Link plan as renaming; relative Markdown Links inside the moved Note are rewritten so they still point to the same files.
+- [snap] Dragging a row onto a Folder in the tree moves it; Move to… in the context menu shows a Folder picker.
+- [unit] A move into the same Folder, into itself or into its own subfolder is refused.
+Status: todo
 
-### M5-07 Settings
-- Editor (font, size, line width, line spacing, spell check, live Markdown), Files and Links, Daily Notes, Appearance. Stored outside the Vault.
+### M5-06 Duplicate a Note
+As a user, I want to duplicate a Note to start a similar one.
+Depends: M1-07
+Acceptance:
+- [unit] Duplicate makes `Name 1.md` (then ` 2`…) beside the original with the same bytes, and opens it.
+- [snap] Duplicate is in the Folder tree's context menu and the File menu.
+Status: todo
 
-### M5-08 More than one window
-- Each window shows one Vault. Two Vaults can be open at once.
+### M5-07 Delete a Note or Folder
+As a user, I want to delete a Note or Folder and be able to get it back.
+Depends: M1-04
+Acceptance:
+- [unit] Deleting moves the item to the macOS Trash (`FileManager.trashItem`); Opal never deletes permanently. Links to it become Unresolved and are not edited.
+- [snap] Delete (⌘⌫ in the Folder tree, or the context menu) asks first: "Move “Name” to the Trash?" (with the number of Notes for a Folder).
+- [unit] Deleting the open Note closes it and its tabs; the Index and Link map drop it.
+Status: todo
 
-### M5-09 Move and duplicate
-- Move a Note to another Folder by drag or menu, with Link updates as in M5-03. Duplicate a Note.
+### M5-08 Command Palette (⇧⌘P)
+As a keyboard user, I want every command in one searchable list.
+Screens: `obsidian-05-command-palette.png`
+Depends: M2-07
+Acceptance:
+- [unit] Every menu command is a palette command with a name, a group (File, Edit, View, Go) and its shortcut; commands that cannot run now are listed but disabled.
+- [unit] Matching is fuzzy over the name, recent commands first.
+- [snap] ⇧⌘P shows the palette over the window like the Quick Switcher; each row shows the shortcut on the right.
+- [manual] Return runs the selected command; Escape closes.
+Status: todo
+
+### M5-09 Tabs
+As a user, I want several Notes open in tabs, so that I can move between them.
+Depends: M2-10
+Acceptance:
+- [unit] Tabs are a list of Notes with one selected; each tab keeps its own back and forward history (M2-10) and scroll position.
+- [snap] Notes open in the current tab; ⌘Return in the Quick Switcher, ⌘-click on a Link or the Folder tree's Open in New Tab open a new one. ⌘W closes a tab, ⌃Tab and ⌃⇧Tab move between them.
+- [unit] Closing the last tab shows the empty Editor (M1-10). Open tabs are remembered per Vault outside the Vault.
+Status: todo
+
+### M5-10 Split view
+As a user, I want two Notes side by side, so that I can write while I read another.
+Depends: M5-09
+Acceptance:
+- [snap] View › Split Right (⌘\) shows a second Editor pane with its own tabs; the focused pane gets new Notes and the inspector follows it.
+- [unit] The same Note in both panes shows one text: an edit in one appears in the other, and it is saved once.
+- [manual] Closing the last tab of a pane closes the pane.
+Status: todo
+
+### M5-11 Settings (⌘,)
+As a user, I want to set how Opal writes and where it puts things.
+Screens: `obsidian-21-settings-editor.png`, `obsidian-22-settings-files-and-links.png`, `obsidian-23-settings-appearance.png`, `obsidian-25-settings-daily-notes.png`
+Depends: M5-01, M5-03
+Acceptance:
+- [snap] A standard Settings window with Editor (font, size, line width, line spacing, spell check, live Markdown), Files and Links (new Note location, Attachment folder, wikilinks or Markdown links, update Links on rename: ask, always, never), Daily Notes (Folder, format with a live preview, Template) and Appearance (system, light, dark).
+- [unit] Settings live in Opal's preferences (the `-OpalDefaultsSuite` suite in tests), never in the Vault. Where the Vault's `.obsidian` files set a value, that value wins and the setting says "Set by this Vault's Obsidian settings".
+- [manual] Changing a setting applies at once to the open Editor.
+Status: todo
+
+### M5-12 More than one window
+As a user with two Vaults, I want each in its own window.
+Depends: M5-09
+Open decision (ADR before code): one service graph per window. The 28/10/2026 review card "the Index and the Link map follow the Vault from a view" is designed here.
+Acceptance:
+- [unit] Each window has its own Vault, Index, Link map, tabs and history; two windows on two Vaults do not share state. The same Vault can't be open in two windows at once (the second brings the first to the front).
+- [snap] File › New Window (⇧⌘N moves to New Folder… ⌥⌘N) opens the Vault picker; Open Vault… in a window with a Vault opens a new window.
+- [unit] Windows and their Vaults are restored at launch.
+Status: todo
+
+## Later
+
+- Custom shortcuts for any command (`obsidian-24-settings-hotkeys.png`).
+- Vault-wide Property types and `[property:value]` search (from M4-03).
+- A drawn checkbox in the Editor; hiding the frontmatter in the Editor while the Properties form shows it (from M4-03, M4-05).
