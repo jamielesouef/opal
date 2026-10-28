@@ -173,6 +173,14 @@ public final class NoteService {
         edit(PropertyEditUseCase.set(property, to: value, type: type(of: property), in: draft))
     }
 
+    public func toggleCheckbox(onLine line: Int) {
+        guard let toggle = CheckboxToggleUseCase.toggle(onLine: line, in: draft) else {
+            return
+        }
+
+        edit((draft as NSString).replacingCharacters(in: NSRange(location: toggle.span.location, length: toggle.span.length), with: toggle.replacement))
+    }
+
     public func removeProperty(_ property: Property) {
         edit(PropertyEditUseCase.remove(property, from: draft))
     }

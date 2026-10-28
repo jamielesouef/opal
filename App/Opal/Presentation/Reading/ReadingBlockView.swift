@@ -23,6 +23,7 @@ struct ReadingBlockView: View {
     // MARK: - Input
 
     let block: ReadingBlock
+    var onToggleCheckbox: (Int) -> Void = { _ in }
 
     // MARK: - View
 
@@ -38,9 +39,15 @@ struct ReadingBlockView: View {
         case let .listItem(marker, depth, checkbox, text):
             HStack(alignment: .firstTextBaseline, spacing: AppSpacing.small) {
                 if let checkbox {
-                    Image(systemName: checkbox ? "checkmark.square.fill" : "square")
-                        .foregroundStyle(checkbox ? Color.accentColor : .secondary)
-                        .accessibilityLabel(checkbox ? String(localized: "Done") : String(localized: "To do"))
+                    Button {
+                        onToggleCheckbox(block.line)
+                    } label: {
+                        Image(systemName: checkbox ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(checkbox ? Color.accentColor : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(checkbox ? String(localized: "Done") : String(localized: "To do"))
+                    .help(checkbox ? String(localized: "Mark as not done") : String(localized: "Mark as done"))
                 } else {
                     Text(marker)
                         .foregroundStyle(.secondary)

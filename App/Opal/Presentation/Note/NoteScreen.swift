@@ -129,13 +129,15 @@ struct NoteScreen: View {
             readingTopLine = line
         } onFollowLink: { link in
             Task { await VaultActions.follow(link, from: note.path, vault: vault, navigation: navigation) }
+        } onToggleCheckbox: { line in
+            notes.toggleCheckbox(onLine: line)
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             VStack(spacing: 0) {
                 properties
             }
         }
-        .task(id: ReadingKey(path: note.path, length: note.text.utf16.count)) {
+        .task(id: ReadingKey(path: note.path, text: note.text.hashValue)) {
             readingBlocks = await links.readingBlocks(of: note.path, text: note.text)
         }
     }

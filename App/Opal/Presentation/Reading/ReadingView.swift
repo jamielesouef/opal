@@ -16,6 +16,7 @@ struct ReadingView: View {
     let startLine: Int
     var onTopLine: (Int) -> Void = { _ in }
     var onFollowLink: (OpalCore.Link) -> Void = { _ in }
+    var onToggleCheckbox: (Int) -> Void = { _ in }
 
     // MARK: - State
 
@@ -27,7 +28,7 @@ struct ReadingView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: AppSpacing.regular) {
                 ForEach(blocks) { block in
-                    ReadingBlockView(block: block)
+                    ReadingBlockView(block: block, onToggleCheckbox: onToggleCheckbox)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

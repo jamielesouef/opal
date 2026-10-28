@@ -348,7 +348,7 @@ Screens: `obsidian-03-note-live-preview.png`
 Depends: M4-01, M4-02
 Acceptance:
 - [unit] `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]`, `![[image.png]]`, `![[image.png|300]]`, `![[file.pdf]]` and `![alt](image.png)` resolve with the M2-02 rules; the Heading form takes the text up to the next Heading of the same or a higher level.
-- [snap] In the Editor and in Reading view, Embeds show below their line: a Note or a Heading’s text in a bordered box with its name, an image at its size or the width given, a PDF as a scrollable page view. The Embed's own text stays in the line and is editable.
+- [snap] In Reading view ([ADR 0006](adr/0006-embeds-only-in-reading-view.md): never in the Editor, which shows the Embed as styled text), Embeds show below their line: a Note or a Heading’s text in a bordered box with its name, an image at its size or the width given, a PDF as a scrollable page view.
 - [snap] An Unresolved Embed shows “‘name’ is not in this Vault” with a create action.
 - [unit] An Embed of a Note that embeds itself, directly or through others, stops after one level and says so.
 - [manual] Changing the embedded Note elsewhere updates the Embed.
@@ -362,7 +362,7 @@ Acceptance:
 - [unit] Toggling a checkbox changes only the one character between `[` and `]` (space to `x`, `x` or `X` to space) and nothing else in the line or the Note.
 - [snap] With live Markdown on, `- [ ]` and `- [x]` show as checkboxes; done tasks are struck through and faint. Reading view shows the same.
 - [manual] Clicking the checkbox toggles it; the toggle is one undo step and is saved like any edit.
-- Later: draw a checkbox in place of the `[ ]` brackets in the Editor. Reading view already shows checkboxes (M4-02).
+- Later: draw a checkbox in place of the `[ ]` brackets in the Editor. In Reading view, clicking a checkbox toggles it as well (`NoteService.toggleCheckbox(onLine:)`).
 Status: done (28/10/2026; `CheckboxToggleUseCaseTests`, `opal-m4-05-checkboxes.png`; clicking is [manual] and yours to check)
 
 ### M4-06 Paste and drop images
@@ -372,7 +372,7 @@ Acceptance:
 - [unit] The Attachment's place follows `attachmentFolderPath` from `.obsidian/app.json` (Vault root, a named Folder, the Note's Folder, or a subfolder of it) and Opal's own setting when there is no `app.json`.
 - [unit] The name is `Pasted image YYYYMMDDHHmmss.png` for a paste and the file's own name for a drop; a name that is taken gets ` 1`, ` 2`… The file is written atomically and never replaces an existing file.
 - [unit] The Embed `![[name.png]]` is inserted at the cursor (or the drop point) as one undo step, using the shortest Link form the Vault's `newLinkFormat` asks for.
-- [manual] Paste from Screenshot and drag from Finder both work; the image shows inline (M4-04).
+- [manual] Paste from Screenshot and drag from Finder both work; the image shows in Reading view (M4-04).
 Status: todo
 
 ## M5 — Daily work

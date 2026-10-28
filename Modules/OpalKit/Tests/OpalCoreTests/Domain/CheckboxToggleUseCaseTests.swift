@@ -38,6 +38,21 @@ struct CheckboxToggleUseCaseTests {
         #expect(offsets.allSatisfy { CheckboxToggleUseCase.toggle(at: $0, in: styles) == nil })
     }
 
+    @Test("toggles a task by its line, for Reading view", arguments: [
+        ("Intro\n- [ ] Sow\n", 1, "Intro\n- [x] Sow\n"),
+        ("Intro\r\n  * [X] Weed", 1, "Intro\r\n  * [ ] Weed"),
+        ("> 1. [ ] Quote", 0, "> 1. [x] Quote")
+    ])
+    func toggleByLine(text: String, line: Int, expected: String) throws {
+        let toggle = try #require(CheckboxToggleUseCase.toggle(onLine: line, in: text))
+        #expect((text as NSString).replacingCharacters(in: NSRange(location: toggle.span.location, length: 1), with: toggle.replacement) == expected)
+    }
+
+    @Test("does nothing on a line without a task", arguments: [("Intro\n- [ ] Sow", 0), ("- [ ] Sow", 3), ("Text [ ] no", 0)])
+    func noTask(text: String, line: Int) {
+        #expect(CheckboxToggleUseCase.toggle(onLine: line, in: text) == nil)
+    }
+
     @Test("strikes the rest of a done task")
     func doneTask() {
         let text = "- [x] Water the tomatoes"
