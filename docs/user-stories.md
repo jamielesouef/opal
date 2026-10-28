@@ -295,12 +295,13 @@ Status: done (measured 27/10/2026, Release: first index 5.6 s, reopen 0.54 s, Se
 
 ## M4 — Rich Editor
 
-Styling is a view of the text, never a change to it. The Editor stays a plain-text `NSTextView` on TextKit 2 ([ADR 0002](adr/0002-textkit-2-editor.md)): fonts and colours are text storage attributes, which change neither `string` nor the undo stack. Opal writes a Note only when the user edits it (M4-03, M4-05 and M4-06 are edits). The styled ranges are computed with the open Note's Links, off the main actor for large Notes (the 27/10/2026 review), and the Editor maps each style kind to attributes in one place (the 28/10/2026 review).
+Styling is a view of the text, never a change to it. The Editor stays a plain-text `NSTextView` on TextKit 2 ([ADR 0002](adr/0002-textkit-2-editor.md)): fonts and colours are text storage attributes, which change neither `string` nor the undo stack. Opal writes a Note only when the user edits it (M4-03, M4-05 and M4-06 are edits). The styled ranges are computed with the open Note's Links, off the main actor for large Notes (the 27/10/2026 review), and the Editor maps each style kind to attributes in one place (the 28/10/2026 review). The Editor styles only the text near what is on screen (10,000 characters either side) and styles more as you scroll, so a 1 MB Note costs about 7 ms per restyle instead of 1.3 s.
 
 ### M4-01 Live Markdown
 As a writer, I want the Markdown styled as I type, so that the Note reads well while I write it.
 Screens: `obsidian-03-note-live-preview.png`
 Depends: M2-06, M3-03
+UX: Marks fade but never hide, so the text never reflows when the cursor moves. Only their colour changes, faint elsewhere and full strength on the cursor's line. The toggle is in the View menu, above Toggle Inspector, with no shortcut. It is kept in Opal's preferences, never in the Vault.
 Acceptance:
 - [unit] The parser returns style runs for Headings (levels 1–6), bold, italic, bold italic, strikethrough, highlight (`==text==`), inline code, code blocks, quotes, list markers, checkboxes, callouts (`> [!note] Title`), horizontal rules, Links, Embeds and Tags. Each run has a span and a kind, and the marks (`#`, `**`, `` ` ``, `[[`, `]]`) are their own runs.
 - [unit] Nothing is styled inside code or frontmatter except as code or frontmatter. Runs never overlap the text's end after an edit.
@@ -308,8 +309,9 @@ Acceptance:
 - [snap] A fixture Note with every kind above, light and dark: Headings are larger and bold, code is monospaced on a tinted background, quotes and callouts have a bar, Tags are tinted.
 - [snap] Marks are faint on lines without the cursor and full strength on the cursor's line. The text never moves sideways when the cursor changes line.
 - [unit] Styling a 1 MB Note does no parsing on the main actor (the M3-06 rule).
-- [manual] View › Live Markdown (no shortcut) turns styling off and on; plain text is the M1 Editor. The choice is kept outside the Vault.
-Status: todo
+- [manual] View › Live Markdown (no shortcut) turns styling off and on. With it off, the Editor is plain text except for Link colours, which ⌘-click needs (M2-04). The choice is kept outside the Vault.
+- [manual] Scroll through a 1 MB Note: the text further down is styled as it comes into view.
+Status: done (28/10/2026; `MarkdownStyleParserTests`, snapshots `opal-m4-01-*`; the two [manual] lines are yours)
 
 ### M4-02 Reading view (⌘E)
 As a reader, I want the Note rendered and not editable, so that I can read it without the marks.

@@ -17,6 +17,21 @@ struct OpalCommands: Commands {
     let switcher: QuickSwitcherService
     let search: SearchService
 
+    // MARK: - Preferences
+
+    @AppStorage private var isLiveMarkdown: Bool
+
+    // MARK: - Init
+
+    init(vault: VaultService, notes: NoteService, navigation: NavigationService, switcher: QuickSwitcherService, search: SearchService, defaults: UserDefaults) {
+        self.vault = vault
+        self.notes = notes
+        self.navigation = navigation
+        self.switcher = switcher
+        self.search = search
+        _isLiveMarkdown = AppStorage(wrappedValue: true, EditorPreferences.liveMarkdownKey, store: defaults)
+    }
+
     // MARK: - Commands
 
     var body: some Commands {
@@ -74,6 +89,10 @@ struct OpalCommands: Commands {
         }
 
         CommandGroup(after: .sidebar) {
+            Toggle(String(localized: "Live Markdown"), isOn: $isLiveMarkdown)
+
+            Divider()
+
             Button(String(localized: "Toggle Inspector")) {
                 navigation.isInspectorShown.toggle()
             }

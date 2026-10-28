@@ -191,7 +191,8 @@ public final class LinkService {
             path: path,
             textLength: text.utf16.count,
             parsed: parsed,
-            styles: map.linkStyles(in: parsed, from: path)
+            styles: (map.linkStyles(in: parsed, from: path) + MarkdownStyleParser.runs(in: text, parsed: parsed))
+                .sorted { $0.span.location < $1.span.location }
         )
     }
 

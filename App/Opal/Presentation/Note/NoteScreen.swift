@@ -18,6 +18,10 @@ struct NoteScreen: View {
     @Environment(\.quickSwitcherService) private var switcher
     @Environment(\.launchRequest) private var launch
 
+    // MARK: - State
+
+    @AppStorage(EditorPreferences.liveMarkdownKey) private var isLiveMarkdown = true
+
     // MARK: - View
 
     var body: some View {
@@ -63,7 +67,7 @@ struct NoteScreen: View {
     private func editor(_ note: Note) -> some View {
         MarkdownTextView(
             text: note.text,
-            styles: links.openNote.flatMap { $0.path == note.path ? $0.styles : nil } ?? [],
+            styles: styles(for: note),
             reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
             typeOnAppear: launch.typeText
         ) { text in
@@ -89,6 +93,16 @@ struct NoteScreen: View {
                 }
             }
         }
+    }
+
+    // MARK: - Styles
+
+    private func styles(for note: Note) -> [TextStyleRun] {
+        guard let open = links.openNote, open.path == note.path else {
+            return []
+        }
+
+        return isLiveMarkdown ? open.styles : open.styles.filter(\.kind.isLink)
     }
 
     // MARK: - Links

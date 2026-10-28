@@ -38,11 +38,29 @@ struct MarkdownTextView: NSViewRepresentable {
         configure(textView)
         textView.string = text
         textView.delegate = coordinator
+        if let layoutManager = textView.textLayoutManager {
+            layoutManager.delegate = coordinator
+        } else {
+            AppLog.error("The Editor fell back to TextKit 1; block styles are off.")
+        }
         textView.isLink = { [weak coordinator] offset in
             coordinator?.isLink(at: offset) ?? false
         }
         textView.onFollowLink = { [weak coordinator] offset in
             coordinator?.onFollowLink(offset)
+        }
+        scrollView.contentView.postsBoundsChangedNotifications = true
+        coordinator.boundsObserver = NotificationCenter.default.addObserver(
+            forName: NSView.boundsDidChangeNotification,
+            object: scrollView.contentView,
+            queue: .main
+        ) { [weak coordinator, weak textView] _ in
+            MainActor.assumeIsolated {
+                guard let coordinator, let textView else {
+                    return
+                }
+                coordinator.styleVisibleText(in: textView)
+            }
         }
         textView.handleCommand = { [weak coordinator, weak textView] selector in
             guard let textView, let coordinator else {
@@ -87,6 +105,9 @@ struct MarkdownTextView: NSViewRepresentable {
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: MarkdownTextViewCoordinator) {
         coordinator.hideSuggestions()
+        if let observer = coordinator.boundsObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
     // MARK: - Helpers
@@ -109,10 +130,7 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.textColor = .textColor
         textView.backgroundColor = .textBackgroundColor
         textView.textContainerInset = NSSize(width: EditorMetrics.textInset, height: EditorMetrics.textInset)
-        textView.typingAttributes = [
-            .font: NSFont.systemFont(ofSize: EditorMetrics.fontSize),
-            .foregroundColor: NSColor.textColor
-        ]
+        textView.typingAttributes = MarkdownStyler.baseAttributes
     }
 }
 

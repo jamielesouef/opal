@@ -9,13 +9,7 @@ import AppKit
 import OpalCore
 
 @MainActor
-final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let unresolvedAlpha: CGFloat = 0.55
-    }
-
+final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLayoutManagerDelegate {
     // MARK: - Stored
 
     var onChange: (String) -> Void
@@ -25,6 +19,10 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
     private(set) var styles: [TextStyleRun] = []
     private var lastRevealID: Int?
     private var appliedLength: Int?
+    private var marks: [TextSpan] = []
+    private var activeRange = NSRange(location: NSNotFound, length: 0)
+    private var styledWindow = NSRange(location: NSNotFound, length: 0)
+    var boundsObserver: (any NSObjectProtocol)?
     private let suggestionPanel = LinkSuggestionPanel()
     private var suggestions: [LinkSuggestion] = []
     private var selectedSuggestion = 0
@@ -48,11 +46,32 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
     }
 
     func textViewDidChangeSelection(_ notification: Notification) {
-        guard let textView = notification.object as? NSTextView, suggestionPanel.isVisible else {
+        guard let textView = notification.object as? NSTextView else {
             return
         }
 
-        updateSuggestions(in: textView)
+        updateMarks(in: textView)
+        if suggestionPanel.isVisible {
+            updateSuggestions(in: textView)
+        }
+    }
+
+    // MARK: - NSTextLayoutManagerDelegate
+
+    nonisolated func textLayoutManager(
+        _ textLayoutManager: NSTextLayoutManager,
+        textLayoutFragmentFor location: any NSTextLocation,
+        in textElement: NSTextElement
+    ) -> NSTextLayoutFragment {
+        guard let paragraph = textElement as? NSTextParagraph,
+              paragraph.attributedString.length > 0,
+              let value = paragraph.attributedString.attribute(MarkdownBlock.key, at: 0, effectiveRange: nil) as? String,
+              let block = MarkdownBlock(rawValue: value)
+        else {
+            return NSTextLayoutFragment(textElement: textElement, range: textElement.elementRange)
+        }
+
+        return MarkdownBlockFragment(textElement: textElement, range: textElement.elementRange, block: block)
     }
 
     // MARK: - Link suggestions
@@ -149,15 +168,10 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
         return LinkSuggestionUseCase.openQuery(in: textView.string, cursor: selection.location)
     }
 
-    // MARK: - Links
+    // MARK: - Styles
 
     func isLink(at offset: Int) -> Bool {
-        styles.contains { run in
-            guard case .link = run.kind else {
-                return false
-            }
-            return run.span.contains(offset)
-        }
+        styles.contains { $0.kind.isLink && $0.span.contains(offset) }
     }
 
     func apply(_ newStyles: [TextStyleRun], to textView: NSTextView) {
@@ -167,23 +181,34 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
 
         styles = newStyles
         appliedLength = storage.length
-        let full = NSRange(location: 0, length: storage.length)
-        storage.beginEditing()
-        storage.addAttribute(.foregroundColor, value: NSColor.textColor, range: full)
-        for run in newStyles where run.span.upperBound <= storage.length {
-            switch run.kind {
-            case let .link(isResolved):
-                let color = isResolved
-                    ? NSColor.controlAccentColor
-                    : NSColor.controlAccentColor.withAlphaComponent(Constants.unresolvedAlpha)
-                storage.addAttribute(
-                    .foregroundColor,
-                    value: color,
-                    range: NSRange(location: run.span.location, length: run.span.length)
-                )
-            }
+        marks = newStyles.filter { $0.kind == .mark }.map(\.span)
+        activeRange = MarkdownStyler.activeRange(in: textView)
+        styledWindow = NSRange(location: NSNotFound, length: 0)
+        styleVisibleText(in: textView)
+    }
+
+    func styleVisibleText(in textView: NSTextView) {
+        guard let storage = textView.textStorage, storage.length == appliedLength else {
+            return
         }
-        storage.endEditing()
+
+        let window = MarkdownStyler.window(around: textView)
+        guard NSIntersectionRange(window, styledWindow) != window || styledWindow.location == NSNotFound else {
+            return
+        }
+
+        styledWindow = window
+        MarkdownStyler.apply(styles, to: storage, in: window, activeRange: activeRange)
+    }
+
+    private func updateMarks(in textView: NSTextView) {
+        let newRange = MarkdownStyler.activeRange(in: textView)
+        guard let storage = textView.textStorage, newRange != activeRange, storage.length == appliedLength else {
+            return
+        }
+
+        MarkdownStyler.fadeMarks(marks, in: storage, from: activeRange, to: newRange)
+        activeRange = newRange
     }
 
     // MARK: - Reveal

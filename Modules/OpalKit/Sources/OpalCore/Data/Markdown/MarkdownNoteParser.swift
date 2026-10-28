@@ -10,7 +10,7 @@ import Foundation
 public enum MarkdownNoteParser {
     // MARK: - Constants
 
-    private enum Pattern {
+    enum Pattern {
         static let wikiLink = regex(#"(!?)\[\[([^\[\]\n]+?)\]\]"#)
         static let markdownLink = regex(#"(!?)\[([^\[\]\n]*)\]\((<[^<>\n]+>|[^()\s]+)\)"#)
         static let heading = regex(#"^ {0,3}(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$"#)
@@ -98,7 +98,7 @@ public enum MarkdownNoteParser {
 
     // MARK: - Lines
 
-    private static func splitLines(_ text: String) -> [MarkdownLine] {
+    static func splitLines(_ text: String) -> [MarkdownLine] {
         var lines: [MarkdownLine] = []
         var offset = 0
         for (index, raw) in text.unicodeScalars.split(separator: "\n", omittingEmptySubsequences: false).enumerated() {
@@ -109,7 +109,7 @@ public enum MarkdownNoteParser {
         return lines
     }
 
-    private static func frontmatterLineCount(_ lines: [MarkdownLine]) -> Int {
+    static func frontmatterLineCount(_ lines: [MarkdownLine]) -> Int {
         guard lines.first.map(\.text).map(trimmingTrailingSpace) == Constants.frontmatterDelimiter else {
             return 0
         }
@@ -131,7 +131,7 @@ public enum MarkdownNoteParser {
 
     // MARK: - Code
 
-    private static func fenceMarker(_ trimmed: String) -> String? {
+    static func fenceMarker(_ trimmed: String) -> String? {
         guard let first = trimmed.first, Constants.fenceCharacters.contains(first) else {
             return nil
         }
@@ -144,7 +144,7 @@ public enum MarkdownNoteParser {
         return String(run)
     }
 
-    private static func closesFence(_ trimmed: String, fence: String) -> Bool {
+    static func closesFence(_ trimmed: String, fence: String) -> Bool {
         guard let character = fence.first else {
             return false
         }
@@ -153,7 +153,7 @@ public enum MarkdownNoteParser {
         return run.count >= fence.count && trimmed.dropFirst(run.count).allSatisfy(\.isWhitespace)
     }
 
-    private static func inlineCodeSpans(_ line: String) -> [TextSpan] {
+    static func inlineCodeSpans(_ line: String) -> [TextSpan] {
         let units = Array(line.utf16)
         var spans: [TextSpan] = []
         var index = 0
@@ -199,7 +199,7 @@ public enum MarkdownNoteParser {
         return nil
     }
 
-    private static func overlaps(_ range: NSRange, _ spans: [TextSpan]) -> Bool {
+    static func overlaps(_ range: NSRange, _ spans: [TextSpan]) -> Bool {
         spans.contains { range.location < $0.upperBound && $0.location < range.location + range.length }
     }
 
@@ -384,7 +384,7 @@ public enum MarkdownNoteParser {
 
     // MARK: - Regex
 
-    private static func regex(_ pattern: String) -> NSRegularExpression {
+    static func regex(_ pattern: String) -> NSRegularExpression {
         do {
             return try NSRegularExpression(pattern: pattern, options: [.anchorsMatchLines])
         } catch {
@@ -392,7 +392,7 @@ public enum MarkdownNoteParser {
         }
     }
 
-    private static func matches(of regex: NSRegularExpression, in text: String) -> [NSTextCheckingResult] {
+    static func matches(of regex: NSRegularExpression, in text: String) -> [NSTextCheckingResult] {
         regex.matches(in: text, range: NSRange(location: 0, length: (text as NSString).length))
     }
 }

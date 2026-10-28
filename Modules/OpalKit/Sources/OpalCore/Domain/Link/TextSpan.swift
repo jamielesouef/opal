@@ -24,6 +24,10 @@ public struct TextSpan: Hashable, Sendable, Codable {
         location + length
     }
 
+    public func shifted(by offset: Int) -> TextSpan {
+        TextSpan(location: location + offset, length: length)
+    }
+
     public func contains(_ offset: Int) -> Bool {
         offset >= location && offset < upperBound
     }

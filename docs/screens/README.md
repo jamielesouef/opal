@@ -78,3 +78,12 @@ Taken on 27/10/2026 the same way as Milestone 2, with the Index in a throwaway f
 | `opal-m3-02-search-dark.png` | Search for `tag:#garden`, dark | M3-03, M3-04 |
 | `opal-m3-03-tags.png` | Tags pane, nested, with Note counts | M3-03 |
 | `opal-m3-04-unlinked-mentions.png` | Backlinks tab of `Gardening Basics` with an unlinked mention and **Link** | M3-05 |
+
+## Opal, Milestone 4
+
+Taken on 28/10/2026 from a Debug build with `-OpalSnapshot <png>`: the app draws its own window and quits, so no Screen Recording permission is needed. `cacheDisplay` does not draw materials faithfully. The sidebar selection shows as a black bar, the toolbar is blank, and dark sidebar text looks dim. Judge only the Editor. The Vault is a copy of `Garden` in the app container's temporary folder, with [`fixtures/Live Markdown.md`](fixtures/Live%20Markdown.md) copied in. That Note is not part of `Garden`, so test counts don't change.
+
+| File | Screen | Story |
+| --- | --- | --- |
+| `opal-m4-01-live-markdown-light.png`, `-dark` | Every live Markdown style, with the cursor on the last line | M4-01 |
+| `opal-m4-01-cursor-line.png` | `-OpalTypeText " and **more** [[Soil]]"`: marks on the cursor's line are full strength, the line above is faint | M4-01 |

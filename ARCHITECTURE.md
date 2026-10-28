@@ -3,7 +3,7 @@
 The rules are in [docs/architecture.md](docs/architecture.md). This file names
 Opal's pieces and its deliberate constraints.
 
-**Status: Milestones 1, 2 and 3 built** (open a Vault and write a Note; Links; Find; see
+**Status: Milestones 1, 2 and 3 built; Milestone 4 in progress** (open a Vault and write a Note; Links; Find; see
 [docs/user-stories.md](docs/user-stories.md)). Lines marked _built_ exist on
 `HEAD`; everything else is still the target shape. When code lands, replace a
 planned line with what was built, and add each new protocol, store and
@@ -39,6 +39,17 @@ constraint here.
 | Data | `GRDBIndexStore` (GRDB 7, SQLite, FTS5; [ADR 0004](docs/adr/0004-index-in-sqlite-with-grdb.md)), `FTSQueryBuilder`, `IndexLocation`. `FileSystemVaultStore` gains `noteStamps()` and `stamp(of:)`, walking with `enumerator(at:includingPropertiesForKeys:)` |
 | Services | `IndexService` (sync by file stamps, in batches, with progress; updates on saves and outside changes), `SearchService` (query, debounce, results), `MentionService` (unlinked mentions, link after confirmation). `LinkService` loads parsed Notes from a ready Index; the Link map also builds the Tag tree |
 | Presentation | Sidebar panes (Files, Search, Tags), `SearchView`, `TagsView`, `IndexStatusView`, `UnlinkedMentionsSection`; ⇧⌘F |
+
+## Built in Milestone 4
+
+| Layer | Built |
+| --- | --- |
+| Domain | `TextStyleRun` + `TextStyleKind` (Links, marks, Headings, emphasis, code, quotes, callouts, lists, checkboxes, rules, Tags, frontmatter). `TextSpan.shifted(by:)` |
+| Data | `MarkdownStyleParser` (pure: text and `ParsedNote` in, style runs out; shares line, fence and code helpers with `MarkdownNoteParser`) |
+| Services | `LinkService.openNote.styles`: Link colours plus Markdown style runs, sorted by location and computed with the Links (off the main actor for large Notes). Not stored in the Index |
+| Design | `EditorMetrics` Heading scales, code scale, block indent and bar width |
+| Presentation | `MarkdownStyler` (style kind to text storage attributes, only in a window around what is on screen; mark fading), `MarkdownBlock` + `MarkdownBlockFragment` (TextKit 2 layout fragments draw quote bars, callout and code block backgrounds), `EditorPreferences`; View › Live Markdown |
+| App | Debug-only `-OpalSnapshot <png>` draws the window to a PNG and quits |
 
 Built protocols: `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`, `IndexStoring`.
 Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`
