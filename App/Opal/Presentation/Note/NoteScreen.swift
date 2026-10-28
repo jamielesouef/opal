@@ -17,6 +17,7 @@ struct NoteScreen: View {
     @Environment(\.navigationService) private var navigation
     @Environment(\.quickSwitcherService) private var switcher
     @Environment(\.launchRequest) private var launch
+    @Environment(\.templateService) private var templates
 
     // MARK: - State
 
@@ -83,6 +84,7 @@ struct NoteScreen: View {
             styles: styles(for: note),
             stylesLength: links.openNote.flatMap { $0.path == note.path ? $0.textLength : nil },
             reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
+            insertion: templates.insertion.flatMap { $0.path == note.path ? $0 : nil },
             typeOnAppear: launch.typeText
         ) { text in
             notes.edit(text)
@@ -181,6 +183,7 @@ struct NoteScreen: View {
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
+            .environment(\.templateService, graph.templateService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task {

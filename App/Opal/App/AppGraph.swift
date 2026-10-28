@@ -21,6 +21,7 @@ struct AppGraph {
     let searchService: SearchService
     let mentionService: MentionService
     let dailyNoteService: DailyNoteService
+    let templateService: TemplateService
     let launchRequest: LaunchRequest
     let launchAppearance: NSAppearance.Name?
     let launchSnapshotURL: URL?
@@ -58,6 +59,7 @@ struct AppGraph {
         self.navigationService = navigationService
         quickSwitcherService = QuickSwitcherService(vault: vaultService, links: linkService, navigation: navigationService)
         searchService = SearchService(index: indexService, navigation: navigationService)
+        templateService = TemplateService(vault: vaultService, notes: noteService, clock: SystemClock())
         dailyNoteService = DailyNoteService(vault: vaultService, links: linkService, navigation: navigationService, clock: SystemClock())
         mentionService = MentionService(vault: vaultService, index: indexService, links: linkService, notes: noteService)
         vaultService.onExternalChange = { [linkService, noteService, indexService] paths in

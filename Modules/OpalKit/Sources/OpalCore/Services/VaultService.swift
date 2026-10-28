@@ -38,6 +38,7 @@ public final class VaultService: SingleFlightRefreshing {
     public private(set) var appSettings = ObsidianAppSettings.defaults
     public private(set) var propertyTypes: [String: PropertyType] = [:]
     public private(set) var dailyNoteSettings = DailyNoteSettings.defaults
+    public private(set) var templateSettings = TemplateSettings.defaults
     public private(set) var store: (any VaultFileStoring)?
     public private(set) var entries: [VaultEntry] = []
     public private(set) var entriesRevision = 0
@@ -272,11 +273,13 @@ public final class VaultService: SingleFlightRefreshing {
 
         let types = await ObsidianTypesParser.parse(newStore.readObsidianSettings(named: ObsidianTypesParser.fileName))
         let daily = await ObsidianDailyNotesParser.parse(newStore.readObsidianSettings(named: ObsidianDailyNotesParser.fileName))
+        let templates = await ObsidianTemplatesParser.parse(newStore.readObsidianSettings(named: ObsidianTemplatesParser.fileName))
 
         store = newStore
         appSettings = settings
         propertyTypes = types
         dailyNoteSettings = daily ?? .defaults
+        templateSettings = templates ?? .defaults
         vault = Vault(rootURL: folderURL)
         apply(listed, tree: await Self.tree(from: listed))
         isOpening = false
@@ -309,6 +312,7 @@ public final class VaultService: SingleFlightRefreshing {
         appSettings = .defaults
         propertyTypes = [:]
         dailyNoteSettings = .defaults
+        templateSettings = .defaults
         apply([])
     }
 

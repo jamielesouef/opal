@@ -17,6 +17,7 @@ struct MarkdownTextView: NSViewRepresentable {
     var styles: [TextStyleRun] = []
     var stylesLength: Int?
     var reveal: RevealRequest?
+    var insertion: TextInsertion?
     var typeOnAppear: String?
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
@@ -86,6 +87,7 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.linkInsertion = linkInsertion
         coordinator.apply(styles, forLength: stylesLength, to: textView)
         coordinator.apply(reveal, to: textView)
+        coordinator.apply(insertion, to: textView)
         if let typeOnAppear {
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(1))
@@ -120,6 +122,7 @@ struct MarkdownTextView: NSViewRepresentable {
 
         coordinator.apply(styles, forLength: stylesLength, to: textView)
         coordinator.apply(reveal, to: textView)
+        coordinator.apply(insertion, to: textView)
     }
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: MarkdownTextViewCoordinator) {

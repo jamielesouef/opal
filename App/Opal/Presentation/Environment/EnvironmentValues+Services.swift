@@ -44,6 +44,10 @@ private let defaultDailyNoteService = MainActor.assumeIsolated {
     AppDependencies.shared.dailyNoteService
 }
 
+private let defaultTemplateService = MainActor.assumeIsolated {
+    AppDependencies.shared.templateService
+}
+
 extension EnvironmentValues {
     @Entry var vaultService: VaultService = defaultVaultService
     @Entry var noteService: NoteService = defaultNoteService
@@ -52,6 +56,7 @@ extension EnvironmentValues {
     @Entry var searchService: SearchService = defaultSearchService
     @Entry var mentionService: MentionService = defaultMentionService
     @Entry var dailyNoteService: DailyNoteService = defaultDailyNoteService
+    @Entry var templateService: TemplateService = defaultTemplateService
     @Entry var navigationService: NavigationService = defaultNavigationService
     @Entry var quickSwitcherService: QuickSwitcherService = defaultQuickSwitcherService
     @Entry var launchRequest = LaunchRequest()

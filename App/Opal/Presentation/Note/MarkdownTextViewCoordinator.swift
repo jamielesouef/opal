@@ -21,6 +21,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     private(set) var styles: [TextStyleRun] = []
     private var lastRevealID: Int?
+    private var lastInsertionID: Int?
     private var appliedLength: Int?
     var lastText: String?
     private var marks: [TextSpan] = []
@@ -283,6 +284,18 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
 
         MarkdownStyler.fadeMarks(marks, in: storage, from: activeRange, to: newRange)
         activeRange = newRange
+    }
+
+    // MARK: - Insertion
+
+    func apply(_ insertion: TextInsertion?, to textView: NSTextView) {
+        guard let insertion, insertion.id != lastInsertionID else {
+            return
+        }
+
+        lastInsertionID = insertion.id
+        textView.window?.makeFirstResponder(textView)
+        textView.insertText(insertion.text, replacementRange: textView.selectedRange())
     }
 
     // MARK: - Reveal

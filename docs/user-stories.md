@@ -409,7 +409,7 @@ Acceptance:
 - [unit] `{{date}}`, `{{time}}`, `{{title}}` (the open Note's name) and `{{date:FORMAT}}`/`{{time:FORMAT}}` are filled in; other text is inserted as it is. Date and time formats come from `templates.json` when set.
 - [snap] Edit › Insert Template… (⌥⌘T) shows a searchable list of Templates; Return inserts the chosen one at the cursor as one undo step.
 - [snap] With no Templates Folder, the list says where to make one.
-Status: todo
+Status: done (28/10/2026; `TemplateServiceTests`, `opal-m5-02-insert-template.png`). Pressing Return to insert at the cursor is [manual]: the snapshot shows the list only.
 
 ### M5-03 Rename a Note
 As a user, I want to rename a Note and keep the Links to it working.

@@ -18,6 +18,7 @@ struct VaultScreen: View {
     @Environment(\.searchService) private var search
     @Environment(\.navigationService) private var navigation
     @Environment(\.dailyNoteService) private var dailyNotes
+    @Environment(\.templateService) private var templates
 
     // MARK: - State
 
@@ -32,6 +33,7 @@ struct VaultScreen: View {
 
     var body: some View {
         @Bindable var navigation = navigation
+        @Bindable var templates = templates
         NavigationSplitView {
             sidebar
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -115,6 +117,9 @@ struct VaultScreen: View {
         .sheet(isPresented: $navigation.isQuickSwitcherShown) {
             QuickSwitcherView()
         }
+        .sheet(isPresented: $templates.isPickerShown) {
+            TemplatePickerView()
+        }
         .background(VaultSync())
         .onChange(of: notes.path) { _, openPath in
             guard let openPath else {
@@ -187,6 +192,7 @@ struct VaultScreen: View {
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
+            .environment(\.templateService, graph.templateService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task { await graph.vaultService.start() }

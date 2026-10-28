@@ -19,6 +19,7 @@ struct RootScreen: View {
     @Environment(\.searchService) private var search
     @Environment(\.launchRequest) private var launch
     @Environment(\.dailyNoteService) private var dailyNotes
+    @Environment(\.templateService) private var templates
 
     // MARK: - View
 
@@ -31,6 +32,9 @@ struct RootScreen: View {
                 }
                 if launch.opensDailyNote, vault.isOpen {
                     await dailyNotes.openToday()
+                }
+                if launch.showsTemplates, vault.isOpen {
+                    templates.showPicker()
                 }
                 if launch.isReadingView {
                     navigation.isReadingView = true
@@ -78,6 +82,7 @@ struct RootScreen: View {
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
+            .environment(\.templateService, graph.templateService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }
@@ -92,6 +97,7 @@ struct RootScreen: View {
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
             .environment(\.dailyNoteService, graph.dailyNoteService)
+            .environment(\.templateService, graph.templateService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }

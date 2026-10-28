@@ -50,17 +50,27 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Snapshot
 
     #if DEBUG
+        private func write(_ view: NSView?, to url: URL) {
+            guard let view, let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+                AppLog.error("The snapshot view is missing")
+                return
+            }
+
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            do {
+                try bitmap.representation(using: .png, properties: [:])?.write(to: url)
+            } catch {
+                AppLog.error("Writing the snapshot failed: \(error)")
+            }
+        }
+
         private func snapshotAndQuit(to url: URL) {
             Task {
                 try? await Task.sleep(for: Constants.snapshotDelay)
-                if let view = NSApp.windows.first(where: \.isVisible)?.contentView,
-                   let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
-                    view.cacheDisplay(in: view.bounds, to: bitmap)
-                    do {
-                        try bitmap.representation(using: .png, properties: [:])?.write(to: url)
-                    } catch {
-                        AppLog.error("Writing the snapshot failed: \(error)")
-                    }
+                let window = NSApp.windows.first { $0.isVisible && $0.sheetParent == nil }
+                write(window?.contentView, to: url)
+                if let sheet = window?.attachedSheet {
+                    write(sheet.contentView, to: url.deletingPathExtension().appendingPathExtension("sheet.png"))
                 }
                 NSApp.terminate(nil)
             }

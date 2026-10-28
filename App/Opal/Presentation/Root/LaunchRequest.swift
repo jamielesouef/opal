@@ -17,4 +17,5 @@ struct LaunchRequest {
     var typeText: String?
     var isReadingView = false
     var opensDailyNote = false
+    var showsTemplates = false
 }

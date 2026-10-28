@@ -55,10 +55,10 @@ constraint here.
 
 | Layer | Built |
 | --- | --- |
-| Domain | `DailyNoteSettings`, `MomentFormatUseCase` (Moment date tokens), `DailyNotePlanUseCase` (path and Template path), `TemplateFillUseCase` (`{{date}}`, `{{time}}`, `{{title}}`, with formats). `NotePath.appendingNoteExtension` |
-| Data | `ObsidianDailyNotesParser` + DTO (`.obsidian/daily-notes.json`, read only) |
-| Services | `DailyNoteService` (open or create today's Daily Note through `Clocking`); `VaultService.dailyNoteSettings`, `createNote(at:text:)` |
-| Presentation | Go › Today's Daily Note (⌥⌘D) and a toolbar button; `-OpalDailyNote` |
+| Domain | `DailyNoteSettings`, `MomentFormatUseCase` (Moment date tokens), `DailyNotePlanUseCase` (path and Template path), `TemplateFillUseCase` (`{{date}}`, `{{time}}`, `{{title}}`, with formats), `TemplateSettings`, `TextInsertion`. `NotePath.appendingNoteExtension` |
+| Data | `ObsidianDailyNotesParser` + DTO (`.obsidian/daily-notes.json`), `ObsidianTemplatesParser` + DTO (`.obsidian/templates.json`); both read only |
+| Services | `DailyNoteService` (open or create today's Daily Note through `Clocking`); `TemplateService` (Templates in the Templates Folder, fill for the open Note, an insertion request the Editor applies at the cursor); `VaultService.dailyNoteSettings`, `templateSettings`, `createNote(at:text:)` |
+| Presentation | Go › Today's Daily Note (⌥⌘D) and a toolbar button; Edit › Insert Template… (⌥⌘T) and `TemplatePickerView`; `-OpalDailyNote`, `-OpalTemplates`. `-OpalSnapshot` also writes an attached sheet as `*.sheet.png` |
 
 Built protocols: `Clocking`, `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`, `IndexStoring`.
 Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`
