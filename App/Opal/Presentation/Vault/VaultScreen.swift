@@ -175,14 +175,12 @@ struct VaultScreen: View {
     private var detail: some View {
         switch DetailContentUseCase.content(selection: selection, kind: selection.flatMap(vaultService.kind(of:))) {
         case .note:
-            if navigation.panes.isSplit {
-                HStack(spacing: 0) {
-                    editorPane(0)
+            HStack(spacing: 0) {
+                editorPane(0)
+                if navigation.panes.isSplit {
                     Divider()
                     editorPane(1)
                 }
-            } else {
-                editorPane(0)
             }
         case let .attachment(path):
             AttachmentView(name: path.fileName) {

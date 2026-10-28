@@ -202,7 +202,6 @@ public final class NavigationService {
         if panes.panes.count < paneCount {
             topOffsets.remove(at: index)
             topOffsets.append(0)
-            editorTopOffset = tabs.selected.topOffset
             reveal = nil
             await showPanes()
         } else if wasSelected {
