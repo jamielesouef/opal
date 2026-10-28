@@ -35,7 +35,8 @@ enum AppDependencies {
             indexBaseURL: arguments.indexFolderURL ?? defaultIndexBaseURL(),
             defaults: defaults,
             launchRequest: arguments.request,
-            launchAppearance: arguments.appearanceName
+            launchAppearance: arguments.appearanceName,
+            launchSnapshotURL: arguments.snapshotURL
         )
     }
 }

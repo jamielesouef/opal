@@ -21,6 +21,7 @@ struct LaunchArguments {
         static let indexFolder = "-OpalIndexFolder"
         static let search = "-OpalSearch"
         static let sidebarPane = "-OpalSidebarPane"
+        static let snapshot = "-OpalSnapshot"
     }
 
     // MARK: - Stored
@@ -34,6 +35,7 @@ struct LaunchArguments {
     let indexFolderURL: URL?
     let search: String?
     let sidebarPane: SidebarPane?
+    let snapshotURL: URL?
 
     // MARK: - Derived
 
@@ -68,6 +70,7 @@ struct LaunchArguments {
         typeText = Self.value(after: Constants.typeText, in: arguments)
         search = Self.value(after: Constants.search, in: arguments)
         sidebarPane = Self.value(after: Constants.sidebarPane, in: arguments).flatMap(SidebarPane.init(rawValue:))
+        snapshotURL = Self.value(after: Constants.snapshot, in: arguments).map { URL(filePath: $0) }
         indexFolderURL = Self.value(after: Constants.indexFolder, in: arguments).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }
 
