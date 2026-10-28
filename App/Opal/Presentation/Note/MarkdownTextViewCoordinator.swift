@@ -17,6 +17,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     var onScroll: (Int) -> Void = { _ in }
     var linkSuggestions: (String) async -> [LinkSuggestion] = { _ in [] }
     private var suggestionTask: Task<Void, Never>?
+    private let undo = UndoManager()
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     private(set) var styles: [TextStyleRun] = []
     private var lastRevealID: Int?
@@ -48,6 +49,15 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         lastText = text
         onChange(text)
         updateSuggestions(in: textView)
+    }
+
+    func undoManager(for view: NSTextView) -> UndoManager? {
+        undo
+    }
+
+    func dismantle() {
+        undo.removeAllActions()
+        hideSuggestions()
     }
 
     func textViewDidChangeSelection(_ notification: Notification) {
@@ -83,7 +93,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
 
     func handleCommand(_ selector: Selector, in textView: NSTextView) -> Bool {
         guard suggestionPanel.isVisible, suggestions.isEmpty == false else {
-            return false
+            return continueList(selector, in: textView)
         }
 
         switch selector {
@@ -102,6 +112,18 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         default:
             return false
         }
+        return true
+    }
+
+    private func continueList(_ selector: Selector, in textView: NSTextView) -> Bool {
+        let selection = textView.selectedRange()
+        guard selector == #selector(NSResponder.insertNewline(_:)), selection.length == 0,
+              let edit = ListContinuationUseCase.newline(in: textView.string, cursor: selection.location)
+        else {
+            return false
+        }
+
+        textView.insertText(edit.replacement, replacementRange: NSRange(location: edit.span.location, length: edit.span.length))
         return true
     }
 
@@ -230,6 +252,16 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             return
         }
 
+        guard storage.editedMask.isEmpty else {
+            Task { [weak self, weak textView] in
+                guard let self, let textView else {
+                    return
+                }
+                styleVisibleText(in: textView)
+            }
+            return
+        }
+
         let window = MarkdownStyler.window(around: textView)
         var missing = IndexSet(integersIn: window.location ..< NSMaxRange(window))
         missing.subtract(styled)
@@ -245,7 +277,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
 
     private func updateMarks(in textView: NSTextView) {
         let newRange = MarkdownStyler.activeRange(in: textView)
-        guard let storage = textView.textStorage, newRange != activeRange, storage.length == appliedLength else {
+        guard let storage = textView.textStorage, newRange != activeRange, storage.length == appliedLength, storage.editedMask.isEmpty else {
             return
         }
 

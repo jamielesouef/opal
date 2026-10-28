@@ -33,14 +33,22 @@ enum MarkdownStyler {
     // MARK: - Apply
 
     static func apply(_ runs: [TextStyleRun], to storage: NSTextStorage, in window: NSRange, activeRange: NSRange) {
-        storage.beginEditing()
-        for key in [NSAttributedString.Key.backgroundColor, .strikethroughStyle, MarkdownBlock.key] {
-            storage.removeAttribute(key, range: window)
-        }
-        storage.addAttributes(baseAttributes, range: window)
+        let styled = NSMutableAttributedString(string: (storage.string as NSString).substring(with: window), attributes: baseAttributes)
+        let localActive = NSRange(location: activeRange.location == NSNotFound ? NSNotFound : activeRange.location - window.location, length: activeRange.length)
         for run in slice(runs, in: window).sorted(by: { phase($0.kind) < phase($1.kind) }) where run.span.upperBound <= storage.length {
             let range = NSIntersectionRange(NSRange(location: run.span.location, length: run.span.length), window)
-            style(run.kind, range: range, in: storage, isActive: touches(range, activeRange))
+            let local = NSRange(location: range.location - window.location, length: range.length)
+            style(run.kind, range: local, in: styled, isActive: touches(local, localActive))
+        }
+
+        storage.beginEditing()
+        styled.enumerateAttributes(in: NSRange(location: 0, length: styled.length)) { wanted, local, _ in
+            let target = NSRange(location: local.location + window.location, length: local.length)
+            storage.enumerateAttributes(in: target) { current, part, _ in
+                if NSDictionary(dictionary: current).isEqual(to: wanted) == false {
+                    storage.setAttributes(wanted, range: part)
+                }
+            }
         }
         storage.endEditing()
     }
@@ -119,7 +127,7 @@ enum MarkdownStyler {
         }
     }
 
-    private static func style(_ kind: TextStyleKind, range: NSRange, in storage: NSTextStorage, isActive: Bool) {
+    private static func style(_ kind: TextStyleKind, range: NSRange, in storage: NSMutableAttributedString, isActive: Bool) {
         switch kind {
         case let .heading(level):
             let scale = EditorMetrics.headingScales[min(max(level, 1), EditorMetrics.headingScales.count) - 1]
@@ -176,7 +184,7 @@ enum MarkdownStyler {
         isActive ? .secondaryLabelColor : .quaternaryLabelColor
     }
 
-    private static func addTrait(_ trait: NSFontTraitMask, range: NSRange, in storage: NSTextStorage) {
+    private static func addTrait(_ trait: NSFontTraitMask, range: NSRange, in storage: NSMutableAttributedString) {
         storage.enumerateAttribute(.font, in: range) { value, subrange, _ in
             let font = (value as? NSFont) ?? baseFont
             storage.addAttribute(.font, value: NSFontManager.shared.convert(font, toHaveTrait: trait), range: subrange)

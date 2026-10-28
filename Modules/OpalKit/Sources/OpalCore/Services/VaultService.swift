@@ -206,7 +206,16 @@ public final class VaultService: SingleFlightRefreshing {
             return
         }
 
-        apply(listed)
+        guard listed != entries else {
+            return
+        }
+
+        let newTree = await Self.tree(from: listed)
+        guard Task.isCancelled == false else {
+            return
+        }
+
+        apply(listed, tree: newTree)
     }
 
     // MARK: - Private
@@ -266,7 +275,7 @@ public final class VaultService: SingleFlightRefreshing {
         appSettings = settings
         propertyTypes = types
         vault = Vault(rootURL: folderURL)
-        apply(listed)
+        apply(listed, tree: await Self.tree(from: listed))
         isOpening = false
         startWatching(folderURL)
     }
@@ -303,10 +312,15 @@ public final class VaultService: SingleFlightRefreshing {
         apply(VaultTreeUseCase.entriesAddingAncestors(of: entry, to: entries))
     }
 
-    private func apply(_ newEntries: [VaultEntry]) {
+    private func apply(_ newEntries: [VaultEntry], tree newTree: [VaultTreeNode]? = nil) {
         entries = newEntries
         entriesRevision += 1
         kinds = Dictionary(newEntries.map { ($0.path, $0.kind) }) { first, _ in first }
-        tree = VaultTreeUseCase.tree(from: newEntries)
+        tree = newTree ?? VaultTreeUseCase.tree(from: newEntries)
+    }
+
+    @concurrent
+    private nonisolated static func tree(from entries: [VaultEntry]) async -> [VaultTreeNode] {
+        VaultTreeUseCase.tree(from: entries)
     }
 }

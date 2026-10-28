@@ -375,6 +375,16 @@ Acceptance:
 - [manual] Paste from Screenshot and drag from Finder both work; the image shows in Reading view (M4-04).
 Status: done (28/10/2026; `AttachmentUseCaseTests`, `AttachmentServiceTests`). Only image files are attached; other dropped or pasted files keep the Editor's usual behaviour. Paste and drag are [manual] and yours to check: I could not drive the pasteboard or a drag in the running app.
 
+### M4-07 Lists continue on Return
+As a writer, I want Return in a list to start the next item, so that I can write lists without typing markers.
+Depends: M4-01
+Acceptance:
+- [unit] Return at the end of, or inside, a list item inserts a new item with the same indent, quote prefix and marker. Numbers count up (`1.` then `2.`, `9)` then `10)`), and a task starts unticked (`- [ ] `).
+- [unit] Return on an empty item removes its marker and leaves an empty line, which ends the list.
+- [unit] Return outside a list item, or with the cursor inside the marker, is a plain newline.
+- [manual] Each Return is one undo step.
+Status: done (28/10/2026; `ListContinuationUseCaseTests`; checked in the running app by a scripted Return, typing and Return on a copy of a 13 KB Note)
+
 ## M5 — Daily work
 
 ### M5-01 Daily Note

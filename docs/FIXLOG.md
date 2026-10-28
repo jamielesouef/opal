@@ -67,3 +67,11 @@ Bugs found while building, with the rule each one taught.
 - Cause: the inspector passed the whole mentions array to SwiftUI views, which compared it with `==` on every update (`AttributeGraph` → `Array.==` → `UnlinkedMention.==` → `String` comparison). That is O(n) string work many times per frame on the main thread.
 - Fix: the inspector shows 50 mentions at a time with **Show More**. Rows are identified by `UnlinkedMention.id` (source and offset) instead of hashing the whole value, and the header shows the total.
 - Rule: never hand an unbounded array to a SwiftUI view. Page it, and give `ForEach` a cheap stable `id`.
+
+## 28/10/2026: lines disappeared while editing; undo crashed; saves froze a large Vault
+- Symptom: while editing `CLAUDE.md` in a real Vault (3,798 Notes), lines vanished until the user scrolled, one undo crashed in `objc_msgSend`, and typing felt laggy.
+- Cause, lines: every new analysis reset and re-set the attributes of the whole style window (6,000 characters). TextKit 2 invalidated and re-laid out all of it on every keystroke, and some fragments were not redrawn until a scroll.
+- Cause, freeze on save: each save came back as a change from outside (FSEvents), and `VaultService` rebuilt and re-sorted the whole Folder tree on the main actor even though no file was added or removed. That took 205 ms in Debug at 5,000 Notes.
+- Cause, crash: not reproduced. The likely cause was that every Editor shared the window's undo manager, so undo could reach a text view that SwiftUI had already thrown away (each Note gets a new Editor).
+- Fix: `MarkdownStyler` builds the wanted attributes off to the side and writes only the ranges that differ. Styling waits while the text storage is mid-edit. Each Editor has its own `UndoManager`, cleared when the Editor goes away. A refresh with an unchanged list of entries does nothing, and the tree is built off the main actor.
+- Rule: never rewrite text attributes that have not changed. Never mutate the text storage during its own editing pass. Give each `NSTextView` its own undo manager when SwiftUI can recreate it.

@@ -123,7 +123,9 @@ struct MarkdownTextView: NSViewRepresentable {
     }
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: MarkdownTextViewCoordinator) {
-        coordinator.hideSuggestions()
+        coordinator.dismantle()
+        (scrollView.documentView as? NSTextView)?.delegate = nil
+        (scrollView.documentView as? NSTextView)?.textLayoutManager?.delegate = nil
         if let observer = coordinator.boundsObserver {
             NotificationCenter.default.removeObserver(observer)
         }
