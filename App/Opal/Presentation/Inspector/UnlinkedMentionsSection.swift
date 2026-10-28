@@ -13,8 +13,10 @@ struct UnlinkedMentionsSection: View {
     // MARK: - Input
 
     let mentions: [UnlinkedMention]
+    var total = 0
     var onOpen: (UnlinkedMention) -> Void = { _ in }
     var onLink: (UnlinkedMention) -> Void = { _ in }
+    var onShowMore: () -> Void = {}
 
     // MARK: - View
 
@@ -25,7 +27,7 @@ struct UnlinkedMentionsSection: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
-            ForEach(mentions, id: \.self) { mention in
+            ForEach(mentions) { mention in
                 HStack(alignment: .firstTextBaseline, spacing: AppSpacing.small) {
                     Button {
                         onOpen(mention)
@@ -50,11 +52,18 @@ struct UnlinkedMentionsSection: View {
                     .help(String(localized: "Turn “\(mention.matchedText)” in \(mention.source.name) into a Link"))
                 }
             }
+            if total > mentions.count {
+                Button(String(localized: "Show More (\(total - mentions.count, format: .number) left)")) {
+                    onShowMore()
+                }
+                .buttonStyle(.link)
+                .font(.callout)
+            }
         } header: {
             HStack {
                 Text(String(localized: "Unlinked mentions"))
                 Spacer()
-                Text(mentions.count, format: .number)
+                Text(max(total, mentions.count), format: .number)
                     .monospacedDigit()
                     .foregroundStyle(.tertiary)
             }

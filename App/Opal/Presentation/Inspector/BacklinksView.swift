@@ -14,9 +14,11 @@ struct BacklinksView: View {
 
     let groups: [BacklinkGroup]
     var mentions: [UnlinkedMention] = []
+    var mentionCount = 0
     var onOpen: (Backlink) -> Void = { _ in }
     var onOpenMention: (UnlinkedMention) -> Void = { _ in }
     var onLinkMention: (UnlinkedMention) -> Void = { _ in }
+    var onShowMoreMentions: () -> Void = {}
 
     // MARK: - View
 
@@ -57,7 +59,7 @@ struct BacklinksView: View {
                     }
                 }
 
-                UnlinkedMentionsSection(mentions: mentions, onOpen: onOpenMention, onLink: onLinkMention)
+                UnlinkedMentionsSection(mentions: mentions, total: mentionCount, onOpen: onOpenMention, onLink: onLinkMention, onShowMore: onShowMoreMentions)
             }
             .listStyle(.sidebar)
         }

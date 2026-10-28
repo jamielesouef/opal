@@ -61,3 +61,9 @@ Bugs found while building, with the rule each one taught.
 - Cause: the acceptance script took its source Vault from `${VAULT:-fixture}`. The user's shell exports `VAULT` pointing at their real Vault, so the "copy" was a symlink to it. Nothing was typed into a real Note (the probe found no Note to type into), and Opal never writes `.obsidian`.
 - Fix: the two files were moved to the Trash, identical to the test copies. The scripts now use `OPAL_TEST_VAULT`, refuse any source outside `/private/tmp` or the repo fixtures, copy with `cp -RL`, stop if the copy is a symlink, and kill only test apps by full path.
 - Rule: test scripts never read generic environment variables for paths. Check the resolved source against an allow-list before copying.
+
+## 28/10/2026: opening `CLAUDE.md` hung the app (5,092 unlinked mentions)
+- Symptom: "Opal (not responding)" on a Note whose name is a common word. The inspector showed 5,092 unlinked mentions.
+- Cause: the inspector passed the whole mentions array to SwiftUI views, which compared it with `==` on every update (`AttributeGraph` → `Array.==` → `UnlinkedMention.==` → `String` comparison). That is O(n) string work many times per frame on the main thread.
+- Fix: the inspector shows 50 mentions at a time with **Show More**. Rows are identified by `UnlinkedMention.id` (source and offset) instead of hashing the whole value, and the header shows the total.
+- Rule: never hand an unbounded array to a SwiftUI view. Page it, and give `ForEach` a cheap stable `id`.

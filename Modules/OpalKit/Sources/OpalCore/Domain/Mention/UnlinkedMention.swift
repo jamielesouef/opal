@@ -5,7 +5,7 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
-public struct UnlinkedMention: Hashable, Sendable {
+public struct UnlinkedMention: Hashable, Sendable, Identifiable {
     // MARK: - Stored
 
     public let source: NotePath
@@ -22,5 +22,11 @@ public struct UnlinkedMention: Hashable, Sendable {
         self.matchedText = matchedText
         self.line = line
         self.lineText = lineText
+    }
+
+    // MARK: - Identifiable
+
+    public var id: String {
+        "\(source.rawValue)#\(span.location)"
     }
 }

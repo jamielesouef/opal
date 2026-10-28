@@ -10,6 +10,12 @@ import OpalDesign
 import SwiftUI
 
 struct InspectorView: View {
+    // MARK: - Constants
+
+    private enum Constants {
+        static let mentionPage = 50
+    }
+
     // MARK: - Environment
 
     @Environment(\.vaultService) private var vault
@@ -24,6 +30,7 @@ struct InspectorView: View {
 
     @AppStorage("inspectorPane") private var pane = InspectorPane.backlinks
     @State private var pendingMention: UnlinkedMention?
+    @State private var visibleMentions = Constants.mentionPage
 
     // MARK: - View
 
@@ -40,6 +47,9 @@ struct InspectorView: View {
 
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .onChange(of: notes.path) {
+            visibleMentions = Constants.mentionPage
         }
         .task(id: MentionReload(path: notes.path, revision: index.revision)) {
             await mentions.load(for: notes.path)
@@ -66,13 +76,16 @@ struct InspectorView: View {
             case .backlinks:
                 BacklinksView(
                     groups: BacklinkGroupUseCase.groups(links.map.backlinks(to: path)),
-                    mentions: mentions.target == path ? mentions.mentions : []
+                    mentions: shownMentions(for: path),
+                    mentionCount: mentions.target == path ? mentions.mentions.count : 0
                 ) { backlink in
                     Task { await navigation.open(backlink.source, line: backlink.link.line) }
                 } onOpenMention: { mention in
                     Task { await navigation.open(mention.source, line: mention.line) }
                 } onLinkMention: { mention in
                     pendingMention = mention
+                } onShowMoreMentions: {
+                    visibleMentions += Constants.mentionPage
                 }
             case .outgoing:
                 OutgoingLinksView(links: links.map.outgoing(from: path, in: parsed(path))) { outgoing in
@@ -90,6 +103,14 @@ struct InspectorView: View {
         } else {
             ContentUnavailableView(String(localized: "No Note Open"), systemImage: "text.document")
         }
+    }
+
+    private func shownMentions(for path: NotePath) -> [UnlinkedMention] {
+        guard mentions.target == path else {
+            return []
+        }
+
+        return Array(mentions.mentions.prefix(visibleMentions))
     }
 
     private func parsed(_ path: NotePath) -> ParsedNote {
