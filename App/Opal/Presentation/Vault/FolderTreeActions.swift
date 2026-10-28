@@ -16,4 +16,5 @@ struct FolderTreeActions {
     var move: (NotePath, NotePath) -> Void = { _, _ in }
     var chooseFolder: (NotePath) -> Void = { _ in }
     var duplicate: (NotePath) -> Void = { _ in }
+    var delete: (NotePath) -> Void = { _ in }
 }

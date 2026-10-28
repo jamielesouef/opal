@@ -102,4 +102,26 @@ struct RenameServiceTests {
         #expect(try vault.text("Tomatoes.md").contains("[[Soil|rich earth]]"))
         #expect(try vault.text("Areas/Health.md").contains("[soil](Soil.md)"))
     }
+
+    @Test("deleting moves a Note to the Trash, closes it, and leaves Links to it Unresolved")
+    func trashes() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+        let trash = FileManager().temporaryDirectory.appending(component: "OpalTrash-\(UUID().uuidString)")
+        defer { try? FileManager().removeItem(at: trash) }
+        let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL, trashFolderURL: trash))
+        await harness.openVaultWithLinks()
+        let service = RenameService(vault: harness.vault, links: harness.links, notes: harness.notes, navigation: harness.navigation)
+        let tomatoes = try vault.text("Tomatoes.md")
+        await harness.navigation.open(NotePath("Soil.md"))
+
+        try await service.trash(NotePath("Soil.md"))
+
+        #expect(FileManager().fileExists(atPath: vault.url("Soil.md").path) == false)
+        #expect(try FileManager().contentsOfDirectory(atPath: trash.path).contains { $0.hasSuffix("Soil.md") })
+        #expect(harness.notes.path == nil)
+        #expect(harness.vault.kind(of: NotePath("Soil.md")) == nil)
+        #expect(try vault.text("Tomatoes.md") == tomatoes)
+        #expect(service.notesInside(NotePath("Projects")) == 2)
+    }
 }

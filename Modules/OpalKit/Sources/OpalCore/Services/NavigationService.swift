@@ -85,6 +85,11 @@ public final class NavigationService {
         return destination
     }
 
+    public func forget(_ path: NotePath) {
+        history.remove(path)
+        recentNotes.removeAll { $0 == path }
+    }
+
     public func move(from old: NotePath, to new: NotePath) {
         history.move(from: old, to: new)
         recentNotes = recentNotes.map { $0 == old ? new : $0 }

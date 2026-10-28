@@ -59,6 +59,10 @@
             files[path] = ""
         }
 
+        func trashItem(at path: NotePath) throws(VaultError) {
+            files[path] = nil
+        }
+
         func moveItem(from source: NotePath, to destination: NotePath) throws(VaultError) {
             files[destination] = files.removeValue(forKey: source)
         }

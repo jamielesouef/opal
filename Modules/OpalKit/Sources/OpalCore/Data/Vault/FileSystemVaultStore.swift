@@ -25,8 +25,11 @@ public actor FileSystemVaultStore: VaultFileStoring {
 
     // MARK: - Init
 
-    public init(rootURL: URL) {
+    private let trashFolderURL: URL?
+
+    public init(rootURL: URL, trashFolderURL: URL? = nil) {
         self.rootURL = rootURL.standardizedFileURL
+        self.trashFolderURL = trashFolderURL
     }
 
     // MARK: - VaultFileStoring
@@ -126,6 +129,24 @@ public actor FileSystemVaultStore: VaultFileStoring {
         do {
             try fileManager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try data.write(to: url, options: .withoutOverwriting)
+        } catch {
+            throw .writeFailed(path)
+        }
+    }
+
+    public func trashItem(at path: NotePath) throws(VaultError) {
+        let url = try checkedURL(for: path)
+        guard fileManager.fileExists(atPath: url.path) else {
+            throw .notFound(path)
+        }
+
+        do {
+            if let trashFolderURL {
+                try fileManager.createDirectory(at: trashFolderURL, withIntermediateDirectories: true)
+                try fileManager.moveItem(at: url, to: trashFolderURL.appending(path: "\(UUID().uuidString)-\(path.fileName)"))
+            } else {
+                try fileManager.trashItem(at: url, resultingItemURL: nil)
+            }
         } catch {
             throw .writeFailed(path)
         }

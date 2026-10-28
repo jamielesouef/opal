@@ -54,6 +54,10 @@ actor CountingVaultStore: VaultFileStoring {
         try await base.createFile(at: path, data: data)
     }
 
+    func trashItem(at path: NotePath) async throws(VaultError) {
+        try await base.trashItem(at: path)
+    }
+
     func moveItem(from source: NotePath, to destination: NotePath) async throws(VaultError) {
         try await base.moveItem(from: source, to: destination)
     }

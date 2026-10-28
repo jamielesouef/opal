@@ -107,6 +107,28 @@ public final class RenameService {
         return target
     }
 
+    // MARK: - Delete
+
+    public func notesInside(_ path: NotePath) -> Int {
+        vault.entries.filter { $0.kind == .note && $0.path.components.starts(with: path.components) }.count
+    }
+
+    public func trash(_ path: NotePath) async throws(VaultError) {
+        guard let store = vault.store else {
+            throw .noVaultOpen
+        }
+
+        let removed = Set(vault.entries.map(\.path).filter { $0.components.starts(with: path.components) })
+        if let open = notes.path, removed.contains(open) {
+            await notes.close()
+        }
+        try await store.trashItem(at: path)
+        for gone in removed {
+            navigation.forget(gone)
+        }
+        await vault.handleExternalChanges(removed.union([path]))
+    }
+
     // MARK: - Private
 
     @concurrent

@@ -28,6 +28,7 @@ struct FolderTreePane: View {
     @State private var pending: PendingRename?
     @State private var problem: String?
     @State private var moving: MoveRequest?
+    @State private var deleting: MoveRequest?
 
     // MARK: - View
 
@@ -44,7 +45,8 @@ struct FolderTreePane: View {
                 rename: rename,
                 move: move,
                 chooseFolder: { moving = MoveRequest(path: $0) },
-                duplicate: { path in Task { await VaultActions.duplicate(path, vault: vaultService, notes: notes) } }
+                duplicate: { path in Task { await VaultActions.duplicate(path, vault: vaultService, notes: notes) } },
+                delete: { deleting = MoveRequest(path: $0) }
             )
         )
         .sheet(item: $moving) { request in
@@ -56,6 +58,10 @@ struct FolderTreePane: View {
             if let path = launch.renaming {
                 try? await Task.sleep(for: .seconds(1))
                 renaming = path
+            }
+            if let path = launch.deleting {
+                try? await Task.sleep(for: .seconds(1))
+                deleting = MoveRequest(path: path)
             }
             if let path = launch.moving {
                 try? await Task.sleep(for: .seconds(1))
@@ -78,7 +84,19 @@ struct FolderTreePane: View {
             Text(String(localized: "Other Notes link to “\(pending.path.name)”. Opal can change those Links to the new name. Nothing else in those Notes changes."))
         }
         .alert(
-            String(localized: "Can't Rename"),
+            String(localized: "Move “\(deleting?.path.name ?? "")” to the Trash?"),
+            isPresented: Binding { deleting != nil } set: { if $0 == false { deleting = nil } },
+            presenting: deleting
+        ) { request in
+            Button(String(localized: "Move to Trash"), role: .destructive) {
+                trash(request.path)
+            }
+            Button(String(localized: "Cancel"), role: .cancel) {}
+        } message: { request in
+            Text(deleteMessage(for: request.path))
+        }
+        .alert(
+            String(localized: "Opal Couldn't Make That Change"),
             isPresented: Binding { problem != nil } set: { if $0 == false { problem = nil } }
         ) {
             Button(String(localized: "OK"), role: .cancel) {}
@@ -121,6 +139,27 @@ struct FolderTreePane: View {
             break
         case let .failure(failure):
             problem = failure.message
+        }
+    }
+
+    private func deleteMessage(for path: NotePath) -> String {
+        guard vaultService.kind(of: path) == .folder else {
+            return String(localized: "You can get it back from the Trash. Links to it will show as Unresolved.")
+        }
+
+        return String(localized: "The Folder and the \(renamer.notesInside(path)) Notes in it go to the Trash. You can get them back from there.")
+    }
+
+    private func trash(_ path: NotePath) {
+        Task {
+            do throws(VaultError) {
+                try await renamer.trash(path)
+                if let current = selection, current.components.starts(with: path.components) {
+                    selection = nil
+                }
+            } catch {
+                problem = error.message
+            }
         }
     }
 

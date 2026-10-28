@@ -107,3 +107,4 @@ Taken the same way as Milestone 4 (`-OpalSnapshot`). `-OpalDailyNote` opens toda
 | `opal-m5-03-rename-inline.png` | `Soil` being renamed in place in the Folder tree (`-OpalRename Soil.md`) | M5-03 |
 | `opal-m5-04-rename-folder.png` | The `Projects` Folder being renamed in place, dark | M5-04 |
 | `opal-m5-05-move-to.png` | Move “Soil” to… (`-OpalMove Soil.md`): Folders other than its own | M5-05 |
+| `opal-m5-07-delete-folder.png` | Move “Projects” to the Trash? with the number of Notes (`-OpalDelete Projects`) | M5-07 |

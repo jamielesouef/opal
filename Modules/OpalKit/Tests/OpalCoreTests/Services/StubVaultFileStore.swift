@@ -95,6 +95,12 @@ actor StubVaultFileStore: VaultFileStoring {
         attachments[path] = data
     }
 
+    func trashItem(at path: NotePath) throws(VaultError) {
+        guard files.removeValue(forKey: path) != nil || folders.remove(path) != nil else {
+            throw .notFound(path)
+        }
+    }
+
     func moveItem(from source: NotePath, to destination: NotePath) throws(VaultError) {
         guard let text = files.removeValue(forKey: source) else {
             throw .notFound(source)

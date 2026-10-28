@@ -18,6 +18,7 @@ public protocol VaultFileStoring: Sendable {
     func createNote(at path: NotePath, text: String) async throws(VaultError)
     func createFolder(at path: NotePath) async throws(VaultError)
     func moveItem(from source: NotePath, to destination: NotePath) async throws(VaultError)
+    func trashItem(at path: NotePath) async throws(VaultError)
     func createFile(at path: NotePath, data: Data) async throws(VaultError)
     func readObsidianSettings(named fileName: String) async -> Data?
     func url(for path: NotePath) -> URL

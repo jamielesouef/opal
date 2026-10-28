@@ -455,7 +455,7 @@ Acceptance:
 - [unit] Deleting moves the item to the macOS Trash (`FileManager.trashItem`); Opal never deletes permanently. Links to it become Unresolved and are not edited.
 - [snap] Delete (⌘⌫ in the Folder tree, or the context menu) asks first: "Move “Name” to the Trash?" (with the number of Notes for a Folder).
 - [unit] Deleting the open Note closes it and its tabs; the Index and Link map drop it.
-Status: todo
+Status: done (28/10/2026; `RenameServiceTests.trashes`, `opal-m5-07-delete-folder.png`). Tests move items into a temporary folder instead of the real Trash. ⌘⌫ and the context menu are [manual].
 
 ### M5-08 Command Palette (⇧⌘P)
 As a keyboard user, I want every command in one searchable list.

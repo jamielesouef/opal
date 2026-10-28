@@ -20,4 +20,5 @@ struct LaunchRequest {
     var showsTemplates = false
     var renaming: NotePath?
     var moving: NotePath?
+    var deleting: NotePath?
 }

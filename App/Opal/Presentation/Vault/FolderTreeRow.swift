@@ -123,6 +123,12 @@ struct FolderTreeRow: View {
 
                     Divider()
 
+                    Button(String(localized: "Move to Trash")) {
+                        actions.delete(node.path)
+                    }
+
+                    Divider()
+
                     Button(String(localized: "Reveal in Finder")) {
                         actions.reveal(node.path)
                     }

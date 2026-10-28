@@ -32,6 +32,11 @@ struct FolderTreeView: View {
             }
         }
         .listStyle(.sidebar)
+        .onDeleteCommand {
+            if let selection {
+                actions.delete(selection)
+            }
+        }
         .onKeyPress(.return) {
             guard renaming == nil, let selection else {
                 return .ignored
