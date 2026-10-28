@@ -399,7 +399,7 @@ Acceptance:
 - [unit] When the Note is missing it is created from the Template with `{{date}}`, `{{time}}`, `{{title}}` and `{{date:FORMAT}}` filled in; a missing Template gives an empty Note. An existing Daily Note is opened, never overwritten.
 - [snap] Go › Today's Daily Note (⌥⌘D) and a toolbar button (calendar icon) open it.
 - [manual] Opening it twice in a day opens the same Note.
-Status: todo
+Status: done (28/10/2026; `DailyNoteUseCaseTests`, `DailyNoteServiceTests`, `opal-m5-01-daily-note.png`). Until Settings (M5-11) exist, a Vault without `daily-notes.json` uses the defaults.
 
 ### M5-02 Insert a Template
 As a writer, I want to insert a Template at the cursor, so that I can reuse a structure.

@@ -3,7 +3,7 @@
 The rules are in [docs/architecture.md](docs/architecture.md). This file names
 Opal's pieces and its deliberate constraints.
 
-**Status: Milestones 1 to 4 built** (open a Vault and write a Note; Links; Find; see
+**Status: Milestones 1 to 4 built; Milestone 5 in progress** (open a Vault and write a Note; Links; Find; see
 [docs/user-stories.md](docs/user-stories.md)). Lines marked _built_ exist on
 `HEAD`; everything else is still the target shape. When code lands, replace a
 planned line with what was built, and add each new protocol, store and
@@ -50,6 +50,15 @@ constraint here.
 | Design | `EditorMetrics` Heading scales, code scale, block indent and bar width |
 | Presentation | `MarkdownStyler` (style kind to text storage attributes, only in a window around what is on screen; mark fading), `MarkdownBlock` + `MarkdownBlockFragment` (TextKit 2 layout fragments draw quote bars, callout and code block backgrounds), `EditorPreferences`; View › Live Markdown; clicking a checkbox toggles it as one undo step. `ReadingView` + `ReadingBlockView` + `ReadingText` + `CalloutStyle` + `ReadingKey` + `EmbedView` + `EmbedKey` + `PDFEmbedView` (Presentation/Reading); View › Reading View (⌘E) and a toolbar button. `PropertiesView` + `PropertyRow` + `PropertyType+Display` above the Editor and Reading view; `NoteTagsView`, the inspector's Tags tab |
 | App | Debug-only `-OpalSnapshot <png>` draws the window to a PNG and quits; `-OpalReadingView` opens in Reading view. `SystemClock` (the only reader of the date and time zone) |
+
+## Built in Milestone 5
+
+| Layer | Built |
+| --- | --- |
+| Domain | `DailyNoteSettings`, `MomentFormatUseCase` (Moment date tokens), `DailyNotePlanUseCase` (path and Template path), `TemplateFillUseCase` (`{{date}}`, `{{time}}`, `{{title}}`, with formats). `NotePath.appendingNoteExtension` |
+| Data | `ObsidianDailyNotesParser` + DTO (`.obsidian/daily-notes.json`, read only) |
+| Services | `DailyNoteService` (open or create today's Daily Note through `Clocking`); `VaultService.dailyNoteSettings`, `createNote(at:text:)` |
+| Presentation | Go › Today's Daily Note (⌥⌘D) and a toolbar button; `-OpalDailyNote` |
 
 Built protocols: `Clocking`, `VaultFileStoring`, `VaultAccessGranting`, `VaultLocationStoring`, `VaultWatching`, `RecentNotesStoring`, `IndexStoring`.
 Tests: `Modules/OpalKit/Tests/OpalCoreTests` (`xcrun swift test`, or the `Opal`

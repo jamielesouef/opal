@@ -16,6 +16,7 @@ struct OpalCommands: Commands {
     let navigation: NavigationService
     let switcher: QuickSwitcherService
     let search: SearchService
+    let dailyNotes: DailyNoteService
 
     // MARK: - Preferences
 
@@ -23,12 +24,13 @@ struct OpalCommands: Commands {
 
     // MARK: - Init
 
-    init(vault: VaultService, notes: NoteService, navigation: NavigationService, switcher: QuickSwitcherService, search: SearchService, defaults: UserDefaults) {
+    init(vault: VaultService, notes: NoteService, navigation: NavigationService, switcher: QuickSwitcherService, search: SearchService, dailyNotes: DailyNoteService, defaults: UserDefaults) {
         self.vault = vault
         self.notes = notes
         self.navigation = navigation
         self.switcher = switcher
         self.search = search
+        self.dailyNotes = dailyNotes
         _isLiveMarkdown = AppStorage(wrappedValue: true, EditorPreferences.liveMarkdownKey, store: defaults)
     }
 
@@ -65,6 +67,12 @@ struct OpalCommands: Commands {
                 Task { await VaultActions.showQuickSwitcher(switcher: switcher, navigation: navigation) }
             }
             .keyboardShortcut("o")
+            .disabled(vault.isOpen == false)
+
+            Button(String(localized: "Today's Daily Note")) {
+                Task { await dailyNotes.openToday() }
+            }
+            .keyboardShortcut("d", modifiers: [.command, .option])
             .disabled(vault.isOpen == false)
 
             Button(String(localized: "Search Vault…")) {

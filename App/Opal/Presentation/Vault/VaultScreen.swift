@@ -17,6 +17,7 @@ struct VaultScreen: View {
     @Environment(\.linkService) private var links
     @Environment(\.searchService) private var search
     @Environment(\.navigationService) private var navigation
+    @Environment(\.dailyNoteService) private var dailyNotes
 
     // MARK: - State
 
@@ -67,6 +68,15 @@ struct VaultScreen: View {
                 }
                 .help(String(localized: "Go forward (⌘])"))
                 .disabled(navigation.history.canGoForward == false)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await dailyNotes.openToday() }
+                } label: {
+                    Label(String(localized: "Today's Daily Note"), systemImage: "calendar")
+                }
+                .help(String(localized: "Open today's Daily Note (⌥⌘D)"))
             }
 
             ToolbarItem(placement: .status) {
@@ -176,6 +186,7 @@ struct VaultScreen: View {
             .environment(\.indexService, graph.indexService)
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
+            .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task { await graph.vaultService.start() }

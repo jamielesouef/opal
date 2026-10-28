@@ -180,6 +180,7 @@ struct NoteScreen: View {
             .environment(\.indexService, graph.indexService)
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
+            .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
             .task {

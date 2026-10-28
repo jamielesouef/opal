@@ -95,3 +95,11 @@ In these shots, Links look paler than in the app because `cacheDisplay` does not
 | `opal-m4-03-properties.png` | The Properties form above `Welcome` (Aliases, Tags, a date), Add Property, Edit as YAML, and the new Tags tab in the inspector | M4-03 |
 | `opal-m4-04-embeds.png` | Reading view of [`fixtures/Embeds.md`](fixtures/Embeds.md): a whole Note (with its own image Embed inside), a Heading's section, a Block | M4-04 |
 | `opal-m4-04-embeds-media-dark.png` | An image at `|200`, a PDF (blank in the snapshot), an Unresolved Embed with Create Note | M4-04 |
+
+## Opal, Milestone 5
+
+Taken the same way as Milestone 4 (`-OpalSnapshot`). `-OpalDailyNote` opens today's Daily Note at launch.
+
+| File | Screen | Story |
+| --- | --- | --- |
+| `opal-m5-01-daily-note.png` | Today's Daily Note created from `Templates/Daily` in `Daily Notes/` | M5-01 |

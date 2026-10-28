@@ -18,6 +18,7 @@ struct RootScreen: View {
     @Environment(\.quickSwitcherService) private var switcher
     @Environment(\.searchService) private var search
     @Environment(\.launchRequest) private var launch
+    @Environment(\.dailyNoteService) private var dailyNotes
 
     // MARK: - View
 
@@ -27,6 +28,9 @@ struct RootScreen: View {
                 await vault.start()
                 if let note = launch.note, vault.isOpen {
                     await navigation.open(note)
+                }
+                if launch.opensDailyNote, vault.isOpen {
+                    await dailyNotes.openToday()
                 }
                 if launch.isReadingView {
                     navigation.isReadingView = true
@@ -73,6 +77,7 @@ struct RootScreen: View {
             .environment(\.indexService, graph.indexService)
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
+            .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }
@@ -86,6 +91,7 @@ struct RootScreen: View {
             .environment(\.indexService, graph.indexService)
             .environment(\.searchService, graph.searchService)
             .environment(\.mentionService, graph.mentionService)
+            .environment(\.dailyNoteService, graph.dailyNoteService)
             .environment(\.navigationService, graph.navigationService)
             .environment(\.quickSwitcherService, graph.quickSwitcherService)
     }

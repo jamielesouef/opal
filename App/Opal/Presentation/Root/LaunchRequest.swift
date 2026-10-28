@@ -16,4 +16,5 @@ struct LaunchRequest {
     var sidebarPane: SidebarPane?
     var typeText: String?
     var isReadingView = false
+    var opensDailyNote = false
 }

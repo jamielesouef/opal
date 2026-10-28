@@ -37,6 +37,7 @@ public final class VaultService: SingleFlightRefreshing {
     public private(set) var tree: [VaultTreeNode] = []
     public private(set) var appSettings = ObsidianAppSettings.defaults
     public private(set) var propertyTypes: [String: PropertyType] = [:]
+    public private(set) var dailyNoteSettings = DailyNoteSettings.defaults
     public private(set) var store: (any VaultFileStoring)?
     public private(set) var entries: [VaultEntry] = []
     public private(set) var entriesRevision = 0
@@ -132,12 +133,12 @@ public final class VaultService: SingleFlightRefreshing {
         return path
     }
 
-    public func createNote(at path: NotePath) async throws(VaultError) {
+    public func createNote(at path: NotePath, text: String = "") async throws(VaultError) {
         guard let store else {
             throw .noVaultOpen
         }
 
-        try await store.createNote(at: path, text: "")
+        try await store.createNote(at: path, text: text)
         insert(VaultEntry(path: path, kind: .note))
     }
 
@@ -270,10 +271,12 @@ public final class VaultService: SingleFlightRefreshing {
         )
 
         let types = await ObsidianTypesParser.parse(newStore.readObsidianSettings(named: ObsidianTypesParser.fileName))
+        let daily = await ObsidianDailyNotesParser.parse(newStore.readObsidianSettings(named: ObsidianDailyNotesParser.fileName))
 
         store = newStore
         appSettings = settings
         propertyTypes = types
+        dailyNoteSettings = daily ?? .defaults
         vault = Vault(rootURL: folderURL)
         apply(listed, tree: await Self.tree(from: listed))
         isOpening = false
@@ -305,6 +308,7 @@ public final class VaultService: SingleFlightRefreshing {
         store = nil
         appSettings = .defaults
         propertyTypes = [:]
+        dailyNoteSettings = .defaults
         apply([])
     }
 

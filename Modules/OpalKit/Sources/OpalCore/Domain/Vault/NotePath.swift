@@ -85,6 +85,14 @@ public struct NotePath: Hashable, Sendable, Codable, CustomStringConvertible {
         NotePath(components: components + [component])
     }
 
+    public var appendingNoteExtension: NotePath {
+        guard let last = components.last else {
+            return self
+        }
+
+        return NotePath(components: components.dropLast() + ["\(last).\(Self.noteExtension)"])
+    }
+
     // MARK: - CustomStringConvertible
 
     public var description: String {

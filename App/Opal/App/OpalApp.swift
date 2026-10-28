@@ -32,6 +32,7 @@ struct OpalApp: App {
                 navigation: AppDependencies.shared.navigationService,
                 switcher: AppDependencies.shared.quickSwitcherService,
                 search: AppDependencies.shared.searchService,
+                dailyNotes: AppDependencies.shared.dailyNoteService,
                 defaults: AppDependencies.shared.defaults
             )
         }
