@@ -46,6 +46,13 @@ struct OpalCommands: Commands {
             .keyboardShortcut("n")
             .disabled(vault.isOpen == false)
 
+            Button(String(localized: "Duplicate Note")) {
+                if let path = notes.path {
+                    Task { await VaultActions.duplicate(path, vault: vault, notes: notes) }
+                }
+            }
+            .disabled(notes.path == nil)
+
             Button(String(localized: "New Folder")) {
                 Task { await VaultActions.createFolder(vault: vault, notes: notes) }
             }

@@ -14,6 +14,7 @@ struct FolderTreePane: View {
     @Environment(\.vaultService) private var vaultService
     @Environment(\.renameService) private var renamer
     @Environment(\.launchRequest) private var launch
+    @Environment(\.noteService) private var notes
 
     // MARK: - Input
 
@@ -42,7 +43,8 @@ struct FolderTreePane: View {
                 openInDefaultApp: { VaultActions.openInDefaultApp($0, vault: vaultService) },
                 rename: rename,
                 move: move,
-                chooseFolder: { moving = MoveRequest(path: $0) }
+                chooseFolder: { moving = MoveRequest(path: $0) },
+                duplicate: { path in Task { await VaultActions.duplicate(path, vault: vaultService, notes: notes) } }
             )
         )
         .sheet(item: $moving) { request in

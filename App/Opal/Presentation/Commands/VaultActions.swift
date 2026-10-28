@@ -58,6 +58,15 @@ enum VaultActions {
         navigation.isQuickSwitcherShown = true
     }
 
+    static func duplicate(_ path: NotePath, vault: VaultService, notes: NoteService) async {
+        do {
+            let copy = try await vault.duplicate(path)
+            await notes.open(copy)
+        } catch {
+            AppLog.error("Duplicating \(path) failed: \(error)")
+        }
+    }
+
     static func follow(_ link: Link, from source: NotePath, vault: VaultService, navigation: NavigationService) async {
         guard case let .attachment(path) = await navigation.follow(link, from: source) else {
             return

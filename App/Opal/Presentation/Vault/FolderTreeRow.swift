@@ -115,6 +115,12 @@ struct FolderTreeRow: View {
                         actions.chooseFolder(node.path)
                     }
 
+                    if node.kind == .note {
+                        Button(String(localized: "Duplicate")) {
+                            actions.duplicate(node.path)
+                        }
+                    }
+
                     Divider()
 
                     Button(String(localized: "Reveal in Finder")) {

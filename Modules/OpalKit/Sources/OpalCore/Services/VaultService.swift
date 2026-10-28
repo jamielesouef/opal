@@ -143,6 +143,28 @@ public final class VaultService: SingleFlightRefreshing {
         insert(VaultEntry(path: path, kind: .note))
     }
 
+    public func duplicate(_ path: NotePath) async throws(VaultError) -> NotePath {
+        guard let store else {
+            throw .noVaultOpen
+        }
+        guard path.isNote, let text = try await store.readNote(at: path) else {
+            throw .notFound(path)
+        }
+
+        var taken = Set(entries.map(\.path))
+        while let copy = AttachmentUseCase.availablePath(named: path.fileName, in: path.parent, existing: taken) {
+            do {
+                try await store.createNote(at: copy, text: text)
+            } catch .alreadyExists {
+                taken.insert(copy)
+                continue
+            }
+            insert(VaultEntry(path: copy, kind: .note))
+            return copy
+        }
+        throw .alreadyExists(path)
+    }
+
     public func createAttachment(_ data: Data, named fileName: String, for note: NotePath) async throws(VaultError) -> NotePath {
         guard let store else {
             throw .noVaultOpen

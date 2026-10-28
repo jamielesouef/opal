@@ -446,7 +446,7 @@ Depends: M1-07
 Acceptance:
 - [unit] Duplicate makes `Name 1.md` (then ` 2`…) beside the original with the same bytes, and opens it.
 - [snap] Duplicate is in the Folder tree's context menu and the File menu.
-Status: todo
+Status: done (28/10/2026; `VaultServiceTests.duplicates`). The context menu and File › Duplicate Note are [manual]; a snapshot can't open a menu.
 
 ### M5-07 Delete a Note or Folder
 As a user, I want to delete a Note or Folder and be able to get it back.

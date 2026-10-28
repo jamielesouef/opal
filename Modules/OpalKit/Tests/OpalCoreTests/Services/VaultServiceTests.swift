@@ -146,4 +146,21 @@ struct VaultServiceTests {
 
         #expect(await harness.vault.tree.map(\.displayName) == ["Soil", "Tomatoes"])
     }
+
+    @Test("duplicating a Note copies it beside the original with the next free name")
+    @MainActor
+    func duplicates() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+        let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
+        await harness.openVault()
+
+        let first = try await harness.vault.duplicate(NotePath("Areas/Health.md"))
+        let second = try await harness.vault.duplicate(NotePath("Areas/Health.md"))
+
+        #expect(first == NotePath("Areas/Health 1.md"))
+        #expect(second == NotePath("Areas/Health 2.md"))
+        #expect(try Data(contentsOf: vault.url("Areas/Health 1.md")) == Data(contentsOf: vault.url("Areas/Health.md")))
+        #expect(harness.vault.kind(of: first) == .note)
+    }
 }
