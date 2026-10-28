@@ -36,6 +36,7 @@ public final class VaultService: SingleFlightRefreshing {
 
     public private(set) var tree: [VaultTreeNode] = []
     public private(set) var appSettings = ObsidianAppSettings.defaults
+    public private(set) var propertyTypes: [String: PropertyType] = [:]
     public private(set) var store: (any VaultFileStoring)?
     public private(set) var entries: [VaultEntry] = []
 
@@ -238,8 +239,11 @@ public final class VaultService: SingleFlightRefreshing {
             newStore.readObsidianSettings(named: ObsidianAppSettingsParser.fileName)
         )
 
+        let types = await ObsidianTypesParser.parse(newStore.readObsidianSettings(named: ObsidianTypesParser.fileName))
+
         store = newStore
         appSettings = settings
+        propertyTypes = types
         vault = Vault(rootURL: folderURL)
         apply(listed)
         isOpening = false
@@ -270,6 +274,7 @@ public final class VaultService: SingleFlightRefreshing {
         vault = nil
         store = nil
         appSettings = .defaults
+        propertyTypes = [:]
         apply([])
     }
 

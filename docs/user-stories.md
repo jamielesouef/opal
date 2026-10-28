@@ -320,7 +320,7 @@ Depends: M4-01
 Decided in [ADR 0005](adr/0005-reading-view-in-swiftui.md): native SwiftUI and `AttributedString`, built from the M4-01 parse; no maths.
 Acceptance:
 - [unit] The rendered blocks come from the same parse as M4-01: Headings, paragraphs, lists, checkboxes, quotes, callouts, tables, code blocks, horizontal rules, Links and Embeds.
-- [snap] ⌘E and the toolbar's Editor / Reading control switch views; the scroll position stays on the same Heading.
+- [manual] ⌘E and the toolbar's Editor / Reading control switch views; the scroll position stays on the same Heading. (The snapshot cannot show the toolbar.)
 - [snap] Tables have columns and a header row; code blocks have syntax colour for at least Swift, Python, JavaScript, JSON, YAML and shell; callouts show their type's icon and title.
 - [snap] `$…$` and `$$…$$` show as maths, or, if ADR 0005 drops maths, as code, with a note in the story.
 - [manual] Clicking a Link follows it (M2-03); Heading Links read `Note > Heading`.
@@ -336,9 +336,11 @@ Acceptance:
 - [unit] Changing one Property rewrites only that Property's lines; every other byte of the Note, including key order, quotes, comments and line endings, is unchanged. Adding a Property appends it; removing one removes only its lines.
 - [unit] Types are inferred per Property name across the Vault, from the Index, as Obsidian does (`.obsidian/types.json` is read when present, never written).
 - [snap] The form sits above the text, below the Note's name: a row per Property with an icon for its type, an Add Property button, and a way to edit the frontmatter as YAML.
-- [snap] The inspector shows the open Note's Tags (from M3-03's Later line).
+- [manual] The inspector shows the open Note's Tags (from M3-03's Later line).
 - [unit] Search reads `[property:value]` (from M3-04's Later line).
-Status: todo
+- Later: types inferred across the whole Vault from the Index, and `[property:value]` search. Both need Property values in the Index, which means a schema change, so they are a story of their own.
+- Later: hide the frontmatter in the Editor while the form shows it. For now the Editor still shows it as faint YAML, and that is where **Edit as YAML** puts the cursor.
+Status: done (28/10/2026; `FrontmatterParserTests`, `PropertyServiceTests`, `opal-m4-03-properties.png`). Types come from the value, the name (`tags`, `aliases`) and `.obsidian/types.json`. The inspector has a Tags tab for the open Note. Editing in the form is [manual] and yours to check.
 
 ### M4-04 Embeds
 As a user, I want Embeds shown inline, so that I can see the embedded Note, image or PDF where it is used.
@@ -360,7 +362,7 @@ Acceptance:
 - [unit] Toggling a checkbox changes only the one character between `[` and `]` (space to `x`, `x` or `X` to space) and nothing else in the line or the Note.
 - [snap] With live Markdown on, `- [ ]` and `- [x]` show as checkboxes; done tasks are struck through and faint. Reading view shows the same.
 - [manual] Clicking the checkbox toggles it; the toggle is one undo step and is saved like any edit.
-- Later (with M4-02): draw a checkbox in place of the `[ ]` brackets in the Editor, and show checkboxes in Reading view.
+- Later: draw a checkbox in place of the `[ ]` brackets in the Editor. Reading view already shows checkboxes (M4-02).
 Status: done (28/10/2026; `CheckboxToggleUseCaseTests`, `opal-m4-05-checkboxes.png`; clicking is [manual] and yours to check)
 
 ### M4-06 Paste and drop images

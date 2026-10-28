@@ -92,3 +92,4 @@ Taken on 28/10/2026 from a Debug build with `-OpalSnapshot <png>`: the app draws
 | `opal-m4-02-reading-table-code-dark.png` | Reading view, dark: a table, Python with syntax colour, `Tomatoes > Watering` | M4-02 |
 
 In these shots, Links look paler than in the app because `cacheDisplay` does not draw SwiftUI's link tint faithfully.
+| `opal-m4-03-properties.png` | The Properties form above `Welcome` (Aliases, Tags, a date), Add Property, Edit as YAML, and the new Tags tab in the inspector | M4-03 |

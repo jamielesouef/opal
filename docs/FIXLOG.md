@@ -37,3 +37,9 @@ Bugs found while building, with the rule each one taught.
 - Cause: `FileManager.enumerator(atPath:)` with `fileAttributes` stats each file one by one.
 - Fix: `enumerator(at:includingPropertiesForKeys:)` with the date, size and type keys (0.12 s); paths are made relative to both the standard and the `realpath` form of the root, since the URL walk reports `/private/var/…`.
 - Rule: walk big folders with `enumerator(at:includingPropertiesForKeys:)`, and compare paths against `realpath` as well.
+
+## 28/10/2026: styling a 1 MB Note took 1.3 s on the main actor
+- Symptom: during M4-01, one restyle of a 1 MB Note (120,600 style runs) took 1.32 s on the main actor in a Release build.
+- Cause: `MarkdownStyler` reset and set attributes over the whole text storage on every analysis.
+- Fix: style only a window of 10,000 characters either side of what is on screen, snapped to paragraphs, and restyle as the user scrolls. That takes 7 ms. Runs come sorted from `LinkService`, so the window is found by binary search.
+- Rule: never apply text attributes to the whole storage of a large Note. Style a window around the viewport and restyle on scroll.

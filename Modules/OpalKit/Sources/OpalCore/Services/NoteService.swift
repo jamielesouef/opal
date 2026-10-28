@@ -159,6 +159,33 @@ public final class NoteService {
         scheduleSave()
     }
 
+    // MARK: - Properties
+
+    public var frontmatter: Frontmatter? {
+        loadState.note.flatMap { FrontmatterParser.parse($0.text) }
+    }
+
+    public func type(of property: Property) -> PropertyType {
+        PropertyTypeUseCase.type(of: property, declared: vault.propertyTypes)
+    }
+
+    public func setProperty(_ property: Property, to value: PropertyValue) {
+        edit(PropertyEditUseCase.set(property, to: value, type: type(of: property), in: draft))
+    }
+
+    public func removeProperty(_ property: Property) {
+        edit(PropertyEditUseCase.remove(property, from: draft))
+    }
+
+    public func addProperty(named key: String) {
+        let name = key.trimmingCharacters(in: .whitespaces)
+        guard name.isEmpty == false, frontmatter?.properties.contains(where: { $0.key == name }) != true else {
+            return
+        }
+
+        edit(PropertyEditUseCase.add(key: name, type: vault.propertyTypes[name] ?? .text, to: draft, frontmatter: frontmatter))
+    }
+
     public func flush() async {
         scheduledSave?.cancel()
         scheduledSave = nil

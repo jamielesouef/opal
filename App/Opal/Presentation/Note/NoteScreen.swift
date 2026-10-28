@@ -96,8 +96,8 @@ struct NoteScreen: View {
         }
         .id(note.path)
         .safeAreaInset(edge: .top, spacing: 0) {
-            if case .conflict = notes.loadState {
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
+                if case .conflict = notes.loadState {
                     ConflictBanner(noteName: note.path.name) {
                         Task { await notes.keepMyVersion() }
                     } onUseDisk: {
@@ -106,7 +106,19 @@ struct NoteScreen: View {
 
                     Divider()
                 }
+                properties
             }
+        }
+    }
+
+    // MARK: - Properties
+
+    @ViewBuilder
+    private var properties: some View {
+        if let frontmatter = notes.frontmatter {
+            PropertiesView(frontmatter: frontmatter)
+                .background(Color(nsColor: .textBackgroundColor))
+            Divider()
         }
     }
 
@@ -117,6 +129,11 @@ struct NoteScreen: View {
             readingTopLine = line
         } onFollowLink: { link in
             Task { await VaultActions.follow(link, from: note.path, vault: vault, navigation: navigation) }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(spacing: 0) {
+                properties
+            }
         }
         .task(id: ReadingKey(path: note.path, length: note.text.utf16.count)) {
             readingBlocks = await links.readingBlocks(of: note.path, text: note.text)

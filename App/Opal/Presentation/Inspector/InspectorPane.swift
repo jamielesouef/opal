@@ -9,6 +9,7 @@ enum InspectorPane: String, CaseIterable, Identifiable {
     case backlinks
     case outgoing
     case outline
+    case tags
 
     // MARK: - Identifiable
 
@@ -26,6 +27,8 @@ enum InspectorPane: String, CaseIterable, Identifiable {
             String(localized: "Outgoing")
         case .outline:
             String(localized: "Outline")
+        case .tags:
+            String(localized: "Tags")
         }
     }
 }

@@ -30,7 +30,11 @@ public enum TagTreeUseCase {
     // MARK: - Query
 
     public static func searchQuery(for tag: TagNode) -> String {
-        "tag:#\(tag.fullName)"
+        searchQuery(forTag: tag.fullName)
+    }
+
+    public static func searchQuery(forTag name: String) -> String {
+        "tag:#\(name)"
     }
 
     // MARK: - Private

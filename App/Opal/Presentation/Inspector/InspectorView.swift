@@ -18,6 +18,7 @@ struct InspectorView: View {
     @Environment(\.navigationService) private var navigation
     @Environment(\.mentionService) private var mentions
     @Environment(\.indexService) private var index
+    @Environment(\.searchService) private var search
 
     // MARK: - State
 
@@ -81,6 +82,10 @@ struct InspectorView: View {
             case .outline:
                 OutlineView(headings: parsed.headings) { heading in
                     Task { await navigation.open(path, line: heading.line) }
+                }
+            case .tags:
+                NoteTagsView(tags: parsed.tags) { tag in
+                    search.show(query: TagTreeUseCase.searchQuery(forTag: tag))
                 }
             }
         } else {

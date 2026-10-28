@@ -168,7 +168,7 @@ public enum MarkdownReadingParser {
             switch run.kind {
             case .heading, .horizontalRule, .codeBlock, .quote, .callout, .listMarker:
                 true
-            default:
+            case .link, .mark, .bold, .italic, .strikethrough, .highlight, .inlineCode, .calloutTitle, .checkbox, .doneTask, .tag, .frontmatter:
                 false
             }
         } == false
