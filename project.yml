@@ -59,3 +59,15 @@ schemes:
       config: Debug
       targets:
         - package: OpalKit/OpalCoreTests
+  Opal Release:
+    build:
+      targets:
+        Opal: all
+    run:
+      config: Release
+      debugEnabled: false
+      disableMainThreadChecker: true
+    profile:
+      config: Release
+    archive:
+      config: Release
