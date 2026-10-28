@@ -27,13 +27,13 @@ struct OpalApp: App {
         .defaultSize(width: EditorMetrics.windowDefaultWidth, height: EditorMetrics.windowDefaultHeight)
         .commands {
             OpalCommands(
-                vault: AppDependencies.shared.vaultService,
-                notes: AppDependencies.shared.noteService,
-                navigation: AppDependencies.shared.navigationService,
-                switcher: AppDependencies.shared.quickSwitcherService,
-                search: AppDependencies.shared.searchService,
-                dailyNotes: AppDependencies.shared.dailyNoteService,
-                templates: AppDependencies.shared.templateService,
+                vault: AppDependencies.shared.services.vault,
+                notes: AppDependencies.shared.services.notes,
+                navigation: AppDependencies.shared.services.navigation,
+                switcher: AppDependencies.shared.services.switcher,
+                search: AppDependencies.shared.services.search,
+                dailyNotes: AppDependencies.shared.services.dailyNotes,
+                templates: AppDependencies.shared.services.templates,
                 defaults: AppDependencies.shared.defaults
             )
         }

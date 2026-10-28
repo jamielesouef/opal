@@ -31,7 +31,7 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         Task {
-            await AppDependencies.shared.noteService.flush()
+            await AppDependencies.shared.services.notes.flush()
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
@@ -39,7 +39,7 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillResignActive(_ notification: Notification) {
         Task {
-            await AppDependencies.shared.noteService.flush()
+            await AppDependencies.shared.services.notes.flush()
         }
     }
 

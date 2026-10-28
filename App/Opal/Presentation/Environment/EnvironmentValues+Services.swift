@@ -9,51 +9,51 @@ import OpalCore
 import SwiftUI
 
 private let defaultVaultService = MainActor.assumeIsolated {
-    AppDependencies.shared.vaultService
+    AppDependencies.shared.services.vault
 }
 
 private let defaultNoteService = MainActor.assumeIsolated {
-    AppDependencies.shared.noteService
+    AppDependencies.shared.services.notes
 }
 
 private let defaultLinkService = MainActor.assumeIsolated {
-    AppDependencies.shared.linkService
+    AppDependencies.shared.services.links
 }
 
 private let defaultNavigationService = MainActor.assumeIsolated {
-    AppDependencies.shared.navigationService
+    AppDependencies.shared.services.navigation
 }
 
 private let defaultQuickSwitcherService = MainActor.assumeIsolated {
-    AppDependencies.shared.quickSwitcherService
+    AppDependencies.shared.services.switcher
 }
 
 private let defaultIndexService = MainActor.assumeIsolated {
-    AppDependencies.shared.indexService
+    AppDependencies.shared.services.index
 }
 
 private let defaultSearchService = MainActor.assumeIsolated {
-    AppDependencies.shared.searchService
+    AppDependencies.shared.services.search
 }
 
 private let defaultMentionService = MainActor.assumeIsolated {
-    AppDependencies.shared.mentionService
+    AppDependencies.shared.services.mentions
 }
 
 private let defaultDailyNoteService = MainActor.assumeIsolated {
-    AppDependencies.shared.dailyNoteService
+    AppDependencies.shared.services.dailyNotes
 }
 
 private let defaultTemplateService = MainActor.assumeIsolated {
-    AppDependencies.shared.templateService
+    AppDependencies.shared.services.templates
 }
 
 private let defaultRenameService = MainActor.assumeIsolated {
-    AppDependencies.shared.renameService
+    AppDependencies.shared.services.renames
 }
 
 private let defaultSettingsService = MainActor.assumeIsolated {
-    AppDependencies.shared.settingsService
+    AppDependencies.shared.services.settings
 }
 
 extension EnvironmentValues {

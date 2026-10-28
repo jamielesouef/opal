@@ -206,17 +206,17 @@ struct VaultScreen: View {
     #Preview {
         let graph = PreviewGraph.makeGraph(openingGarden: true)
         VaultScreen(vault: Vault(rootURL: PreviewGraph.gardenRoot))
-            .environment(\.vaultService, graph.vaultService)
-            .environment(\.noteService, graph.noteService)
-            .environment(\.linkService, graph.linkService)
-            .environment(\.indexService, graph.indexService)
-            .environment(\.searchService, graph.searchService)
-            .environment(\.mentionService, graph.mentionService)
-            .environment(\.dailyNoteService, graph.dailyNoteService)
-            .environment(\.templateService, graph.templateService)
-            .environment(\.renameService, graph.renameService)
-            .environment(\.navigationService, graph.navigationService)
-            .environment(\.quickSwitcherService, graph.quickSwitcherService)
-            .task { await graph.vaultService.start() }
+            .environment(\.vaultService, graph.services.vault)
+            .environment(\.noteService, graph.services.notes)
+            .environment(\.linkService, graph.services.links)
+            .environment(\.indexService, graph.services.index)
+            .environment(\.searchService, graph.services.search)
+            .environment(\.mentionService, graph.services.mentions)
+            .environment(\.dailyNoteService, graph.services.dailyNotes)
+            .environment(\.templateService, graph.services.templates)
+            .environment(\.renameService, graph.services.renames)
+            .environment(\.navigationService, graph.services.navigation)
+            .environment(\.quickSwitcherService, graph.services.switcher)
+            .task { await graph.services.vault.start() }
     }
 #endif
