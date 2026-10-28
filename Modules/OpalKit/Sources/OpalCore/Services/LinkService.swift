@@ -37,7 +37,12 @@ public final class LinkService {
     }
 
     public private(set) var mapRevision = 0
-    public private(set) var openNote: OpenNoteLinks?
+    public private(set) var analyses: [NotePath: OpenNoteLinks] = [:]
+    public private(set) var focusedNote: NotePath?
+
+    public var openNote: OpenNoteLinks? {
+        focusedNote.flatMap { analyses[$0] }
+    }
 
     // MARK: - Constants
 
@@ -55,8 +60,8 @@ public final class LinkService {
     private var pendingBuilds = 0
     private var generation = 0
     @ObservationIgnored private var rebuildTask: Task<Void, Never>?
-    @ObservationIgnored private var openNoteTask: Task<Void, Never>?
-    private var openNoteSource: (path: NotePath, text: String)?
+    @ObservationIgnored private var analysisTasks: [NotePath: Task<Void, Never>] = [:]
+    private var sources: [NotePath: String] = [:]
 
     // MARK: - Init
 
@@ -128,17 +133,31 @@ public final class LinkService {
     }
 
     public func openNoteChanged(_ path: NotePath?, text: String) {
-        openNoteTask?.cancel()
         guard let path else {
-            openNoteSource = nil
-            openNote = nil
+            showNotes([], focused: nil)
             return
         }
 
-        openNoteSource = (path, text)
+        focusedNote = path
+        noteChanged(path, text: text)
+    }
+
+    public func showNotes(_ paths: Set<NotePath>, focused: NotePath?) {
+        focusedNote = focused
+        for gone in Set(sources.keys).subtracting(paths) {
+            analysisTasks[gone]?.cancel()
+            analysisTasks[gone] = nil
+            sources[gone] = nil
+            analyses[gone] = nil
+        }
+    }
+
+    public func noteChanged(_ path: NotePath, text: String) {
+        analysisTasks[path]?.cancel()
+        sources[path] = text
         let map = map
         let delay = text.utf16.count > Self.largeNoteLimit ? Self.largeNoteDelay : .zero
-        openNoteTask = Task { [weak self] in
+        analysisTasks[path] = Task { [weak self] in
             if delay > .zero {
                 do {
                     try await Task.sleep(for: delay)
@@ -151,18 +170,24 @@ public final class LinkService {
             guard Task.isCancelled == false, let self else {
                 return
             }
-            openNote = analysed
+            analyses[path] = analysed
         }
     }
 
+    public func analysis(of path: NotePath) -> OpenNoteLinks? {
+        analyses[path]
+    }
+
     public func waitForOpenNote() async {
-        await openNoteTask?.value
+        for task in analysisTasks.values {
+            await task.value
+        }
     }
 
     // MARK: - Reads
 
     public func readingBlocks(of path: NotePath, text: String) async -> [ReadingBlock] {
-        let analysed = openNote.flatMap { $0.path == path && $0.textLength == text.utf16.count ? $0 : nil }
+        let analysed = analyses[path].flatMap { $0.textLength == text.utf16.count ? $0 : nil }
         return await Self.readingConcurrently(path: path, text: text, analysed: analysed, map: map)
     }
 
@@ -194,8 +219,8 @@ public final class LinkService {
         return await Self.embedConcurrently(target: target, title: title, subpath: link.subpath, text: text, map: map)
     }
 
-    public func link(at offset: Int, in text: String) -> Link? {
-        let parsed = openNote.flatMap { $0.textLength == text.utf16.count ? $0.parsed : nil } ?? MarkdownNoteParser.parse(text)
+    public func link(at offset: Int, in text: String, of path: NotePath) -> Link? {
+        let parsed = analyses[path].flatMap { $0.textLength == text.utf16.count ? $0.parsed : nil } ?? MarkdownNoteParser.parse(text)
         return parsed.links.first { $0.span.contains(offset) }
     }
 
@@ -215,11 +240,9 @@ public final class LinkService {
     }
 
     private func refreshOpenNote() {
-        guard let source = openNoteSource else {
-            return
+        for (path, text) in sources {
+            noteChanged(path, text: text)
         }
-
-        openNoteChanged(source.path, text: source.text)
     }
 
     private nonisolated static func analyse(path: NotePath, text: String, map: LinkMap) -> OpenNoteLinks {

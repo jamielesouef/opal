@@ -13,12 +13,12 @@ import Observation
 public final class NavigationService {
     // MARK: - State
 
-    public private(set) var tabs = TabList()
+    public private(set) var panes = EditorPanes()
     public private(set) var reveal: RevealRequest?
     public private(set) var recentNotes: [NotePath] = []
     public var isInspectorShown = true
     public var isReadingView = false
-    @ObservationIgnored public var editorTopOffset = 0
+    @ObservationIgnored private var topOffsets = Array(repeating: 0, count: EditorPanes.maxCount)
     public var isQuickSwitcherShown = false
     public var isCommandPaletteShown = false
     public var sidebarPane = SidebarPane.files
@@ -29,6 +29,16 @@ public final class NavigationService {
 
     public var history: NavigationHistory {
         tabs.selected.history
+    }
+
+    public private(set) var tabs: TabList {
+        get { panes.focused }
+        set { panes.focused = newValue }
+    }
+
+    public var editorTopOffset: Int {
+        get { topOffsets[panes.focusedIndex] }
+        set { topOffsets[panes.focusedIndex] = newValue }
     }
 
     // MARK: - Private
@@ -59,7 +69,7 @@ public final class NavigationService {
             tabs.visit(path)
             editorTopOffset = 0
             reveal = nil
-            await notes.open(path)
+            await showPanes()
             await record(path)
             await saveTabs()
         }
@@ -95,13 +105,54 @@ public final class NavigationService {
     }
 
     public func forget(_ path: NotePath) {
-        tabs.forget(path)
+        panes.forget(path)
         recentNotes.removeAll { $0 == path }
     }
 
     public func move(from old: NotePath, to new: NotePath) {
-        tabs.move(from: old, to: new)
+        panes.move(from: old, to: new)
         recentNotes = recentNotes.map { $0 == old ? new : $0 }
+    }
+
+    // MARK: - Panes
+
+    public func splitRight() async {
+        guard panes.isSplit == false else {
+            return
+        }
+
+        resetTabsIfVaultChanged()
+        let offset = editorTopOffset
+        tabs.setTopOffset(offset)
+        panes.splitRight()
+        editorTopOffset = offset
+        reveal = nil
+        await showPanes()
+    }
+
+    public func focusPane(_ index: Int) async {
+        guard index != panes.focusedIndex else {
+            return
+        }
+
+        tabs.setTopOffset(editorTopOffset)
+        panes.focus(index)
+        reveal = nil
+        await showPanes()
+    }
+
+    public func topOffset(inPane index: Int) -> Int {
+        topOffsets.indices.contains(index) ? topOffsets[index] : 0
+    }
+
+    public func setTopOffset(_ offset: Int, inPane index: Int) {
+        if topOffsets.indices.contains(index) {
+            topOffsets[index] = offset
+        }
+    }
+
+    public func showPanes() async {
+        await notes.show(panes.focusedPath, alsoShowing: panes.otherPaths)
     }
 
     // MARK: - Tabs
@@ -116,6 +167,11 @@ public final class NavigationService {
             await record(path)
         }
         await saveTabs()
+    }
+
+    public func selectTab(_ id: Int, inPane index: Int) async {
+        await focusPane(index)
+        await selectTab(id)
     }
 
     public func selectTab(_ id: Int) async {
@@ -136,10 +192,26 @@ public final class NavigationService {
     }
 
     public func closeTab(_ id: Int) async {
-        let wasSelected = id == tabs.selectedID
-        tabs.close(id)
-        if wasSelected {
-            await showSelectedTab()
+        await closeTab(id, inPane: panes.focusedIndex)
+    }
+
+    public func closeTab(_ id: Int, inPane index: Int) async {
+        let paneCount = panes.panes.count
+        let wasSelected = panes.panes.indices.contains(index) && id == panes.panes[index].selectedID
+        panes.closeTab(id, inPane: index)
+        if panes.panes.count < paneCount {
+            topOffsets.remove(at: index)
+            topOffsets.append(0)
+            editorTopOffset = tabs.selected.topOffset
+            reveal = nil
+            await showPanes()
+        } else if wasSelected {
+            if index == panes.focusedIndex {
+                await showSelectedTab()
+            } else {
+                setTopOffset(0, inPane: index)
+                await showPanes()
+            }
         }
         await saveTabs()
     }
@@ -159,18 +231,18 @@ public final class NavigationService {
             return
         }
 
-        tabs = TabList(paths: saved)
+        panes = EditorPanes(TabList(paths: saved))
         await showSelectedTab()
     }
 
-        public func goBack() async {
+    public func goBack() async {
         guard let path = tabs.goBack() else {
             return
         }
 
         reveal = nil
         editorTopOffset = 0
-        await notes.open(path)
+        await showPanes()
         await record(path)
     }
 
@@ -181,7 +253,7 @@ public final class NavigationService {
 
         reveal = nil
         editorTopOffset = 0
-        await notes.open(path)
+        await showPanes()
         await record(path)
     }
 
@@ -203,25 +275,23 @@ public final class NavigationService {
         }
 
         tabsRoot = root
-        tabs = TabList()
+        panes = EditorPanes()
+        topOffsets = Array(repeating: 0, count: EditorPanes.maxCount)
     }
 
     private func showSelectedTab() async {
         reveal = nil
         editorTopOffset = tabs.selected.topOffset
-        if let path = tabs.selected.path {
-            await notes.open(path)
-        } else {
-            await notes.close()
-        }
+        await showPanes()
     }
 
+    // ponytail: only the first pane's tabs are remembered; restore the split too when someone asks for it
     private func saveTabs() async {
         guard let root = vault.store?.rootURL else {
             return
         }
 
-        await recents.setOpenTabs(tabs.paths, forVaultAt: root)
+        await recents.setOpenTabs(panes.panes[0].paths, forVaultAt: root)
     }
 
     private func record(_ path: NotePath) async {

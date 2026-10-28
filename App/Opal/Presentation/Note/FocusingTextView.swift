@@ -20,14 +20,29 @@ final class FocusingTextView: NSTextView {
 
     var handleCommand: (Selector) -> Bool = { _ in false }
 
+    // MARK: - Focus
+
+    var takesFocusOnAppear = true
+    var onFocus: () -> Void = {}
+
     // MARK: - NSView
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        window?.makeFirstResponder(self)
+        if takesFocusOnAppear {
+            window?.makeFirstResponder(self)
+        }
     }
 
     // MARK: - NSResponder
+
+    override func becomeFirstResponder() -> Bool {
+        let accepted = super.becomeFirstResponder()
+        if accepted {
+            onFocus()
+        }
+        return accepted
+    }
 
     override func mouseDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command), let offset = linkOffset(at: event) {

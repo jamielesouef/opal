@@ -31,6 +31,8 @@ struct AppCommandRunner {
             vault.isOpen
         case .duplicateNote, .save, .insertTemplate, .toggleReadingView:
             notes.path != nil
+        case .splitRight:
+            vault.isOpen && navigation.panes.isSplit == false
         }
     }
 
@@ -76,6 +78,8 @@ struct AppCommandRunner {
             toggleLiveMarkdown()
         case .toggleInspector:
             navigation.isInspectorShown.toggle()
+        case .splitRight:
+            Task { await navigation.splitRight() }
         case .newTab:
             Task { await navigation.openInNewTab(nil) }
         case .closeTab:

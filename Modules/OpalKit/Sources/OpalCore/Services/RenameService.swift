@@ -69,7 +69,6 @@ public final class RenameService {
 
         await notes.flush()
         let resolver = links.map.resolver
-        let openPath = notes.path
         try await store.moveItem(from: path, to: target)
 
         var changed = Set(plan.moves.keys).union(plan.moves.values)
@@ -100,9 +99,7 @@ public final class RenameService {
         for (old, new) in plan.moves {
             navigation.move(from: old, to: new)
         }
-        if let openPath, let moved = plan.moves[openPath] {
-            await notes.open(moved)
-        }
+        await navigation.showPanes()
         await vault.handleExternalChanges(changed)
         return target
     }
@@ -119,13 +116,12 @@ public final class RenameService {
         }
 
         let removed = Set(vault.entries.map(\.path).filter { $0.components.starts(with: path.components) })
-        if let open = notes.path, removed.contains(open) {
-            await notes.close()
-        }
+        await notes.close(removed)
         try await store.trashItem(at: path)
         for gone in removed {
             navigation.forget(gone)
         }
+        await navigation.showPanes()
         await vault.handleExternalChanges(removed.union([path]))
     }
 

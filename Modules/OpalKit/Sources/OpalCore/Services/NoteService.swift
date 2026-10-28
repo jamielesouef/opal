@@ -40,35 +40,33 @@ public final class NoteService {
     }
 
     public var loadState: LoadState {
-        switch (path, isLoading, loadError, conflictDiskText) {
-        case (nil, _, _, _):
+        switch (path, focused) {
+        case (nil, _):
             .noNote
-        case (let path?, true, _, _):
+        case let (path?, nil):
             .loading(path)
-        case (let path?, false, let error?, _):
-            .failed(path, error)
-        case (let path?, false, nil, let diskText?):
-            .conflict(Note(path: path, text: draft), diskText: diskText)
-        case (let path?, false, nil, nil):
-            .editing(Note(path: path, text: draft))
+        case let (_, document?):
+            document.loadState
         }
     }
 
     public var saveStatus: SaveStatus {
-        switch (saveError, isUnsaved == false) {
-        case (let error?, _):
-            .failed(error)
-        case (nil, true):
-            .saved
-        case (nil, false):
-            .unsaved
-        }
+        focused?.saveStatus ?? .saved
     }
 
     public private(set) var path: NotePath?
+    public private(set) var documents: [NotePath: NoteDocument] = [:]
+
+    public var focused: NoteDocument? {
+        path.flatMap { documents[$0] }
+    }
 
     public var isReady: Bool {
-        path != nil && isLoading == false && loadError == nil
+        focused?.isReady == true
+    }
+
+    public var revision: Int {
+        focused?.revision ?? 0
     }
 
     // MARK: - Private
@@ -76,31 +74,9 @@ public final class NoteService {
     private let vault: VaultService
     private let links: LinkService?
     private let index: IndexService?
-    private let saveDelay: Duration
-
-    public private(set) var revision = 0
-
-    private var draft = "" {
-        didSet {
-            revision += 1
-            isUnsaved = draft != diskText
-            links?.openNoteChanged(path, text: draft)
-        }
-    }
-    private var diskText = "" {
-        didSet {
-            isUnsaved = draft != diskText
-        }
-    }
-
-    private var isUnsaved = false
-    private var isLoading = false
-    private var loadError: VaultError?
-    private var conflictDiskText: String?
-    private var saveError: VaultError?
-    private var scheduledSave: Task<Void, Never>?
-    private var runningSave: Task<Void, Never>?
     private let clock: any Clocking
+    private let saveDelay: Duration
+    private var alsoShown: Set<NotePath> = []
 
     // MARK: - Init
 
@@ -120,70 +96,61 @@ public final class NoteService {
 
     // MARK: - Intent
 
+    public func document(for path: NotePath) -> NoteDocument? {
+        documents[path]
+    }
+
+    public func show(_ focusedPath: NotePath?, alsoShowing others: Set<NotePath>) async {
+        let wanted = others.union(focusedPath.map { [$0] } ?? [])
+        for (shown, document) in documents where wanted.contains(shown) == false {
+            await document.flush()
+            documents[shown] = nil
+        }
+
+        path = focusedPath
+        alsoShown = others
+        links?.showNotes(wanted, focused: focusedPath)
+
+        var loading: [NoteDocument] = []
+        for shown in wanted.sorted(by: { $0.rawValue < $1.rawValue }) where documents[shown] == nil {
+            let document = NoteDocument(path: shown, vault: vault, links: links, index: index, clock: clock, saveDelay: saveDelay)
+            documents[shown] = document
+            loading.append(document)
+        }
+        for document in loading {
+            await document.load()
+        }
+    }
+
     public func open(_ newPath: NotePath) async {
-        guard newPath != path || loadError != nil else {
+        if newPath == path, let focused, focused.isReady == false {
+            await focused.retry()
             return
         }
 
-        await flush()
-        reset(to: newPath)
-        isLoading = true
+        await show(newPath, alsoShowing: alsoShown)
+    }
 
-        guard let store = vault.store else {
-            loadError = .noVaultOpen
-            isLoading = false
-            return
-        }
+    public func close() async {
+        await show(nil, alsoShowing: alsoShown)
+    }
 
-        do {
-            let text = try await store.readNote(at: newPath)
-            guard path == newPath else {
-                return
-            }
-
-            if let text {
-                draft = text
-                diskText = text
-            } else {
-                loadError = .notFound(newPath)
-            }
-        } catch {
-            guard path == newPath else {
-                return
-            }
-
-            loadError = error
-        }
-
-        isLoading = false
+    public func close(_ paths: Set<NotePath>) async {
+        await show(path.flatMap { paths.contains($0) ? nil : $0 }, alsoShowing: alsoShown.subtracting(paths))
     }
 
     public func retry() async {
-        guard let path, loadError != nil else {
-            return
-        }
-
-        await open(path)
+        await focused?.retry()
     }
 
     public func edit(_ text: String) {
-        guard path != nil, isLoading == false, loadError == nil, text != draft else {
-            return
-        }
-
-        draft = text
-        saveError = nil
-        scheduleSave()
+        focused?.edit(text)
     }
 
     // MARK: - Properties
 
     public var frontmatter: Frontmatter? {
-        guard let open = links?.openNote, open.path == path, open.textLength == draft.utf16.count else {
-            return nil
-        }
-
-        return open.frontmatter
+        focused?.frontmatter
     }
 
     public func type(of property: Property) -> PropertyType {
@@ -191,209 +158,46 @@ public final class NoteService {
     }
 
     public func setProperty(_ property: Property, to value: PropertyValue) {
-        guard let current = currentProperty(property.key) else {
-            return
-        }
-
-        edit(PropertyEditUseCase.set(current, to: value, type: type(of: current), in: draft))
-    }
-
-    public func attach(_ data: Data, named fileName: String?) async -> String? {
-        guard let path else {
-            return nil
-        }
-
-        let name = fileName ?? AttachmentUseCase.pastedName(at: clock.now, timeZone: clock.timeZone)
-        do {
-            let attachment = try await vault.createAttachment(data, named: name, for: path)
-            return AttachmentUseCase.embedText(for: attachment, from: path, existing: Set(vault.entries.map(\.path)), settings: vault.appSettings)
-        } catch {
-            AppLog.error("Saving the Attachment \(name) failed: \(error)")
-            return nil
-        }
-    }
-
-    public func toggleCheckbox(onLine line: Int) {
-        guard let toggle = CheckboxToggleUseCase.toggle(onLine: line, in: draft) else {
-            return
-        }
-
-        edit((draft as NSString).replacingCharacters(in: NSRange(location: toggle.span.location, length: toggle.span.length), with: toggle.replacement))
+        focused?.setProperty(property, to: value)
     }
 
     public func removeProperty(_ property: Property) {
-        guard let current = currentProperty(property.key) else {
-            return
-        }
-
-        edit(PropertyEditUseCase.remove(current, from: draft))
+        focused?.removeProperty(property)
     }
 
     public func addProperty(named key: String) {
-        let name = key.trimmingCharacters(in: .whitespaces)
-        guard name.isEmpty == false else {
-            return
-        }
-
-        let current = FrontmatterParser.parse(draft)
-        guard current?.properties.contains(where: { $0.key == name }) != true else {
-            return
-        }
-
-        edit(PropertyEditUseCase.add(key: name, type: vault.propertyTypes[name] ?? .text, to: draft, frontmatter: current))
+        focused?.addProperty(named: key)
     }
 
-    private func currentProperty(_ key: String) -> Property? {
-        FrontmatterParser.parse(draft)?.properties.first { $0.key == key }
+    // MARK: - Body
+
+    public func attach(_ data: Data, named fileName: String?) async -> String? {
+        await focused?.attach(data, named: fileName)
     }
+
+    public func toggleCheckbox(onLine line: Int) {
+        focused?.toggleCheckbox(onLine: line)
+    }
+
+    // MARK: - Saving
 
     public func flush() async {
-        scheduledSave?.cancel()
-        scheduledSave = nil
-        await saveInOrder()
+        for document in documents.values {
+            await document.flush()
+        }
     }
 
     public func keepMyVersion() async {
-        guard let path, conflictDiskText != nil, let store = vault.store else {
-            return
-        }
-
-        conflictDiskText = nil
-        await write(draft, to: path, store: store)
+        await focused?.keepMyVersion()
     }
 
     public func useVersionOnDisk() {
-        guard let diskVersion = conflictDiskText else {
-            return
-        }
-
-        draft = diskVersion
-        diskText = diskVersion
-        conflictDiskText = nil
-        saveError = nil
+        focused?.useVersionOnDisk()
     }
 
     public func reloadIfUnchanged(_ changed: Set<NotePath>) async {
-        guard let path, changed.contains(path), isLoading == false, loadError == nil, let store = vault.store else {
-            return
+        for (shown, document) in documents where changed.contains(shown) {
+            await document.reloadIfUnchanged()
         }
-
-        let onDisk: String?
-        do {
-            onDisk = try await store.readNote(at: path)
-        } catch {
-            AppLog.error("Reading \(path) after an outside change failed: \(error)")
-            return
-        }
-
-        guard self.path == path, let onDisk, onDisk != diskText, draft == diskText, conflictDiskText == nil else {
-            return
-        }
-
-        draft = onDisk
-        diskText = onDisk
-        saveError = nil
-    }
-
-    public func close() async {
-        await flush()
-        reset(to: nil)
-    }
-
-    // MARK: - Private
-
-    private func reset(to newPath: NotePath?) {
-        path = newPath
-        draft = ""
-        diskText = ""
-        isLoading = false
-        loadError = nil
-        conflictDiskText = nil
-        saveError = nil
-    }
-
-    private func scheduleSave() {
-        scheduledSave?.cancel()
-        scheduledSave = Task { [weak self, saveDelay] in
-            do {
-                try await Task.sleep(for: saveDelay)
-            } catch {
-                return
-            }
-
-            await self?.saveInOrder()
-        }
-    }
-
-    private func saveInOrder() async {
-        let previous = runningSave
-        let task = Task { [weak self] in
-            await previous?.value
-            await self?.saveNow()
-        }
-        runningSave = task
-        await task.value
-    }
-
-    private func saveNow() async {
-        guard let path, let store = vault.store, isLoading == false, loadError == nil, conflictDiskText == nil else {
-            return
-        }
-
-        let snapshot = draft
-        let lastKnownDisk = diskText
-        guard snapshot != lastKnownDisk else {
-            return
-        }
-
-        let onDisk: String?
-        do {
-            onDisk = try await store.readNote(at: path)
-        } catch {
-            guard self.path == path else {
-                return
-            }
-
-            saveError = error
-            return
-        }
-
-        guard self.path == path else {
-            return
-        }
-
-        switch NoteSaveDecisionUseCase.decide(lastKnownDisk: lastKnownDisk, draft: snapshot, onDisk: onDisk) {
-        case .unchanged:
-            return
-        case .write,
-             .recreate:
-            await write(snapshot, to: path, store: store)
-        case let .adoptDisk(text):
-            diskText = text
-        case let .conflict(text):
-            conflictDiskText = text
-        }
-    }
-
-    private func write(_ text: String, to path: NotePath, store: any VaultFileStoring) async {
-        do {
-            try await store.writeNote(text, at: path)
-        } catch {
-            guard self.path == path else {
-                return
-            }
-
-            saveError = error
-            return
-        }
-
-        guard self.path == path else {
-            return
-        }
-
-        diskText = text
-        saveError = nil
-        await links?.update(path, text: text)
-        await index?.update([path])
     }
 }

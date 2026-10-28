@@ -484,7 +484,7 @@ Acceptance:
 - [snap] View › Split Right (⌘\) shows a second Editor pane with its own tabs; the focused pane gets new Notes and the inspector follows it.
 - [unit] The same Note in both panes shows one text: an edit in one appears in the other, and it is saved once.
 - [manual] Closing the last tab of a pane closes the pane.
-Status: todo
+Status: done (29/10/2026; `EditorPanesTests`, `SplitViewTests`, `opal-m5-10-split.png`, `opal-m5-10-split-same-note-dark.png`). Per ADR 0007, each open Note is one `NoteDocument` that both panes share. The panes split the width evenly: `HSplitView` inside the detail column threw a layout-loop exception, so the divider can't be dragged yet. Reading view (⌘E) applies to both panes. Only the first pane's tabs are remembered between launches. Clicking a pane, ⌘\ and closing a pane's last tab are [manual].
 
 ### M5-11 Settings (⌘,)
 As a user, I want to set how Opal writes and where it puts things.

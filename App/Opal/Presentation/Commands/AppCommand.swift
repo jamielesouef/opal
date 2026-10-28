@@ -24,6 +24,7 @@ enum AppCommand: String, CaseIterable, Identifiable {
     case toggleReadingView
     case toggleLiveMarkdown
     case toggleInspector
+    case splitRight
     case newTab
     case closeTab
     case nextTab
@@ -71,6 +72,8 @@ enum AppCommand: String, CaseIterable, Identifiable {
             String(localized: "Toggle Live Markdown")
         case .toggleInspector:
             String(localized: "Toggle Inspector")
+        case .splitRight:
+            String(localized: "Split Right")
         case .newTab:
             String(localized: "New Tab")
         case .closeTab:
@@ -90,7 +93,7 @@ enum AppCommand: String, CaseIterable, Identifiable {
             String(localized: "Edit")
         case .quickSwitcher, .dailyNote, .searchVault, .back, .forward, .nextTab, .previousTab:
             String(localized: "Go")
-        case .toggleReadingView, .toggleLiveMarkdown, .toggleInspector:
+        case .toggleReadingView, .toggleLiveMarkdown, .toggleInspector, .splitRight:
             String(localized: "View")
         }
     }
@@ -125,6 +128,8 @@ enum AppCommand: String, CaseIterable, Identifiable {
             KeyboardShortcut("e")
         case .toggleInspector:
             KeyboardShortcut("0", modifiers: [.command, .option])
+        case .splitRight:
+            KeyboardShortcut("\\")
         case .newTab:
             KeyboardShortcut("t")
         case .closeTab:

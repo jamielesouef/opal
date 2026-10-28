@@ -20,12 +20,14 @@ struct MarkdownTextView: NSViewRepresentable {
     var insertion: TextInsertion?
     var initialTopOffset = 0
     var typeOnAppear: String?
+    var takesFocusOnAppear = true
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
     var onScroll: (Int) -> Void = { _ in }
     var linkSuggestions: (String) async -> [LinkSuggestion] = { _ in [] }
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     var onAttach: (Data, String?) async -> String? = { _, _ in nil }
+    var onFocus: () -> Void = {}
 
     // MARK: - NSViewRepresentable
 
@@ -41,6 +43,8 @@ struct MarkdownTextView: NSViewRepresentable {
 
         let coordinator = context.coordinator
         configure(textView)
+        textView.takesFocusOnAppear = takesFocusOnAppear
+        textView.onFocus = onFocus
         textView.string = text
         coordinator.lastText = text
         textView.delegate = coordinator
@@ -121,6 +125,7 @@ struct MarkdownTextView: NSViewRepresentable {
         }
 
         textView.onAttach = onAttach
+        textView.onFocus = onFocus
 
         if text != coordinator.lastText {
             coordinator.lastText = text

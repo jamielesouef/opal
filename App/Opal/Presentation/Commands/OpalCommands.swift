@@ -92,6 +92,7 @@ struct OpalCommands: Commands {
             runner.button(.toggleReadingView, title: navigation.isReadingView ? String(localized: "Editor") : String(localized: "Reading View"))
             Toggle(String(localized: "Live Markdown"), isOn: $isLiveMarkdown)
             Divider()
+            runner.button(.splitRight)
             runner.button(.toggleInspector)
         }
 

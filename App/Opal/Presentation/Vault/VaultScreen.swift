@@ -42,14 +42,6 @@ struct VaultScreen: View {
                 .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
         } detail: {
             detail
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    if notes.path != nil || navigation.tabs.tabs.count > 1 {
-                        VStack(spacing: 0) {
-                            TabBarView()
-                            Divider()
-                        }
-                    }
-                }
                 .inspector(isPresented: $navigation.isInspectorShown) {
                     InspectorView()
                         .inspectorColumnWidth(
@@ -183,12 +175,32 @@ struct VaultScreen: View {
     private var detail: some View {
         switch DetailContentUseCase.content(selection: selection, kind: selection.flatMap(vaultService.kind(of:))) {
         case .note:
-            NoteScreen()
+            if navigation.panes.isSplit {
+                HStack(spacing: 0) {
+                    editorPane(0)
+                    Divider()
+                    editorPane(1)
+                }
+            } else {
+                editorPane(0)
+            }
         case let .attachment(path):
             AttachmentView(name: path.fileName) {
                 VaultActions.openInDefaultApp(path, vault: vaultService)
             }
         }
+    }
+
+    private func editorPane(_ pane: Int) -> some View {
+        NoteScreen(pane: pane)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if navigation.panes.isSplit || notes.path != nil || navigation.tabs.tabs.count > 1 {
+                    VStack(spacing: 0) {
+                        TabBarView(pane: pane)
+                        Divider()
+                    }
+                }
+            }
     }
 }
 

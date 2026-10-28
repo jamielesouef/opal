@@ -12,12 +12,13 @@ import SwiftUI
 struct PropertiesView: View {
     // MARK: - Environment
 
-    @Environment(\.noteService) private var notes
     @Environment(\.navigationService) private var navigation
 
     // MARK: - Input
 
+    let document: NoteDocument
     let frontmatter: Frontmatter
+    let pane: Int
 
     // MARK: - State
 
@@ -46,7 +47,7 @@ struct PropertiesView: View {
             }
 
             ForEach(frontmatter.properties) { property in
-                PropertyRow(property: property, type: notes.type(of: property))
+                PropertyRow(document: document, property: property, type: document.type(of: property))
             }
 
             if isAdding {
@@ -70,17 +71,16 @@ struct PropertiesView: View {
     // MARK: - Intent
 
     private func add() {
-        notes.addProperty(named: newName)
+        document.addProperty(named: newName)
         newName = ""
         isAdding = false
     }
 
     private func editAsYAML() {
-        guard let path = notes.path else {
-            return
-        }
-
         navigation.isReadingView = false
-        Task { await navigation.open(path, line: 1) }
+        Task {
+            await navigation.focusPane(pane)
+            await navigation.open(document.path, line: 1)
+        }
     }
 }

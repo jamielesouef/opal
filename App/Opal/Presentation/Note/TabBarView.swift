@@ -21,16 +21,33 @@ struct TabBarView: View {
 
     @Environment(\.navigationService) private var navigation
 
+    // MARK: - Input
+
+    let pane: Int
+
+    // MARK: - Derived
+
+    private var tabs: TabList {
+        navigation.panes.panes.indices.contains(pane) ? navigation.panes.panes[pane] : TabList()
+    }
+
+    private var isFocused: Bool {
+        navigation.panes.focusedIndex == pane
+    }
+
     // MARK: - View
 
     var body: some View {
         ScrollView(.horizontal) {
             HStack(spacing: AppSpacing.xsmall) {
-                ForEach(navigation.tabs.tabs) { tab in
+                ForEach(tabs.tabs) { tab in
                     tabButton(tab)
                 }
                 Button {
-                    Task { await navigation.openInNewTab(nil) }
+                    Task {
+                        await navigation.focusPane(pane)
+                        await navigation.openInNewTab(nil)
+                    }
                 } label: {
                     Image(systemName: "plus")
                 }
@@ -47,13 +64,13 @@ struct TabBarView: View {
     // MARK: - Tab
 
     private func tabButton(_ tab: NoteTab) -> some View {
-        let isSelected = tab.id == navigation.tabs.selectedID
+        let isSelected = tab.id == tabs.selectedID
         return HStack(spacing: AppSpacing.xsmall) {
             Text(tab.path?.name ?? String(localized: "New Tab"))
                 .lineLimit(1)
                 .frame(maxWidth: Constants.tabMaxWidth, alignment: .leading)
             Button {
-                Task { await navigation.closeTab(tab.id) }
+                Task { await navigation.closeTab(tab.id, inPane: pane) }
             } label: {
                 Image(systemName: "xmark")
                     .font(.caption2.bold())
@@ -67,13 +84,13 @@ struct TabBarView: View {
         .background {
             if isSelected {
                 RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
-                    .fill(.quaternary)
+                    .fill(isFocused ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.quinary))
             }
         }
-        .foregroundStyle(isSelected ? .primary : .secondary)
+        .foregroundStyle(isSelected && isFocused ? .primary : .secondary)
         .contentShape(.rect)
         .onTapGesture {
-            Task { await navigation.selectTab(tab.id) }
+            Task { await navigation.selectTab(tab.id, inPane: pane) }
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)

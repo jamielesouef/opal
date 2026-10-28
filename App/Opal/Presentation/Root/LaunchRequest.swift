@@ -23,4 +23,5 @@ struct LaunchRequest {
     var deleting: NotePath?
     var showsCommandPalette = false
     var extraTabs: [NotePath] = []
+    var splitNote: NotePath?
 }

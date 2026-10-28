@@ -17,12 +17,9 @@ struct PropertyRow: View {
         static let iconWidth: CGFloat = 18
     }
 
-    // MARK: - Environment
-
-    @Environment(\.noteService) private var notes
-
     // MARK: - Input
 
+    let document: NoteDocument
     let property: Property
     let type: PropertyType
 
@@ -47,7 +44,7 @@ struct PropertyRow: View {
         }
         .contextMenu {
             Button(String(localized: "Remove Property"), role: .destructive) {
-                notes.removeProperty(property)
+                document.removeProperty(property)
             }
         }
         .onAppear { draft = text }
@@ -68,16 +65,16 @@ struct PropertyRow: View {
             Toggle(property.key, isOn: Binding {
                 draft.lowercased() == "true"
             } set: { isOn in
-                notes.setProperty(property, to: .text(isOn ? "true" : "false"))
+                document.setProperty(property, to: .text(isOn ? "true" : "false"))
             })
             .labelsHidden()
         case (.list, _), (.tags, _), (.aliases, _):
             field(prompt: String(localized: "Comma-separated")) {
-                notes.setProperty(property, to: .list(draft.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { $0.isEmpty == false }))
+                document.setProperty(property, to: .list(draft.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { $0.isEmpty == false }))
             }
         case (.text, _), (.number, _), (.date, _), (.dateTime, _):
             field(prompt: type == .date ? "YYYY-MM-DD" : String(localized: "Empty")) {
-                notes.setProperty(property, to: .text(draft.trimmingCharacters(in: .whitespaces)))
+                document.setProperty(property, to: .text(draft.trimmingCharacters(in: .whitespaces)))
             }
         }
     }

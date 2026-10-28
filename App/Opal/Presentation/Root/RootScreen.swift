@@ -36,6 +36,10 @@ struct RootScreen: View {
                 for tab in launch.extraTabs where vault.isOpen {
                     await navigation.openInNewTab(tab)
                 }
+                if let split = launch.splitNote, vault.isOpen {
+                    await navigation.splitRight()
+                    await navigation.open(split)
+                }
                 if launch.opensDailyNote, vault.isOpen {
                     await dailyNotes.openToday()
                 }
