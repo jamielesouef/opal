@@ -9,6 +9,10 @@ import Foundation
 @testable import OpalCore
 
 struct ServiceHarness {
+    // MARK: - Constants
+
+    static let clock = FixedClock(now: Date(timeIntervalSince1970: 1_793_000_000), timeZone: TimeZone(identifier: "Australia/Sydney") ?? .gmt)
+
     // MARK: - Stored
 
     let store: any VaultFileStoring
@@ -43,7 +47,7 @@ struct ServiceHarness {
             try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
         }
         links = LinkService(vault: vault, index: index)
-        notes = NoteService(vault: vault, links: links, index: index, saveDelay: .seconds(3600))
+        notes = NoteService(vault: vault, links: links, index: index, clock: Self.clock, saveDelay: .seconds(3600))
         recents = StubRecentNotesStore()
         navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
         switcher = QuickSwitcherService(vault: vault, links: links, navigation: navigation)

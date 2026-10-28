@@ -13,7 +13,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | **M1 — Open a Vault and write a Note** (built 27/10/2026) | Open an existing Obsidian Vault or a new one, browse it, and write in a Note safely | M1-01 … M1-11 |
 | **M2 — Links** (built 27/10/2026) | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
 | **M3 — Find** (built 27/10/2026) | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-06 |
-| M4 — Rich Editor (stories expanded 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
+| **M4 — Rich Editor** (built 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | M5 — Daily work | Daily Notes, Templates, rename with Link updates, Command Palette, Settings, tabs | M5-01 … M5-09 |
 
 Out of scope for v1: Graph, Canvas, plugins, sync, publishing, iOS and iPadOS, collaboration.
@@ -373,7 +373,7 @@ Acceptance:
 - [unit] The name is `Pasted image YYYYMMDDHHmmss.png` for a paste and the file's own name for a drop; a name that is taken gets ` 1`, ` 2`… The file is written atomically and never replaces an existing file.
 - [unit] The Embed `![[name.png]]` is inserted at the cursor (or the drop point) as one undo step, using the shortest Link form the Vault's `newLinkFormat` asks for.
 - [manual] Paste from Screenshot and drag from Finder both work; the image shows in Reading view (M4-04).
-Status: todo
+Status: done (28/10/2026; `AttachmentUseCaseTests`, `AttachmentServiceTests`). Only image files are attached; other dropped or pasted files keep the Editor's usual behaviour. Paste and drag are [manual] and yours to check: I could not drive the pasteboard or a drag in the running app.
 
 ## M5 — Daily work
 

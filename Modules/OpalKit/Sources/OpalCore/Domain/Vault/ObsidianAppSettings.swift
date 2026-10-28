@@ -21,6 +21,7 @@ public struct ObsidianAppSettings: Hashable, Sendable {
     public let newFileFolderPath: String
     public let attachmentFolderPath: String
     public let useMarkdownLinks: Bool
+    public let newLinkFormat: LinkFormat
 
     // MARK: - Init
 
@@ -28,11 +29,13 @@ public struct ObsidianAppSettings: Hashable, Sendable {
         newFileLocation: NewFileLocation,
         newFileFolderPath: String,
         attachmentFolderPath: String,
-        useMarkdownLinks: Bool
+        useMarkdownLinks: Bool,
+        newLinkFormat: LinkFormat = .shortest
     ) {
         self.newFileLocation = newFileLocation
         self.newFileFolderPath = newFileFolderPath
         self.attachmentFolderPath = attachmentFolderPath
         self.useMarkdownLinks = useMarkdownLinks
+        self.newLinkFormat = newLinkFormat
     }
 }

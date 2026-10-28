@@ -86,6 +86,7 @@ public final class NoteService {
     private var saveError: VaultError?
     private var scheduledSave: Task<Void, Never>?
     private var runningSave: Task<Void, Never>?
+    private let clock: any Clocking
 
     // MARK: - Init
 
@@ -93,9 +94,11 @@ public final class NoteService {
         vault: VaultService,
         links: LinkService? = nil,
         index: IndexService? = nil,
+        clock: any Clocking,
         saveDelay: Duration = .milliseconds(800)
     ) {
         self.vault = vault
+        self.clock = clock
         self.links = links
         self.index = index
         self.saveDelay = saveDelay
@@ -171,6 +174,21 @@ public final class NoteService {
 
     public func setProperty(_ property: Property, to value: PropertyValue) {
         edit(PropertyEditUseCase.set(property, to: value, type: type(of: property), in: draft))
+    }
+
+    public func attach(_ data: Data, named fileName: String?) async -> String? {
+        guard let path else {
+            return nil
+        }
+
+        let name = fileName ?? AttachmentUseCase.pastedName(at: clock.now, timeZone: clock.timeZone)
+        do {
+            let attachment = try await vault.createAttachment(data, named: name, for: path)
+            return AttachmentUseCase.embedText(for: attachment, from: path, existing: Set(vault.entries.map(\.path)), settings: vault.appSettings)
+        } catch {
+            AppLog.error("Saving the Attachment \(name) failed: \(error)")
+            return nil
+        }
     }
 
     public func toggleCheckbox(onLine line: Int) {

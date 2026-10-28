@@ -12,6 +12,7 @@ struct ObsidianAppSettingsDTO: Decodable {
     let newFileFolderPath: String?
     let attachmentFolderPath: String?
     let useMarkdownLinks: Bool?
+    let newLinkFormat: String?
 
     // MARK: - Domain
 
@@ -21,7 +22,8 @@ struct ObsidianAppSettingsDTO: Decodable {
             newFileLocation: newFileLocation.flatMap(NewFileLocation.init(rawValue:)) ?? defaults.newFileLocation,
             newFileFolderPath: newFileFolderPath ?? defaults.newFileFolderPath,
             attachmentFolderPath: attachmentFolderPath ?? defaults.attachmentFolderPath,
-            useMarkdownLinks: useMarkdownLinks ?? defaults.useMarkdownLinks
+            useMarkdownLinks: useMarkdownLinks ?? defaults.useMarkdownLinks,
+            newLinkFormat: newLinkFormat.flatMap(LinkFormat.init(rawValue:)) ?? defaults.newLinkFormat
         )
     }
 }

@@ -22,6 +22,7 @@ struct MarkdownTextView: NSViewRepresentable {
     var onScroll: (Int) -> Void = { _ in }
     var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
+    var onAttach: (Data, String?) async -> String? = { _, _ in nil }
 
     // MARK: - NSViewRepresentable
 
@@ -64,6 +65,7 @@ struct MarkdownTextView: NSViewRepresentable {
                 coordinator.onScroll(textView.characterIndexForInsertion(at: textView.visibleRect.origin))
             }
         }
+        textView.onAttach = onAttach
         textView.onToggleCheckbox = { [weak coordinator, weak textView] offset in
             guard let coordinator, let textView else {
                 return false
@@ -100,9 +102,11 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.onScroll = onScroll
         coordinator.linkSuggestions = linkSuggestions
         coordinator.linkInsertion = linkInsertion
-        guard let textView = scrollView.documentView as? NSTextView else {
+        guard let textView = scrollView.documentView as? FocusingTextView else {
             return
         }
+
+        textView.onAttach = onAttach
 
         if textView.string != text {
             textView.string = text

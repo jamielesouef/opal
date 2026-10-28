@@ -15,6 +15,7 @@ actor StubVaultFileStore: VaultFileStoring {
 
     private(set) var files: [NotePath: String]
     private(set) var folders: Set<NotePath>
+    private(set) var attachments: [NotePath: Data] = [:]
     private(set) var writeCount = 0
     private(set) var listCount = 0
 
@@ -84,6 +85,14 @@ actor StubVaultFileStore: VaultFileStoring {
         }
 
         files[path] = text
+    }
+
+    func createFile(at path: NotePath, data: Data) throws(VaultError) {
+        guard files[path] == nil, attachments[path] == nil else {
+            throw .alreadyExists(path)
+        }
+
+        attachments[path] = data
     }
 
     func createFolder(at path: NotePath) throws(VaultError) {

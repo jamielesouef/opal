@@ -50,6 +50,10 @@ actor CountingVaultStore: VaultFileStoring {
         try await base.createNote(at: path, text: text)
     }
 
+    func createFile(at path: NotePath, data: Data) async throws(VaultError) {
+        try await base.createFile(at: path, data: data)
+    }
+
     func createFolder(at path: NotePath) async throws(VaultError) {
         try await base.createFolder(at: path)
     }

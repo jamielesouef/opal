@@ -93,6 +93,8 @@ struct NoteScreen: View {
             switcher.linkSuggestions(for: query)
         } linkInsertion: { suggestion in
             switcher.linkInsertion(for: suggestion, from: note.path)
+        } onAttach: { data, name in
+            await notes.attach(data, named: name)
         }
         .id(note.path)
         .safeAreaInset(edge: .top, spacing: 0) {

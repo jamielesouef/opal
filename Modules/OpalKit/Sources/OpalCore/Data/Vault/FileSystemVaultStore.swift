@@ -117,6 +117,20 @@ public actor FileSystemVaultStore: VaultFileStoring {
         }
     }
 
+    public func createFile(at path: NotePath, data: Data) throws(VaultError) {
+        let url = try checkedURL(for: path)
+        guard fileManager.fileExists(atPath: url.path) == false else {
+            throw .alreadyExists(path)
+        }
+
+        do {
+            try fileManager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try data.write(to: url, options: .withoutOverwriting)
+        } catch {
+            throw .writeFailed(path)
+        }
+    }
+
     public func createFolder(at path: NotePath) throws(VaultError) {
         let url = try checkedURL(for: path)
         guard fileManager.fileExists(atPath: url.path) == false else {

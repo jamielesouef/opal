@@ -55,6 +55,10 @@
             files[path] = text
         }
 
+        func createFile(at path: NotePath, data: Data) throws(VaultError) {
+            files[path] = ""
+        }
+
         func createFolder(at path: NotePath) throws(VaultError) {
             folders.insert(path)
         }

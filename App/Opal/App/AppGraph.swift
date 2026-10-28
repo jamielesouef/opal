@@ -39,7 +39,7 @@ struct AppGraph {
             try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
         }
         let linkService = LinkService(vault: vaultService, index: indexService)
-        let noteService = NoteService(vault: vaultService, links: linkService, index: indexService)
+        let noteService = NoteService(vault: vaultService, links: linkService, index: indexService, clock: SystemClock())
         self.indexService = indexService
         self.vaultService = vaultService
         self.launchRequest = launchRequest
