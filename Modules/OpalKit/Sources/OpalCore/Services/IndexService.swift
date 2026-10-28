@@ -82,7 +82,6 @@ public final class IndexService {
     }
 
     public func update(_ paths: Set<NotePath>) async {
-        /imp/
         guard let vaultStore = vault.store, let index = store, rootURL == vaultStore.rootURL else {
             return
         }
