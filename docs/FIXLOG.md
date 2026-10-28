@@ -43,3 +43,9 @@ Bugs found while building, with the rule each one taught.
 - Cause: `MarkdownStyler` reset and set attributes over the whole text storage on every analysis.
 - Fix: style only a window of 10,000 characters either side of what is on screen, snapped to paragraphs, and restyle as the user scrolls. That takes 7 ms. Runs come sorted from `LinkService`, so the window is found by binary search.
 - Rule: never apply text attributes to the whole storage of a large Note. Style a window around the viewport and restyle on scroll.
+
+## 28/10/2026: scrolling a 1 MB Note stuttered, with live Markdown on or off
+- Symptom: scrolling `Large Note.md` (1 MB) stuttered in both directions. A scroll probe (Release, 120 pt steps) measured an average of 12 ms per step scrolling down and 21 ms scrolling up, with up to 75 ms per frame. 98 of 150 upward steps took over 16 ms.
+- Cause: on every scroll, the Editor compared the new style window with the last one. Any movement meant "not contained", so it reset and restyled 20,000 characters each frame. That forced TextKit 2 to lay them out again. With live Markdown off, it still reset the base attributes.
+- Fix: the coordinator keeps an `IndexSet` of what it has styled since the last analysis and styles only the part of the window not yet styled. Now: 3.2 ms average down and 2.5 ms up, at most 1 step over 16 ms. Toggling live Markdown blocks the main actor for at most about 50 ms.
+- Rule: work done on scroll must be proportional to what newly came into view, never to the window size.

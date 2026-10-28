@@ -22,7 +22,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     private var appliedLength: Int?
     private var marks: [TextSpan] = []
     private var activeRange = NSRange(location: NSNotFound, length: 0)
-    private var styledWindow = NSRange(location: NSNotFound, length: 0)
+    private var styled = IndexSet()
     var boundsObserver: (any NSObjectProtocol)?
     private let suggestionPanel = LinkSuggestionPanel()
     private var suggestions: [LinkSuggestion] = []
@@ -184,7 +184,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         appliedLength = storage.length
         marks = newStyles.filter { $0.kind == .mark }.map(\.span)
         activeRange = MarkdownStyler.activeRange(in: textView)
-        styledWindow = NSRange(location: NSNotFound, length: 0)
+        styled = IndexSet()
         styleVisibleText(in: textView)
     }
 
@@ -212,12 +212,16 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         }
 
         let window = MarkdownStyler.window(around: textView)
-        guard NSIntersectionRange(window, styledWindow) != window || styledWindow.location == NSNotFound else {
+        var missing = IndexSet(integersIn: window.location ..< NSMaxRange(window))
+        missing.subtract(styled)
+        guard missing.isEmpty == false else {
             return
         }
 
-        styledWindow = window
-        MarkdownStyler.apply(styles, to: storage, in: window, activeRange: activeRange)
+        styled.formUnion(missing)
+        for range in missing.rangeView {
+            MarkdownStyler.apply(styles, to: storage, in: NSRange(location: range.lowerBound, length: range.count), activeRange: activeRange)
+        }
     }
 
     private func updateMarks(in textView: NSTextView) {
