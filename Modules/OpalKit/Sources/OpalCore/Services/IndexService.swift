@@ -57,14 +57,18 @@ public final class IndexService {
         do {
             let plan = try await IndexSyncPlanUseCase.plan(disk: vaultStore.noteStamps(), indexed: index.stamps())
             try await index.remove(plan.toRemove)
-            loadState = plan.toRead.isEmpty ? .ready : .indexing(done: 0, total: plan.toRead.count)
             var done = 0
+
+            loadState = plan.toRead.isEmpty ? .ready : .indexing(done: done, total: plan.toRead.count)
+
             for start in stride(from: 0, to: plan.toRead.count, by: Self.batchSize) {
                 let batch = Array(plan.toRead[start ..< min(start + Self.batchSize, plan.toRead.count)])
                 try await index.upsert(Self.read(batch, from: vaultStore))
+
                 guard rootURL == vaultStore.rootURL else {
                     return
                 }
+
                 done += batch.count
                 loadState = .indexing(done: done, total: plan.toRead.count)
             }
@@ -78,6 +82,7 @@ public final class IndexService {
     }
 
     public func update(_ paths: Set<NotePath>) async {
+        /imp/
         guard let vaultStore = vault.store, let index = store, rootURL == vaultStore.rootURL else {
             return
         }
