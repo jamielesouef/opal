@@ -24,6 +24,10 @@ enum AppCommand: String, CaseIterable, Identifiable {
     case toggleReadingView
     case toggleLiveMarkdown
     case toggleInspector
+    case newTab
+    case closeTab
+    case nextTab
+    case previousTab
 
     // MARK: - Identifiable
 
@@ -67,16 +71,24 @@ enum AppCommand: String, CaseIterable, Identifiable {
             String(localized: "Toggle Live Markdown")
         case .toggleInspector:
             String(localized: "Toggle Inspector")
+        case .newTab:
+            String(localized: "New Tab")
+        case .closeTab:
+            String(localized: "Close Tab")
+        case .nextTab:
+            String(localized: "Next Tab")
+        case .previousTab:
+            String(localized: "Previous Tab")
         }
     }
 
     var group: String {
         switch self {
-        case .newNote, .duplicateNote, .newFolder, .openVault, .createVault, .save, .reloadVault:
+        case .newNote, .duplicateNote, .newFolder, .openVault, .createVault, .save, .reloadVault, .newTab, .closeTab:
             String(localized: "File")
         case .insertTemplate:
             String(localized: "Edit")
-        case .quickSwitcher, .dailyNote, .searchVault, .back, .forward:
+        case .quickSwitcher, .dailyNote, .searchVault, .back, .forward, .nextTab, .previousTab:
             String(localized: "Go")
         case .toggleReadingView, .toggleLiveMarkdown, .toggleInspector:
             String(localized: "View")
@@ -113,6 +125,14 @@ enum AppCommand: String, CaseIterable, Identifiable {
             KeyboardShortcut("e")
         case .toggleInspector:
             KeyboardShortcut("0", modifiers: [.command, .option])
+        case .newTab:
+            KeyboardShortcut("t")
+        case .closeTab:
+            KeyboardShortcut("w")
+        case .nextTab:
+            KeyboardShortcut(.tab, modifiers: .control)
+        case .previousTab:
+            KeyboardShortcut(.tab, modifiers: [.control, .shift])
         case .duplicateNote, .createVault, .toggleLiveMarkdown:
             nil
         }
@@ -137,6 +157,7 @@ enum AppCommand: String, CaseIterable, Identifiable {
         if modifiers.contains(.command) {
             text += "⌘"
         }
-        return text + String(shortcut.key.character).uppercased()
+        let key = shortcut.key == .tab ? "⇥" : String(shortcut.key.character).uppercased()
+        return text + key
     }
 }

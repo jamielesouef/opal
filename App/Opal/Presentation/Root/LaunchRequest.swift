@@ -22,4 +22,5 @@ struct LaunchRequest {
     var moving: NotePath?
     var deleting: NotePath?
     var showsCommandPalette = false
+    var extraTabs: [NotePath] = []
 }

@@ -95,4 +95,27 @@ struct QuickSwitcherServiceTests {
         #expect(created == NotePath("Areas/Zucchini.md"))
         #expect(await store.text("Areas/Zucchini.md") == "")
     }
+
+    @Test("tabs open, close and come back for the same Vault")
+    func tabs() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+        let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
+        await harness.openVault()
+
+        await harness.navigation.open(NotePath("Welcome.md"))
+        await harness.navigation.openInNewTab(NotePath("Soil.md"))
+        #expect(harness.notes.path == NotePath("Soil.md"))
+        #expect(harness.navigation.tabs.paths == [NotePath("Welcome.md"), NotePath("Soil.md")])
+
+        await harness.navigation.selectTab(harness.navigation.tabs.tabs[0].id)
+        #expect(harness.notes.path == NotePath("Welcome.md"))
+
+        let restored = NavigationService(vault: harness.vault, notes: harness.notes, links: harness.links, recents: harness.recents)
+        await restored.restoreTabs()
+        #expect(restored.tabs.paths == [NotePath("Welcome.md"), NotePath("Soil.md")])
+
+        await harness.navigation.closeSelectedTab()
+        #expect(harness.notes.path == NotePath("Soil.md"))
+    }
 }

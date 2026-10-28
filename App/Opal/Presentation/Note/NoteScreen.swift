@@ -50,7 +50,7 @@ struct NoteScreen: View {
                 Text(String(localized: "Choose a Note in the sidebar, or write a new one."))
             } actions: {
                 Button(String(localized: "New Note")) {
-                    Task { await VaultActions.createNote(vault: vault, notes: notes) }
+                    Task { await VaultActions.createNote(vault: vault, navigation: navigation) }
                 }
             }
         case .loading:
@@ -85,6 +85,7 @@ struct NoteScreen: View {
             stylesLength: links.openNote.flatMap { $0.path == note.path ? $0.textLength : nil },
             reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
             insertion: templates.insertion.flatMap { $0.path == note.path ? $0 : nil },
+            initialTopOffset: navigation.editorTopOffset,
             typeOnAppear: launch.typeText
         ) { text in
             notes.edit(text)

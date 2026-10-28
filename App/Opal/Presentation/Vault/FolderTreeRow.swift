@@ -107,6 +107,14 @@ struct FolderTreeRow: View {
                     return items.isEmpty == false
                 }
                 .contextMenu {
+                    if node.kind == .note {
+                        Button(String(localized: "Open in New Tab")) {
+                            actions.openInNewTab(node.path)
+                        }
+
+                        Divider()
+                    }
+
                     Button(String(localized: "Rename…")) {
                         renaming = node.path
                     }

@@ -42,6 +42,14 @@ struct VaultScreen: View {
                 .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
         } detail: {
             detail
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if notes.path != nil || navigation.tabs.tabs.count > 1 {
+                        VStack(spacing: 0) {
+                            TabBarView()
+                            Divider()
+                        }
+                    }
+                }
                 .inspector(isPresented: $navigation.isInspectorShown) {
                     InspectorView()
                         .inspectorColumnWidth(

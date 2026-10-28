@@ -27,7 +27,7 @@ struct AppCommandRunner {
         switch command {
         case .openVault, .createVault, .toggleInspector, .toggleLiveMarkdown:
             true
-        case .newNote, .newFolder, .reloadVault, .quickSwitcher, .dailyNote, .searchVault, .back, .forward:
+        case .newNote, .newFolder, .reloadVault, .quickSwitcher, .dailyNote, .searchVault, .back, .forward, .newTab, .closeTab, .nextTab, .previousTab:
             vault.isOpen
         case .duplicateNote, .save, .insertTemplate, .toggleReadingView:
             notes.path != nil
@@ -43,10 +43,10 @@ struct AppCommandRunner {
 
         switch command {
         case .newNote:
-            Task { await VaultActions.createNote(vault: vault, notes: notes) }
+            Task { await VaultActions.createNote(vault: vault, navigation: navigation) }
         case .duplicateNote:
             if let path = notes.path {
-                Task { await VaultActions.duplicate(path, vault: vault, notes: notes) }
+                Task { await VaultActions.duplicate(path, vault: vault, navigation: navigation) }
             }
         case .newFolder:
             Task { await VaultActions.createFolder(vault: vault, notes: notes) }
@@ -76,6 +76,14 @@ struct AppCommandRunner {
             toggleLiveMarkdown()
         case .toggleInspector:
             navigation.isInspectorShown.toggle()
+        case .newTab:
+            Task { await navigation.openInNewTab(nil) }
+        case .closeTab:
+            Task { await navigation.closeSelectedTab() }
+        case .nextTab:
+            Task { await navigation.selectNeighbourTab(by: 1) }
+        case .previousTab:
+            Task { await navigation.selectNeighbourTab(by: -1) }
         }
     }
 

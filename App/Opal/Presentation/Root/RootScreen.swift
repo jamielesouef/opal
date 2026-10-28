@@ -27,8 +27,14 @@ struct RootScreen: View {
         content
             .task {
                 await vault.start()
+                if vault.isOpen {
+                    await navigation.restoreTabs()
+                }
                 if let note = launch.note, vault.isOpen {
                     await navigation.open(note)
+                }
+                for tab in launch.extraTabs where vault.isOpen {
+                    await navigation.openInNewTab(tab)
                 }
                 if launch.opensDailyNote, vault.isOpen {
                     await dailyNotes.openToday()

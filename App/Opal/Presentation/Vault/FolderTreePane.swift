@@ -14,7 +14,7 @@ struct FolderTreePane: View {
     @Environment(\.vaultService) private var vaultService
     @Environment(\.renameService) private var renamer
     @Environment(\.launchRequest) private var launch
-    @Environment(\.noteService) private var notes
+    @Environment(\.navigationService) private var navigation
 
     // MARK: - Input
 
@@ -45,8 +45,9 @@ struct FolderTreePane: View {
                 rename: rename,
                 move: move,
                 chooseFolder: { moving = MoveRequest(path: $0) },
-                duplicate: { path in Task { await VaultActions.duplicate(path, vault: vaultService, notes: notes) } },
-                delete: { deleting = MoveRequest(path: $0) }
+                duplicate: { path in Task { await VaultActions.duplicate(path, vault: vaultService, navigation: navigation) } },
+                delete: { deleting = MoveRequest(path: $0) },
+                openInNewTab: { path in Task { await navigation.openInNewTab(path) } }
             )
         )
         .sheet(item: $moving) { request in

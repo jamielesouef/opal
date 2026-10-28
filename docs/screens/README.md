@@ -111,3 +111,4 @@ Taken the same way as Milestone 4 (`-OpalSnapshot`). `-OpalDailyNote` opens toda
 | `opal-m5-08-command-palette.png` | Command Palette (`-OpalCommandPalette`): group, name and shortcut per command | M5-08 |
 
 Acceptance flags with no value (`-OpalReadingView`, `-OpalDailyNote`, `-OpalTemplates`, `-OpalCommandPalette`) must come last on the command line. macOS reads `-Name value` pairs into the argument defaults domain, and a flag followed by another flag stopped the window from opening.
+| `opal-m5-09-tabs.png` | Three tabs (`-OpalTabs Soil.md,Tomatoes.md`) above the Editor | M5-09 |

@@ -475,7 +475,7 @@ Acceptance:
 - [unit] Tabs are a list of Notes with one selected; each tab keeps its own back and forward history (M2-10) and scroll position.
 - [snap] Notes open in the current tab; ⌘Return in the Quick Switcher, ⌘-click on a Link or the Folder tree's Open in New Tab open a new one. ⌘W closes a tab, ⌃Tab and ⌃⇧Tab move between them.
 - [unit] Closing the last tab shows the empty Editor (M1-10). Open tabs are remembered per Vault outside the Vault.
-Status: todo
+Status: done (28/10/2026; `TabListTests`, `QuickSwitcherServiceTests.tabs`, `opal-m5-09-tabs.png`). ⌘-click on a Link still follows it in the current tab (M2-03); Open in New Tab is in the Folder tree and ⌘Return in the Quick Switcher. One Editor shows the selected tab, so switching tabs reloads that Note and restores its scroll position. Shortcuts are [manual].
 
 ### M5-10 Split view
 As a user, I want two Notes side by side, so that I can write while I read another.

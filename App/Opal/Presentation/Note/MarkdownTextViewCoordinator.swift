@@ -286,6 +286,25 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         activeRange = newRange
     }
 
+    // MARK: - Scroll
+
+    func scroll(_ textView: NSTextView, toOffset offset: Int) {
+        guard let layout = textView.textLayoutManager, let content = textView.textContentStorage,
+              let location = content.location(content.documentRange.location, offsetBy: min(offset, (textView.string as NSString).length)),
+              let range = NSTextRange(location: content.documentRange.location, end: location)
+        else {
+            return
+        }
+
+        layout.ensureLayout(for: range)
+        guard let fragment = layout.textLayoutFragment(for: location) else {
+            return
+        }
+
+        textView.scroll(NSPoint(x: 0, y: fragment.layoutFragmentFrame.minY))
+        styleVisibleText(in: textView)
+    }
+
     // MARK: - Insertion
 
     func apply(_ insertion: TextInsertion?, to textView: NSTextView) {

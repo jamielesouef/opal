@@ -18,6 +18,7 @@ struct MarkdownTextView: NSViewRepresentable {
     var stylesLength: Int?
     var reveal: RevealRequest?
     var insertion: TextInsertion?
+    var initialTopOffset = 0
     var typeOnAppear: String?
     var onChange: (String) -> Void = { _ in }
     var onFollowLink: (Int) -> Void = { _ in }
@@ -88,6 +89,15 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.apply(styles, forLength: stylesLength, to: textView)
         coordinator.apply(reveal, to: textView)
         coordinator.apply(insertion, to: textView)
+        if initialTopOffset > 0 {
+            let offset = initialTopOffset
+            Task { @MainActor [weak coordinator, weak textView] in
+                guard let coordinator, let textView else {
+                    return
+                }
+                coordinator.scroll(textView, toOffset: offset)
+            }
+        }
         if let typeOnAppear {
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(1))

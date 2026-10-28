@@ -36,10 +36,10 @@ enum VaultActions {
 
     // MARK: - Items
 
-    static func createNote(vault: VaultService, notes: NoteService) async {
+    static func createNote(vault: VaultService, navigation: NavigationService) async {
         do {
-            let path = try await vault.createNote(openNote: notes.path)
-            await notes.open(path)
+            let path = try await vault.createNote(openNote: navigation.openNote)
+            await navigation.open(path)
         } catch {
             AppLog.error("Creating a Note failed: \(error)")
         }
@@ -58,10 +58,10 @@ enum VaultActions {
         navigation.isQuickSwitcherShown = true
     }
 
-    static func duplicate(_ path: NotePath, vault: VaultService, notes: NoteService) async {
+    static func duplicate(_ path: NotePath, vault: VaultService, navigation: NavigationService) async {
         do {
             let copy = try await vault.duplicate(path)
-            await notes.open(copy)
+            await navigation.open(copy)
         } catch {
             AppLog.error("Duplicating \(path) failed: \(error)")
         }

@@ -114,14 +114,14 @@ public final class QuickSwitcherService {
     }
 
     @discardableResult
-    public func confirm() async -> NotePath? {
+    public func confirm(inNewTab: Bool = false) async -> NotePath? {
         if resultsQuery != query {
             scheduleSearch()
             await waitForResults()
         }
 
         if let selected {
-            await navigation.open(selected.path)
+            await open(selected.path, inNewTab: inNewTab)
             return selected.path
         }
 
@@ -136,8 +136,16 @@ public final class QuickSwitcherService {
             return nil
         }
         await links.sync()
-        await navigation.open(path)
+        await open(path, inNewTab: inNewTab)
         return path
+    }
+
+    private func open(_ path: NotePath, inNewTab: Bool) async {
+        if inNewTab {
+            await navigation.openInNewTab(path)
+        } else {
+            await navigation.open(path)
+        }
     }
 
     // MARK: - Search

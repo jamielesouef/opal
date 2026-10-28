@@ -56,6 +56,7 @@ struct OpalCommands: Commands {
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
             runner.button(.newNote)
+            runner.button(.newTab)
             runner.button(.duplicateNote)
             runner.button(.newFolder)
             Divider()
@@ -82,6 +83,9 @@ struct OpalCommands: Commands {
             Divider()
             runner.button(.back)
             runner.button(.forward)
+            Divider()
+            runner.button(.nextTab)
+            runner.button(.previousTab)
         }
 
         CommandGroup(after: .sidebar) {
@@ -92,6 +96,7 @@ struct OpalCommands: Commands {
         }
 
         CommandGroup(replacing: .saveItem) {
+            runner.button(.closeTab)
             runner.button(.save)
             runner.button(.reloadVault)
         }

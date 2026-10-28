@@ -41,6 +41,13 @@ struct QuickSwitcherView: View {
                 switcher.moveSelection(by: -1)
                 return .handled
             }
+            .onKeyPress(.return, phases: .down) { press in
+                guard press.modifiers.contains(.command) else {
+                    return .ignored
+                }
+                confirm(inNewTab: true)
+                return .handled
+            }
             .onSubmit {
                 confirm()
             }
@@ -99,9 +106,9 @@ struct QuickSwitcherView: View {
 
     // MARK: - Actions
 
-    private func confirm() {
+    private func confirm(inNewTab: Bool = false) {
         Task {
-            guard await switcher.confirm() != nil else {
+            guard await switcher.confirm(inNewTab: inNewTab) != nil else {
                 return
             }
             navigation.isQuickSwitcherShown = false
