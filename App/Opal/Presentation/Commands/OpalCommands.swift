@@ -36,114 +36,64 @@ struct OpalCommands: Commands {
         _isLiveMarkdown = AppStorage(wrappedValue: true, EditorPreferences.liveMarkdownKey, store: defaults)
     }
 
+    // MARK: - Runner
+
+    private var runner: AppCommandRunner {
+        AppCommandRunner(
+            vault: vault,
+            notes: notes,
+            navigation: navigation,
+            switcher: switcher,
+            search: search,
+            dailyNotes: dailyNotes,
+            templates: templates,
+            toggleLiveMarkdown: { isLiveMarkdown.toggle() }
+        )
+    }
+
     // MARK: - Commands
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
-            Button(String(localized: "New Note")) {
-                Task { await VaultActions.createNote(vault: vault, notes: notes) }
-            }
-            .keyboardShortcut("n")
-            .disabled(vault.isOpen == false)
-
-            Button(String(localized: "Duplicate Note")) {
-                if let path = notes.path {
-                    Task { await VaultActions.duplicate(path, vault: vault, notes: notes) }
-                }
-            }
-            .disabled(notes.path == nil)
-
-            Button(String(localized: "New Folder")) {
-                Task { await VaultActions.createFolder(vault: vault, notes: notes) }
-            }
-            .keyboardShortcut("n", modifiers: [.command, .shift])
-            .disabled(vault.isOpen == false)
-
+            runner.button(.newNote)
+            runner.button(.duplicateNote)
+            runner.button(.newFolder)
             Divider()
-
-            Button(String(localized: "Open Vault…")) {
-                Task { await VaultActions.openVault(vault: vault, notes: notes) }
-            }
-            .keyboardShortcut("o", modifiers: [.command, .shift])
-
-            Button(String(localized: "Create Vault…")) {
-                Task { await VaultActions.createVault(vault: vault, notes: notes) }
-            }
+            runner.button(.openVault)
+            runner.button(.createVault)
         }
 
         CommandGroup(after: .pasteboard) {
             Divider()
-
-            Button(String(localized: "Insert Template…")) {
-                templates.showPicker()
-            }
-            .keyboardShortcut("t", modifiers: [.command, .option])
-            .disabled(notes.path == nil)
+            runner.button(.insertTemplate)
         }
 
         CommandMenu(String(localized: "Go")) {
-            Button(String(localized: "Quick Switcher…")) {
-                Task { await VaultActions.showQuickSwitcher(switcher: switcher, navigation: navigation) }
+            Button(String(localized: "Command Palette…")) {
+                navigation.isCommandPaletteShown = true
             }
-            .keyboardShortcut("o")
-            .disabled(vault.isOpen == false)
-
-            Button(String(localized: "Today's Daily Note")) {
-                Task { await dailyNotes.openToday() }
-            }
-            .keyboardShortcut("d", modifiers: [.command, .option])
-            .disabled(vault.isOpen == false)
-
-            Button(String(localized: "Search Vault…")) {
-                search.show()
-            }
-            .keyboardShortcut("f", modifiers: [.command, .shift])
-            .disabled(vault.isOpen == false)
+            .keyboardShortcut("p", modifiers: [.command, .shift])
 
             Divider()
 
-            Button(String(localized: "Back")) {
-                Task { await navigation.goBack() }
-            }
-            .keyboardShortcut("[")
-            .disabled(vault.isOpen == false)
-
-            Button(String(localized: "Forward")) {
-                Task { await navigation.goForward() }
-            }
-            .keyboardShortcut("]")
-            .disabled(vault.isOpen == false)
+            runner.button(.quickSwitcher)
+            runner.button(.dailyNote)
+            runner.button(.searchVault)
+            Divider()
+            runner.button(.back)
+            runner.button(.forward)
         }
 
         CommandGroup(after: .sidebar) {
-            Button(navigation.isReadingView ? String(localized: "Editor") : String(localized: "Reading View")) {
-                navigation.isReadingView.toggle()
-            }
-            .keyboardShortcut("e")
-            .disabled(notes.path == nil)
-
+            runner.button(.toggleReadingView, title: navigation.isReadingView ? String(localized: "Editor") : String(localized: "Reading View"))
             Toggle(String(localized: "Live Markdown"), isOn: $isLiveMarkdown)
-
             Divider()
-
-            Button(String(localized: "Toggle Inspector")) {
-                navigation.isInspectorShown.toggle()
-            }
-            .keyboardShortcut("0", modifiers: [.command, .option])
+            runner.button(.toggleInspector)
         }
 
         CommandGroup(replacing: .saveItem) {
-            Button(String(localized: "Save")) {
-                Task { await notes.flush() }
-            }
-            .keyboardShortcut("s")
-            .disabled(notes.path == nil)
-
-            Button(String(localized: "Reload Vault")) {
-                Task { await VaultActions.reloadVault(vault: vault, notes: notes) }
-            }
-            .keyboardShortcut("r")
-            .disabled(vault.isOpen == false)
+            runner.button(.save)
+            runner.button(.reloadVault)
         }
     }
 }

@@ -466,7 +466,7 @@ Acceptance:
 - [unit] Matching is fuzzy over the name, recent commands first.
 - [snap] ⇧⌘P shows the palette over the window like the Quick Switcher; each row shows the shortcut on the right.
 - [manual] Return runs the selected command; Escape closes.
-Status: todo
+Status: done (28/10/2026; `CommandMatchUseCaseTests`, `opal-m5-08-command-palette.png`). The menus and the palette are built from one list (`AppCommand`), so they cannot drift apart. Folder tree actions (rename, move, delete) stay in the context menu because they act on a row. Return and Escape are [manual].
 
 ### M5-09 Tabs
 As a user, I want several Notes open in tabs, so that I can move between them.

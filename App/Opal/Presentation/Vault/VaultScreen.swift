@@ -120,6 +120,9 @@ struct VaultScreen: View {
         .sheet(isPresented: $templates.isPickerShown) {
             TemplatePickerView()
         }
+        .sheet(isPresented: $navigation.isCommandPaletteShown) {
+            CommandPaletteView()
+        }
         .background(VaultSync())
         .onChange(of: notes.path) { _, openPath in
             guard let openPath else {

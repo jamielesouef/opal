@@ -21,4 +21,5 @@ struct LaunchRequest {
     var renaming: NotePath?
     var moving: NotePath?
     var deleting: NotePath?
+    var showsCommandPalette = false
 }

@@ -33,8 +33,12 @@ struct RootScreen: View {
                 if launch.opensDailyNote, vault.isOpen {
                     await dailyNotes.openToday()
                 }
-                if launch.showsTemplates, vault.isOpen {
-                    templates.showPicker()
+                if launch.showsCommandPalette || launch.showsTemplates, vault.isOpen {
+                    try? await Task.sleep(for: .seconds(1))
+                    navigation.isCommandPaletteShown = launch.showsCommandPalette
+                    if launch.showsTemplates {
+                        templates.showPicker()
+                    }
                 }
                 if launch.isReadingView {
                     navigation.isReadingView = true

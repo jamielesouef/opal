@@ -20,6 +20,7 @@ public final class NavigationService {
     public var isReadingView = false
     @ObservationIgnored public var editorTopOffset = 0
     public var isQuickSwitcherShown = false
+    public var isCommandPaletteShown = false
     public var sidebarPane = SidebarPane.files
 
     public var openNote: NotePath? {

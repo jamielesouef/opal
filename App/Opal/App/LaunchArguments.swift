@@ -28,6 +28,7 @@ struct LaunchArguments {
         static let rename = "-OpalRename"
         static let move = "-OpalMove"
         static let delete = "-OpalDelete"
+        static let palette = "-OpalCommandPalette"
     }
 
     // MARK: - Stored
@@ -48,6 +49,7 @@ struct LaunchArguments {
     let renaming: NotePath?
     let moving: NotePath?
     let deleting: NotePath?
+    let showsCommandPalette: Bool
 
     // MARK: - Derived
 
@@ -57,7 +59,7 @@ struct LaunchArguments {
         #else
             let typed: String? = nil
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette)
     }
 
     var appearanceName: NSAppearance.Name? {
@@ -88,6 +90,7 @@ struct LaunchArguments {
         renaming = Self.value(after: Constants.rename, in: arguments).map(NotePath.init)
         moving = Self.value(after: Constants.move, in: arguments).map(NotePath.init)
         deleting = Self.value(after: Constants.delete, in: arguments).map(NotePath.init)
+        showsCommandPalette = arguments.contains(Constants.palette)
         snapshotURL = Self.value(after: Constants.snapshot, in: arguments).map { URL(filePath: $0) }
         indexFolderURL = Self.value(after: Constants.indexFolder, in: arguments).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }

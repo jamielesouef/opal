@@ -108,3 +108,6 @@ Taken the same way as Milestone 4 (`-OpalSnapshot`). `-OpalDailyNote` opens toda
 | `opal-m5-04-rename-folder.png` | The `Projects` Folder being renamed in place, dark | M5-04 |
 | `opal-m5-05-move-to.png` | Move “Soil” to… (`-OpalMove Soil.md`): Folders other than its own | M5-05 |
 | `opal-m5-07-delete-folder.png` | Move “Projects” to the Trash? with the number of Notes (`-OpalDelete Projects`) | M5-07 |
+| `opal-m5-08-command-palette.png` | Command Palette (`-OpalCommandPalette`): group, name and shortcut per command | M5-08 |
+
+Acceptance flags with no value (`-OpalReadingView`, `-OpalDailyNote`, `-OpalTemplates`, `-OpalCommandPalette`) must come last on the command line. macOS reads `-Name value` pairs into the argument defaults domain, and a flag followed by another flag stopped the window from opening.
