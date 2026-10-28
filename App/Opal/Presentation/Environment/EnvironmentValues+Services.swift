@@ -56,7 +56,12 @@ private let defaultSettingsService = MainActor.assumeIsolated {
     AppDependencies.shared.services.settings
 }
 
+private let defaultServiceGraph = MainActor.assumeIsolated {
+    AppDependencies.shared.services
+}
+
 extension EnvironmentValues {
+    @Entry var serviceGraph: ServiceGraph = defaultServiceGraph
     @Entry var vaultService: VaultService = defaultVaultService
     @Entry var noteService: NoteService = defaultNoteService
     @Entry var linkService: LinkService = defaultLinkService

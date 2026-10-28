@@ -10,8 +10,8 @@ import SwiftUI
 struct VaultSync: View {
     // MARK: - Environment
 
+    @Environment(\.serviceGraph) private var graph
     @Environment(\.vaultService) private var vault
-    @Environment(\.linkService) private var links
     @Environment(\.indexService) private var index
     @Environment(\.searchService) private var search
 
@@ -25,8 +25,7 @@ struct VaultSync: View {
                 Task { await search.search() }
             }
             .task(id: vault.entriesRevision) {
-                await index.sync()
-                await links.sync()
+                await graph.syncFollowers()
             }
     }
 }

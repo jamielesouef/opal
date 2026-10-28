@@ -75,3 +75,5 @@ Why not now: two more parameters wouldn't hurt, and no story in line adds Editor
 ## Top recommendation
 
 Card 1, `ServiceGraph` in OpalCore, done in three commits. It is the change that makes M5-12 easy, and it closes the open 28/10 card.
+
+Done on 29/10/2026 in three commits. After each step all 274 tests pass and the Debug build succeeds. The split snapshot shows the same content. A launch with an empty Index folder built the Index, and the Backlinks and unlinked mentions came from the synced Link map. The tests that build `DailyNoteService` (with its own clock) and `SettingsService` (with its own store) still build them by hand on purpose.
