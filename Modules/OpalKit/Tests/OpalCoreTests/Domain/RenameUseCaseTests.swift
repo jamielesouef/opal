@@ -35,6 +35,25 @@ struct RenameUseCaseTests {
         #expect(RenameUseCase.newPath(renaming: NotePath("Attachments/seedlings.png"), to: "sprouts", kind: .attachment, existing: existing) == .success(NotePath("Attachments/sprouts.png")))
     }
 
+    // MARK: - Moves
+
+    @Test("checks a move", arguments: [
+        ("Soil.md", "", RenameProblem.sameFolder),
+        ("Areas", "Areas/Beds", .intoItself),
+        ("Areas", "Areas", .intoItself),
+        ("Soil.md", "Areas", .taken(NotePath("Areas/Soil.md")))
+    ])
+    func moves(path: String, folder: String, problem: RenameProblem) {
+        let existing: Set = [NotePath("Soil.md"), NotePath("Areas/Soil.md"), NotePath("Areas")]
+        #expect(RenameUseCase.newPath(moving: NotePath(path), into: NotePath(folder), existing: existing) == .failure(problem))
+    }
+
+    @Test("moving a Note keeps its own relative Markdown Links pointing at the same files")
+    func movedSource() {
+        let moves = [NotePath("Projects/Note.md"): NotePath("Projects/Deep/Note.md")]
+        #expect(rewritten("[soil](../Areas/Soil.md) and [[Soil]]", moves: moves, source: NotePath("Projects/Note.md"), unique: false) == "[soil](../../Areas/Soil.md) and [[Soil]]")
+    }
+
     // MARK: - Links
 
     @Test(
@@ -69,7 +88,7 @@ struct RenameUseCaseTests {
     // MARK: - Helpers
 
     private func rewritten(_ text: String, moves: [NotePath: NotePath], source: NotePath = NotePath("Note.md"), unique: Bool = true) -> String? {
-        let paths = [NotePath("Soil.md"), NotePath("Tomatoes.md"), NotePath("Areas/Soil.md"), NotePath("Note.md"), NotePath("Projects/Note.md")]
+        let paths = [NotePath("Soil.md"), NotePath("Tomatoes.md"), NotePath("Areas/Soil.md"), NotePath("Note.md"), NotePath("Projects/Note.md"), NotePath("Projects/Deep/Note.md")]
         let parsed = paths.reduce(into: [NotePath: ParsedNote]()) { $0[$1] = .empty }
         let resolver = LinkMap(paths: paths, parsed: parsed).resolver
         return LinkRewriteUseCase.rewrite(text, links: MarkdownNoteParser.parse(text).links, source: source, moves: moves, resolver: resolver) { _ in unique }

@@ -438,7 +438,7 @@ Acceptance:
 - [unit] Moving uses the same Link plan as renaming; relative Markdown Links inside the moved Note are rewritten so they still point to the same files.
 - [snap] Dragging a row onto a Folder in the tree moves it; Move to… in the context menu shows a Folder picker.
 - [unit] A move into the same Folder, into itself or into its own subfolder is refused.
-Status: todo
+Status: done (28/10/2026; `RenameUseCaseTests`, `RenameServiceTests.moves`, `opal-m5-05-move-to.png`). Moves always update Links (after the same dialog when other Notes link in). Drag and drop is [manual].
 
 ### M5-06 Duplicate a Note
 As a user, I want to duplicate a Note to start a similar one.

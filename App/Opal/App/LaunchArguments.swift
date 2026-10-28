@@ -26,6 +26,7 @@ struct LaunchArguments {
         static let dailyNote = "-OpalDailyNote"
         static let templates = "-OpalTemplates"
         static let rename = "-OpalRename"
+        static let move = "-OpalMove"
     }
 
     // MARK: - Stored
@@ -44,6 +45,7 @@ struct LaunchArguments {
     let opensDailyNote: Bool
     let showsTemplates: Bool
     let renaming: NotePath?
+    let moving: NotePath?
 
     // MARK: - Derived
 
@@ -53,7 +55,7 @@ struct LaunchArguments {
         #else
             let typed: String? = nil
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving)
     }
 
     var appearanceName: NSAppearance.Name? {
@@ -82,6 +84,7 @@ struct LaunchArguments {
         opensDailyNote = arguments.contains(Constants.dailyNote)
         showsTemplates = arguments.contains(Constants.templates)
         renaming = Self.value(after: Constants.rename, in: arguments).map(NotePath.init)
+        moving = Self.value(after: Constants.move, in: arguments).map(NotePath.init)
         snapshotURL = Self.value(after: Constants.snapshot, in: arguments).map { URL(filePath: $0) }
         indexFolderURL = Self.value(after: Constants.indexFolder, in: arguments).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }

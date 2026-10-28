@@ -20,8 +20,10 @@ extension RenameProblem {
             String(localized: "A name can't start with a full stop; the file would be hidden.")
         case let .taken(path):
             String(localized: "“\(path.fileName)” already exists in this Folder.")
-        case .unchanged:
+        case .unchanged, .sameFolder:
             ""
+        case .intoItself:
+            String(localized: "A Folder can't move into itself.")
         }
     }
 }

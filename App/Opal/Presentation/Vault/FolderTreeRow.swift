@@ -96,9 +96,23 @@ struct FolderTreeRow: View {
             Label(node.displayName, systemImage: symbol)
                 .lineLimit(1)
                 .tag(node.path)
+                .draggable(node.path.rawValue)
+                .dropDestination(for: String.self) { items, _ in
+                    guard node.kind == .folder else {
+                        return false
+                    }
+                    for item in items {
+                        actions.move(NotePath(item), node.path)
+                    }
+                    return items.isEmpty == false
+                }
                 .contextMenu {
                     Button(String(localized: "Rename…")) {
                         renaming = node.path
+                    }
+
+                    Button(String(localized: "Move to…")) {
+                        actions.chooseFolder(node.path)
                     }
 
                     Divider()

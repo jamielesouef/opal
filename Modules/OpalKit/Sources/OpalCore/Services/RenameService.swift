@@ -40,6 +40,12 @@ public final class RenameService {
         }
     }
 
+    public func plan(moving path: NotePath, into folder: NotePath) -> Result<RenamePlan, RenameProblem> {
+        RenameUseCase.newPath(moving: path, into: folder, existing: Set(vault.entries.map(\.path))).map { target in
+            plan(moving: path, to: target)
+        }
+    }
+
     public func plan(moving path: NotePath, to target: NotePath) -> RenamePlan {
         var moves: [NotePath: NotePath] = [path: target]
         if vault.kind(of: path) == .folder {
@@ -69,7 +75,8 @@ public final class RenameService {
         var changed = Set(plan.moves.keys).union(plan.moves.values)
         if updatingLinks {
             let finalPaths = Set(vault.entries.map(\.path)).subtracting(plan.moves.keys).union(plan.moves.values)
-            for source in plan.linkingNotes {
+            let movedNotes = plan.moves.keys.filter(\.isNote)
+            for source in Set(plan.linkingNotes).union(movedNotes).sorted(by: { $0.rawValue < $1.rawValue }) {
                 let current = plan.moves[source] ?? source
                 do {
                     guard let text = try await store.readNote(at: current) else {

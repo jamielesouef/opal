@@ -19,4 +19,5 @@ struct LaunchRequest {
     var opensDailyNote = false
     var showsTemplates = false
     var renaming: NotePath?
+    var moving: NotePath?
 }

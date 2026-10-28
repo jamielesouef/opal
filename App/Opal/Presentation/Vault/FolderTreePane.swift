@@ -26,6 +26,7 @@ struct FolderTreePane: View {
     @State private var renaming: NotePath?
     @State private var pending: PendingRename?
     @State private var problem: String?
+    @State private var moving: MoveRequest?
 
     // MARK: - View
 
@@ -39,13 +40,24 @@ struct FolderTreePane: View {
             actions: FolderTreeActions(
                 reveal: { VaultActions.reveal($0, vault: vaultService) },
                 openInDefaultApp: { VaultActions.openInDefaultApp($0, vault: vaultService) },
-                rename: rename
+                rename: rename,
+                move: move,
+                chooseFolder: { moving = MoveRequest(path: $0) }
             )
         )
+        .sheet(item: $moving) { request in
+            MoveToFolderView(item: request.path, folders: folders, vaultName: vaultName) { folder in
+                move(request.path, into: folder)
+            }
+        }
         .task {
             if let path = launch.renaming {
                 try? await Task.sleep(for: .seconds(1))
                 renaming = path
+            }
+            if let path = launch.moving {
+                try? await Task.sleep(for: .seconds(1))
+                moving = MoveRequest(path: path)
             }
         }
         .confirmationDialog(
@@ -73,6 +85,15 @@ struct FolderTreePane: View {
         }
     }
 
+    // MARK: - Folders
+
+    private var folders: [NotePath] {
+        vaultService.entries
+            .filter { $0.kind == .folder }
+            .map(\.path)
+            .sorted { $0.rawValue.localizedStandardCompare($1.rawValue) == .orderedAscending }
+    }
+
     // MARK: - Intent
 
     private func rename(_ path: NotePath, to name: String) {
@@ -82,6 +103,19 @@ struct FolderTreePane: View {
         case let .success(plan):
             pending = PendingRename(path: path, plan: plan)
         case .failure(.unchanged):
+            break
+        case let .failure(failure):
+            problem = failure.message
+        }
+    }
+
+    private func move(_ path: NotePath, into folder: NotePath) {
+        switch renamer.plan(moving: path, into: folder) {
+        case let .success(plan) where plan.linkingNotes.isEmpty:
+            perform(PendingRename(path: path, plan: plan), updatingLinks: true)
+        case let .success(plan):
+            pending = PendingRename(path: path, plan: plan)
+        case .failure(.sameFolder), .failure(.unchanged):
             break
         case let .failure(failure):
             problem = failure.message

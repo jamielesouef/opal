@@ -88,4 +88,18 @@ struct RenameServiceTests {
         #expect(harness.vault.kind(of: NotePath("Projects")) == nil)
         #expect(harness.notes.path == NotePath("Work/Opal/Opal Roadmap.md"))
     }
+
+    @Test("moving a Note into a Folder updates path Links and keeps name Links")
+    func moves() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+        let (harness, service) = await Self.setUp(vault)
+
+        let plan = try service.plan(moving: NotePath("Soil.md"), into: NotePath("Areas")).get()
+        try await service.perform(plan, from: NotePath("Soil.md"), updatingLinks: true)
+
+        #expect(harness.vault.kind(of: NotePath("Areas/Soil.md")) == .note)
+        #expect(try vault.text("Tomatoes.md").contains("[[Soil|rich earth]]"))
+        #expect(try vault.text("Areas/Health.md").contains("[soil](Soil.md)"))
+    }
 }

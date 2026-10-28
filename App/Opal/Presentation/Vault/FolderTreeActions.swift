@@ -13,4 +13,6 @@ struct FolderTreeActions {
     var reveal: (NotePath) -> Void = { _ in }
     var openInDefaultApp: (NotePath) -> Void = { _ in }
     var rename: (NotePath, String) -> Void = { _, _ in }
+    var move: (NotePath, NotePath) -> Void = { _, _ in }
+    var chooseFolder: (NotePath) -> Void = { _ in }
 }

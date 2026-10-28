@@ -24,8 +24,15 @@ public enum LinkRewriteUseCase {
     ) -> String? {
         var result = text as NSString
         var changed = false
+        let sourceMoves = moves[source] != nil
         for link in links.sorted(by: { $0.span.location > $1.span.location }) where link.target.isEmpty == false {
-            guard let old = resolver.resolve(link.target, from: source), let new = moves[old] else {
+            guard let old = resolver.resolve(link.target, from: source) else {
+                continue
+            }
+
+            let relative = isRelative(link.target, from: source, to: old)
+            let staysButMovesAway = sourceMoves && relative && link.style == .markdown
+            guard let new = moves[old] ?? (staysButMovesAway ? old : nil) else {
                 continue
             }
 
@@ -34,7 +41,6 @@ public enum LinkRewriteUseCase {
                 continue
             }
 
-            let relative = isRelative(link.target, from: source, to: old)
             let replacement = linkText(link, to: new, source: moves[source] ?? source, isUniqueName: isUniqueName(new), isRelative: relative)
             result = result.replacingCharacters(in: range, with: replacement) as NSString
             changed = true

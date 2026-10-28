@@ -11,4 +11,6 @@ public enum RenameProblem: Error, Hashable, Sendable {
     case startsWithDot
     case taken(NotePath)
     case unchanged
+    case sameFolder
+    case intoItself
 }

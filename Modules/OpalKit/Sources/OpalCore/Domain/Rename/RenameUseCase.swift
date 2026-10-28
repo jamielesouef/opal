@@ -12,6 +12,23 @@ public enum RenameUseCase {
 
     private static let forbidden: Set<Character> = ["/", ":", "\\"]
 
+    // MARK: - Move
+
+    public static func newPath(moving path: NotePath, into folder: NotePath, existing: Set<NotePath>) -> Result<NotePath, RenameProblem> {
+        guard path.parent != folder else {
+            return .failure(.sameFolder)
+        }
+        guard folder.components.starts(with: path.components) == false else {
+            return .failure(.intoItself)
+        }
+
+        let target = folder.appending(path.fileName)
+        if let clash = existing.first(where: { $0.rawValue.lowercased() == target.rawValue.lowercased() }) {
+            return .failure(.taken(clash))
+        }
+        return .success(target)
+    }
+
     // MARK: - Validate
 
     public static func newPath(
