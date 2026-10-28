@@ -71,4 +71,21 @@ struct RenameServiceTests {
         #expect(try FileManager().contentsOfDirectory(atPath: vault.rootURL.path).contains("soil.md"))
         #expect(harness.vault.kind(of: NotePath("soil.md")) == .note)
     }
+
+    @Test("renaming a Folder moves everything in it and updates Links by path only")
+    func renamesFolder() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+        let (harness, service) = await Self.setUp(vault)
+        await harness.navigation.open(NotePath("Projects/Opal/Opal Roadmap.md"))
+
+        let plan = try service.plan(renaming: NotePath("Projects"), to: "Work").get()
+        #expect(plan.moves[NotePath("Projects/Opal/Opal Roadmap.md")] == NotePath("Work/Opal/Opal Roadmap.md"))
+        try await service.perform(plan, from: NotePath("Projects"), updatingLinks: true)
+
+        #expect(try vault.text("Welcome.md").contains("[[Work/Opal/Opal Roadmap|roadmap]]"))
+        #expect(harness.vault.kind(of: NotePath("Work/Opal/Opal Roadmap.md")) == .note)
+        #expect(harness.vault.kind(of: NotePath("Projects")) == nil)
+        #expect(harness.notes.path == NotePath("Work/Opal/Opal Roadmap.md"))
+    }
 }

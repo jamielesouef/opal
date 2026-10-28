@@ -85,6 +85,14 @@ public struct NotePath: Hashable, Sendable, Codable, CustomStringConvertible {
         NotePath(components: components + [component])
     }
 
+    public func replacingPrefix(_ prefix: NotePath, with replacement: NotePath) -> NotePath {
+        guard components.starts(with: prefix.components) else {
+            return self
+        }
+
+        return NotePath(components: replacement.components + components.dropFirst(prefix.components.count))
+    }
+
     public var appendingNoteExtension: NotePath {
         guard let last = components.last else {
             return self

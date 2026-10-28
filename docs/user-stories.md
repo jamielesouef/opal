@@ -429,7 +429,7 @@ Depends: M5-03
 Acceptance:
 - [unit] Links that name a path inside the Folder are updated as in M5-03; Links by bare name are left alone.
 - [snap] Rename… and Return work on Folders as on Notes; expanded Folders stay expanded.
-Status: todo
+Status: done (28/10/2026; `RenameServiceTests.renamesFolder`, `opal-m5-04-rename-folder.png`). Expanded Folders and the selection follow the new path.
 
 ### M5-05 Move a Note or Folder
 As a user, I want to move a Note or Folder to another Folder, by drag or menu, and keep Links working.

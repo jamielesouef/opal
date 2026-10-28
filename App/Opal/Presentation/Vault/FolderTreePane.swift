@@ -92,8 +92,9 @@ struct FolderTreePane: View {
         Task {
             do throws(VaultError) {
                 let renamed = try await renamer.perform(pending.plan, from: pending.path, updatingLinks: updatingLinks)
-                if selection == pending.path {
-                    selection = renamed
+                expandedFolders = Set(expandedFolders.map { $0.replacingPrefix(pending.path, with: renamed) })
+                if let current = selection {
+                    selection = current.replacingPrefix(pending.path, with: renamed)
                 }
             } catch {
                 problem = error.message

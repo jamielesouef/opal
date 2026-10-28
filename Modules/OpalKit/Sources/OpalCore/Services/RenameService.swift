@@ -43,9 +43,8 @@ public final class RenameService {
     public func plan(moving path: NotePath, to target: NotePath) -> RenamePlan {
         var moves: [NotePath: NotePath] = [path: target]
         if vault.kind(of: path) == .folder {
-            let prefix = path.components
-            for entry in vault.entries where entry.kind != .folder && entry.path.components.starts(with: prefix) {
-                moves[entry.path] = NotePath(components: target.components + entry.path.components.dropFirst(prefix.count))
+            for entry in vault.entries where entry.kind != .folder && entry.path.components.starts(with: path.components) {
+                moves[entry.path] = entry.path.replacingPrefix(path, with: target)
             }
         }
 
