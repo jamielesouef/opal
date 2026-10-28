@@ -125,7 +125,7 @@ struct NoteScreen: View {
     // MARK: - Reading view
 
     private func reading(_ note: Note) -> some View {
-        ReadingView(blocks: readingBlocks, startLine: TextLineUseCase.line(atOffset: navigation.editorTopOffset, in: note.text)) { line in
+        ReadingView(source: note.path, blocks: readingBlocks, startLine: TextLineUseCase.line(atOffset: navigation.editorTopOffset, in: note.text)) { line in
             readingTopLine = line
         } onFollowLink: { link in
             Task { await VaultActions.follow(link, from: note.path, vault: vault, navigation: navigation) }

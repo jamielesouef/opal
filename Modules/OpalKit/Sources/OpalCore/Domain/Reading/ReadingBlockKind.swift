@@ -14,4 +14,5 @@ public enum ReadingBlockKind: Hashable, Sendable {
     case code(language: String?, text: String)
     case table(header: [[ReadingInline]], rows: [[[ReadingInline]]])
     case rule
+    case embed(Link)
 }

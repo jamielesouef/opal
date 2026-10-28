@@ -23,6 +23,7 @@ struct ReadingBlockView: View {
     // MARK: - Input
 
     let block: ReadingBlock
+    var chain: [NotePath] = []
     var onToggleCheckbox: (Int) -> Void = { _ in }
 
     // MARK: - View
@@ -77,6 +78,8 @@ struct ReadingBlockView: View {
             table(header: header, rows: rows)
         case .rule:
             Divider()
+        case let .embed(link):
+            EmbedView(link: link, chain: chain)
         }
     }
 

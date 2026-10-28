@@ -109,10 +109,11 @@ public enum MarkdownReadingParser {
                 let start = index
                 var paragraph: [ReadingInline] = []
                 while index < lines.count, isParagraphLine(index, runsByLine, lines) {
-                    if paragraph.isEmpty == false {
+                    let line = trimmed(builder(index ..< index + 1).inlines(in: range(of: lines[index])))
+                    if paragraph.isEmpty == false, line.isEmpty == false {
                         paragraph.append(ReadingInline(text: "\n"))
                     }
-                    paragraph += trimmed(builder(index ..< index + 1).inlines(in: range(of: lines[index])))
+                    paragraph += line
                     index += 1
                     if startsTable(at: index, lines) {
                         break
@@ -123,7 +124,27 @@ public enum MarkdownReadingParser {
             }
             index += 1
         }
-        return blocks
+        return withEmbeds(blocks, links: parsed.links.filter(\.isEmbed), lineCount: lines.count)
+    }
+
+    // MARK: - Embeds
+
+    private static func withEmbeds(_ blocks: [ReadingBlock], links: [Link], lineCount: Int) -> [ReadingBlock] {
+        guard links.isEmpty == false else {
+            return blocks
+        }
+
+        var result: [ReadingBlock] = []
+        for (position, block) in blocks.enumerated() {
+            let end = blocks.indices.contains(position + 1) ? blocks[position + 1].line : lineCount
+            if block.kind != .paragraph([]) {
+                result.append(block)
+            }
+            for (part, link) in links.filter({ (block.line ..< end).contains($0.line) }).enumerated() {
+                result.append(ReadingBlock(line: block.line, part: part + 1, kind: .embed(link)))
+            }
+        }
+        return result
     }
 
     // MARK: - Lines

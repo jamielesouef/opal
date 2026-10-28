@@ -30,7 +30,7 @@ struct ReadingInlineBuilder {
         let sorted = bounds.sorted()
         for (start, stop) in zip(sorted, sorted.dropFirst()) where start < stop {
             if let link = lineLinks.first(where: { $0.span.location <= start && start < $0.span.upperBound }) {
-                if link.span.location == start {
+                if link.span.location == start, link.isEmbed == false {
                     let resolved = inside.first { $0.span == link.span && $0.kind.isLink }.map { $0.kind == .link(isResolved: true) } ?? true
                     result.append(ReadingInline(text: Self.display(link), styles: styles(at: start, in: inside), link: link, isResolved: resolved))
                 }

@@ -12,6 +12,7 @@ import SwiftUI
 struct ReadingView: View {
     // MARK: - Input
 
+    let source: NotePath
     let blocks: [ReadingBlock]
     let startLine: Int
     var onTopLine: (Int) -> Void = { _ in }
@@ -20,7 +21,7 @@ struct ReadingView: View {
 
     // MARK: - State
 
-    @State private var position: Int?
+    @State private var position: ReadingBlockID?
 
     // MARK: - View
 
@@ -28,7 +29,7 @@ struct ReadingView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: AppSpacing.regular) {
                 ForEach(blocks) { block in
-                    ReadingBlockView(block: block, onToggleCheckbox: onToggleCheckbox)
+                    ReadingBlockView(block: block, chain: [source], onToggleCheckbox: onToggleCheckbox)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -54,9 +55,9 @@ struct ReadingView: View {
                 scrollToStart()
             }
         }
-        .onChange(of: position) { _, line in
-            if let line {
-                onTopLine(line)
+        .onChange(of: position) { _, id in
+            if let id {
+                onTopLine(id.line)
             }
         }
     }
@@ -64,7 +65,7 @@ struct ReadingView: View {
     // MARK: - Scroll
 
     private func scrollToStart() {
-        position = blocks.last { $0.line <= startLine && $0.isHeading }?.line ?? blocks.last { $0.line <= startLine }?.line
+        position = blocks.last { $0.line <= startLine && $0.isHeading }?.id ?? blocks.last { $0.line <= startLine }?.id
     }
 
     // MARK: - Links

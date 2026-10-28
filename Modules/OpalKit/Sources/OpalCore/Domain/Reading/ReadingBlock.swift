@@ -9,19 +9,21 @@ public struct ReadingBlock: Hashable, Sendable, Identifiable {
     // MARK: - Stored
 
     public let line: Int
+    public let part: Int
     public let kind: ReadingBlockKind
 
     // MARK: - Init
 
-    public init(line: Int, kind: ReadingBlockKind) {
+    public init(line: Int, part: Int = 0, kind: ReadingBlockKind) {
         self.line = line
+        self.part = part
         self.kind = kind
     }
 
     // MARK: - Identifiable
 
-    public var id: Int {
-        line
+    public var id: ReadingBlockID {
+        ReadingBlockID(line: line, part: part)
     }
 
     // MARK: - Derived
@@ -43,7 +45,7 @@ public struct ReadingBlock: Hashable, Sendable, Identifiable {
             title + lines.flatMap(\.self)
         case let .table(header, rows):
             header.flatMap(\.self) + rows.flatMap { $0.flatMap(\.self) }
-        case .code, .rule:
+        case .code, .rule, .embed:
             []
         }
     }

@@ -352,7 +352,7 @@ Acceptance:
 - [snap] An Unresolved Embed shows “‘name’ is not in this Vault” with a create action.
 - [unit] An Embed of a Note that embeds itself, directly or through others, stops after one level and says so.
 - [manual] Changing the embedded Note elsewhere updates the Embed.
-Status: todo
+Status: done (28/10/2026; `EmbedTests`, snapshots `opal-m4-04-*`). In the snapshot a PDF shows as a blank page because `cacheDisplay` does not draw PDFKit; check it [manual]. If a Note is already shown higher up, Opal says so instead of embedding it again. Embeds also stop at four levels deep.
 
 ### M4-05 Checkboxes
 As a user, I want to tick a task with one click, so that I do not have to type the `x`.

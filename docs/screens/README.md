@@ -93,3 +93,5 @@ Taken on 28/10/2026 from a Debug build with `-OpalSnapshot <png>`: the app draws
 
 In these shots, Links look paler than in the app because `cacheDisplay` does not draw SwiftUI's link tint faithfully.
 | `opal-m4-03-properties.png` | The Properties form above `Welcome` (Aliases, Tags, a date), Add Property, Edit as YAML, and the new Tags tab in the inspector | M4-03 |
+| `opal-m4-04-embeds.png` | Reading view of [`fixtures/Embeds.md`](fixtures/Embeds.md): a whole Note (with its own image Embed inside), a Heading's section, a Block | M4-04 |
+| `opal-m4-04-embeds-media-dark.png` | An image at `|200`, a PDF (blank in the snapshot), an Unresolved Embed with Create Note | M4-04 |

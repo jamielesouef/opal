@@ -30,7 +30,13 @@ public final class LinkService {
         }
     }
 
-    public private(set) var map = LinkMap.empty
+    public private(set) var map = LinkMap.empty {
+        didSet {
+            mapRevision += 1
+        }
+    }
+
+    public private(set) var mapRevision = 0
     public private(set) var openNote: OpenNoteLinks?
 
     // MARK: - Constants
@@ -162,6 +168,34 @@ public final class LinkService {
         return await Self.readingConcurrently(path: path, text: text, analysed: analysed, map: map)
     }
 
+    public func embed(_ link: Link, from source: NotePath, chain: [NotePath]) async -> EmbedContent {
+        guard let target = map.resolver.resolve(link.target, from: source) else {
+            return .unresolved(link.target)
+        }
+
+        switch EmbedUseCase.media(of: target) {
+        case .image:
+            return .image(path: target, width: EmbedUseCase.width(from: link.displayText))
+        case .pdf:
+            return .pdf(target)
+        case .file:
+            return .file(target)
+        case .note:
+            break
+        }
+
+        guard chain.contains(target) == false else {
+            return .recursive(target)
+        }
+
+        guard let store = vault.store, let text = try? await store.readNote(at: target) else {
+            return .unresolved(link.target)
+        }
+
+        let title = link.subpath.map { _ in ReadingInlineBuilder.display(Link(target: target.name, subpath: link.subpath, span: link.span, line: 0, lineText: "")) } ?? target.name
+        return await Self.embedConcurrently(target: target, title: title, subpath: link.subpath, text: text, map: map)
+    }
+
     public func link(at offset: Int, in text: String) -> Link? {
         let parsed = openNote.flatMap { $0.textLength == text.utf16.count ? $0.parsed : nil } ?? MarkdownNoteParser.parse(text)
         return parsed.links.first { $0.span.contains(offset) }
@@ -215,6 +249,29 @@ public final class LinkService {
     private nonisolated static func readingConcurrently(path: NotePath, text: String, analysed: OpenNoteLinks?, map: LinkMap) async -> [ReadingBlock] {
         let note = analysed ?? analyse(path: path, text: text, map: map)
         return MarkdownReadingParser.blocks(in: text, parsed: note.parsed, styles: note.styles)
+    }
+
+    @concurrent
+    private nonisolated static func embedConcurrently(target: NotePath, title: String, subpath: LinkSubpath?, text: String, map: LinkMap) async -> EmbedContent {
+        let parsed = MarkdownNoteParser.parse(text)
+        let lines = TextLineUseCase.lineStartOffsets(in: text)
+        let nsText = text as NSString
+        let lineRange = { (line: Int) in
+            NSRange(location: lines[line], length: (lines.indices.contains(line + 1) ? lines[line + 1] : nsText.length) - lines[line])
+        }
+        guard let range = EmbedUseCase.lines(for: subpath, in: parsed, lineCount: lines.count, isBlank: {
+            nsText.substring(with: lineRange($0)).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }) else {
+            return .note(path: target, title: title, blocks: [])
+        }
+
+        let start = range.lowerBound == 0 ? 0 : lines[range.lowerBound]
+        let end = range.upperBound < lines.count ? lines[range.upperBound] : nsText.length
+        let section = nsText.substring(with: NSRange(location: start, length: end - start))
+        let sectionParsed = MarkdownNoteParser.parse(section)
+        let styles = (map.linkStyles(in: sectionParsed, from: target) + MarkdownStyleParser.runs(in: section, parsed: sectionParsed))
+            .sorted { $0.span.location < $1.span.location }
+        return .note(path: target, title: title, blocks: MarkdownReadingParser.blocks(in: section, parsed: sectionParsed, styles: styles))
     }
 
     private func reset() {
