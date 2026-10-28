@@ -29,4 +29,15 @@ public struct UnlinkedMention: Hashable, Sendable, Identifiable {
     public var id: String {
         "\(source.rawValue)#\(span.location)"
     }
+
+    // MARK: - Hashable
+
+    public static func == (lhs: UnlinkedMention, rhs: UnlinkedMention) -> Bool {
+        lhs.span == rhs.span && lhs.line == rhs.line && lhs.source == rhs.source
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(source)
+        hasher.combine(span)
+    }
 }

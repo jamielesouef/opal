@@ -14,7 +14,18 @@ public final class MentionService {
     // MARK: - State
 
     public private(set) var target: NotePath?
-    public private(set) var mentions: [UnlinkedMention] = []
+    public private(set) var mentionsRevision = 0
+
+    public var mentions: [UnlinkedMention] {
+        _ = mentionsRevision
+        return storedMentions
+    }
+
+    @ObservationIgnored private var storedMentions: [UnlinkedMention] = [] {
+        didSet {
+            mentionsRevision += 1
+        }
+    }
 
     // MARK: - Constants
 
@@ -41,7 +52,7 @@ public final class MentionService {
     public func load(for path: NotePath?) async {
         target = path
         guard let path, let store = index.store else {
-            mentions = []
+            storedMentions = []
             return
         }
 
@@ -61,7 +72,7 @@ public final class MentionService {
         guard target == path else {
             return
         }
-        mentions = found
+        storedMentions = found
     }
 
     public func link(_ mention: UnlinkedMention) async -> Bool {

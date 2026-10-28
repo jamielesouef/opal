@@ -15,7 +15,6 @@ struct VaultScreen: View {
     @Environment(\.vaultService) private var vaultService
     @Environment(\.noteService) private var notes
     @Environment(\.linkService) private var links
-    @Environment(\.indexService) private var index
     @Environment(\.searchService) private var search
     @Environment(\.navigationService) private var navigation
 
@@ -35,7 +34,7 @@ struct VaultScreen: View {
         NavigationSplitView {
             sidebar
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    IndexStatusView(state: index.loadState)
+                    IndexStatusItem()
                 }
                 .navigationSplitViewColumnWidth(min: EditorMetrics.sidebarMinWidth, ideal: EditorMetrics.sidebarIdealWidth)
         } detail: {
@@ -106,13 +105,7 @@ struct VaultScreen: View {
         .sheet(isPresented: $navigation.isQuickSwitcherShown) {
             QuickSwitcherView()
         }
-        .onChange(of: index.revision) {
-            Task { await search.search() }
-        }
-        .task(id: vaultService.entries) {
-            await index.sync()
-            await links.sync()
-        }
+        .background(VaultSync())
         .onChange(of: notes.path) { _, openPath in
             guard let openPath else {
                 return
@@ -155,16 +148,7 @@ struct VaultScreen: View {
     }
 
     private var folderTree: some View {
-        FolderTreeView(
-            selection: $selection,
-            expandedFolders: $expandedFolders,
-            vaultName: vault.name,
-            tree: vaultService.tree
-        ) { path in
-            VaultActions.reveal(path, vault: vaultService)
-        } onOpenInDefaultApp: { path in
-            VaultActions.openInDefaultApp(path, vault: vaultService)
-        }
+        FolderTreePane(selection: $selection, expandedFolders: $expandedFolders, vaultName: vault.name)
     }
 
     // MARK: - Detail
