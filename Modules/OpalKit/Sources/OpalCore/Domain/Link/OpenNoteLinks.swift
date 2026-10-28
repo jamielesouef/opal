@@ -11,14 +11,14 @@ public struct OpenNoteLinks: Sendable, Equatable {
     public let path: NotePath
     public let textLength: Int
     public let parsed: ParsedNote
-    public let highlights: [LinkHighlight]
+    public let styles: [TextStyleRun]
 
     // MARK: - Init
 
-    public init(path: NotePath, textLength: Int, parsed: ParsedNote, highlights: [LinkHighlight]) {
+    public init(path: NotePath, textLength: Int, parsed: ParsedNote, styles: [TextStyleRun]) {
         self.path = path
         self.textLength = textLength
         self.parsed = parsed
-        self.highlights = highlights
+        self.styles = styles
     }
 }

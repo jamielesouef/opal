@@ -30,11 +30,11 @@ struct OpenNoteLinksTests {
 
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "# Welcome\n\nSee [[Soil]] and [[Nowhere]].\n")
         #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Welcome"])
-        #expect(harness.links.openNote?.highlights.map(\.isResolved) == [true, false])
+        #expect(harness.links.openNote?.styles.map(\.kind) == [.link(isResolved: true), .link(isResolved: false)])
 
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "# Hello\n")
         #expect(harness.links.openNote?.parsed.headings.map(\.text) == ["Hello"])
-        #expect(harness.links.openNote?.highlights.isEmpty == true)
+        #expect(harness.links.openNote?.styles.isEmpty == true)
     }
 
     @Test("a large Note is parsed off the main actor after a pause")
@@ -50,7 +50,7 @@ struct OpenNoteLinksTests {
         await harness.links.waitForOpenNote()
         #expect(harness.links.openNote?.path == NotePath("Big.md"))
         #expect(harness.links.openNote?.textLength == text.utf16.count)
-        #expect(harness.links.openNote?.highlights.allSatisfy(\.isResolved) == true)
+        #expect(harness.links.openNote?.styles.allSatisfy { $0.kind == .link(isResolved: true) } == true)
     }
 
     @Test("closing the Note clears it")
@@ -71,13 +71,13 @@ struct OpenNoteLinksTests {
         defer { vault.remove() }
         let harness = await Self.harness(vault)
         harness.links.openNoteChanged(NotePath("Welcome.md"), text: "See [[Peas]].\n")
-        #expect(harness.links.openNote?.highlights.first?.isResolved == false)
+        #expect(harness.links.openNote?.styles.first?.kind == .link(isResolved: false))
 
         try vault.write("# Peas\n", to: "Peas.md")
         await harness.vault.handleExternalChanges([NotePath("Peas.md")])
         await harness.links.sync()
 
-        #expect(harness.links.openNote?.highlights.first?.isResolved == true)
+        #expect(harness.links.openNote?.styles.first?.kind == .link(isResolved: true))
     }
 
     @Test("NoteService keeps the open Note's Links current through open, edit and close")

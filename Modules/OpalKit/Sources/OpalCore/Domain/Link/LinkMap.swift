@@ -72,7 +72,7 @@ public struct LinkMap: Sendable {
         }
     }
 
-    public func highlights(in note: ParsedNote, from source: NotePath) -> [LinkHighlight] {
-        note.links.map { LinkHighlight(span: $0.span, isResolved: resolver.resolve($0.target, from: source) != nil) }
+    public func linkStyles(in note: ParsedNote, from source: NotePath) -> [TextStyleRun] {
+        note.links.map { TextStyleRun(span: $0.span, kind: .link(isResolved: resolver.resolve($0.target, from: source) != nil)) }
     }
 }

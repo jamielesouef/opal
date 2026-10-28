@@ -14,7 +14,7 @@ struct MarkdownTextView: NSViewRepresentable {
     // MARK: - Input
 
     let text: String
-    var highlights: [LinkHighlight] = []
+    var styles: [TextStyleRun] = []
     var reveal: RevealRequest?
     var typeOnAppear: String?
     var onChange: (String) -> Void = { _ in }
@@ -53,7 +53,7 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.onFollowLink = onFollowLink
         coordinator.linkSuggestions = linkSuggestions
         coordinator.linkInsertion = linkInsertion
-        coordinator.apply(highlights, to: textView)
+        coordinator.apply(styles, to: textView)
         coordinator.apply(reveal, to: textView)
         if let typeOnAppear {
             Task { @MainActor in
@@ -81,7 +81,7 @@ struct MarkdownTextView: NSViewRepresentable {
             textView.undoManager?.removeAllActions()
         }
 
-        coordinator.apply(highlights, to: textView)
+        coordinator.apply(styles, to: textView)
         coordinator.apply(reveal, to: textView)
     }
 
@@ -121,9 +121,9 @@ struct MarkdownTextView: NSViewRepresentable {
         let text = "# Soil\n\nSee [[Tomatoes]] and [[Nowhere]].\n"
         MarkdownTextView(
             text: text,
-            highlights: [
-                LinkHighlight(span: TextSpan(location: 12, length: 12), isResolved: true),
-                LinkHighlight(span: TextSpan(location: 29, length: 11), isResolved: false)
+            styles: [
+                TextStyleRun(span: TextSpan(location: 12, length: 12), kind: .link(isResolved: true)),
+                TextStyleRun(span: TextSpan(location: 29, length: 11), kind: .link(isResolved: false))
             ]
         )
         .frame(width: 600, height: 300)

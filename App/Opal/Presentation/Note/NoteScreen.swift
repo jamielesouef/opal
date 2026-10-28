@@ -63,7 +63,7 @@ struct NoteScreen: View {
     private func editor(_ note: Note) -> some View {
         MarkdownTextView(
             text: note.text,
-            highlights: links.openNote.flatMap { $0.path == note.path ? $0.highlights : nil } ?? [],
+            styles: links.openNote.flatMap { $0.path == note.path ? $0.styles : nil } ?? [],
             reveal: navigation.reveal.flatMap { $0.path == note.path ? $0 : nil },
             typeOnAppear: launch.typeText
         ) { text in

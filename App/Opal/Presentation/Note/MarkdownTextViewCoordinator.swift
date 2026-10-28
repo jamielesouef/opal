@@ -22,7 +22,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
     var onFollowLink: (Int) -> Void = { _ in }
     var linkSuggestions: (String) -> [LinkSuggestion] = { _ in [] }
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
-    private(set) var highlights: [LinkHighlight] = []
+    private(set) var styles: [TextStyleRun] = []
     private var lastRevealID: Int?
     private var appliedLength: Int?
     private let suggestionPanel = LinkSuggestionPanel()
@@ -152,28 +152,36 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate {
     // MARK: - Links
 
     func isLink(at offset: Int) -> Bool {
-        highlights.contains { $0.span.contains(offset) }
+        styles.contains { run in
+            guard case .link = run.kind else {
+                return false
+            }
+            return run.span.contains(offset)
+        }
     }
 
-    func apply(_ newHighlights: [LinkHighlight], to textView: NSTextView) {
-        guard let storage = textView.textStorage, newHighlights != highlights || storage.length != appliedLength else {
+    func apply(_ newStyles: [TextStyleRun], to textView: NSTextView) {
+        guard let storage = textView.textStorage, newStyles != styles || storage.length != appliedLength else {
             return
         }
 
-        highlights = newHighlights
+        styles = newStyles
         appliedLength = storage.length
         let full = NSRange(location: 0, length: storage.length)
         storage.beginEditing()
         storage.addAttribute(.foregroundColor, value: NSColor.textColor, range: full)
-        for highlight in newHighlights where highlight.span.upperBound <= storage.length {
-            let color = highlight.isResolved
-                ? NSColor.controlAccentColor
-                : NSColor.controlAccentColor.withAlphaComponent(Constants.unresolvedAlpha)
-            storage.addAttribute(
-                .foregroundColor,
-                value: color,
-                range: NSRange(location: highlight.span.location, length: highlight.span.length)
-            )
+        for run in newStyles where run.span.upperBound <= storage.length {
+            switch run.kind {
+            case let .link(isResolved):
+                let color = isResolved
+                    ? NSColor.controlAccentColor
+                    : NSColor.controlAccentColor.withAlphaComponent(Constants.unresolvedAlpha)
+                storage.addAttribute(
+                    .foregroundColor,
+                    value: color,
+                    range: NSRange(location: run.span.location, length: run.span.length)
+                )
+            }
         }
         storage.endEditing()
     }
