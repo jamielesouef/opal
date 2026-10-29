@@ -18,6 +18,7 @@ public final class NavigationService {
     public private(set) var recentNotes: [NotePath] = []
     public var isInspectorShown = true
     public var isReadingView = false
+    public private(set) var unfoldedFrontmatter: Set<NotePath> = []
     @ObservationIgnored private var topOffsets = Array(repeating: 0, count: EditorPanes.maxCount)
     public var isQuickSwitcherShown = false
     public var isCommandPaletteShown = false
@@ -174,6 +175,10 @@ public final class NavigationService {
         if topOffsets.indices.contains(index) {
             topOffsets[index] = offset
         }
+    }
+
+    public func unfoldFrontmatter(of path: NotePath) {
+        unfoldedFrontmatter.insert(path)
     }
 
     public func showPanes() async {

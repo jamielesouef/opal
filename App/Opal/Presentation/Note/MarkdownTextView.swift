@@ -16,6 +16,7 @@ struct MarkdownTextView: NSViewRepresentable {
     let text: String
     var styles: [TextStyleRun] = []
     var stylesLength: Int?
+    var fold: FrontmatterFold?
     var reveal: RevealRequest?
     var insertion: TextInsertion?
     var initialTopOffset = 0
@@ -29,6 +30,7 @@ struct MarkdownTextView: NSViewRepresentable {
     var linkInsertion: (LinkSuggestion) -> String = { _ in "" }
     var onAttach: (Data, String?) async -> String? = { _, _ in nil }
     var onFocus: () -> Void = {}
+    var onUnfold: () -> Void = {}
 
     // MARK: - NSViewRepresentable
 
@@ -44,6 +46,8 @@ struct MarkdownTextView: NSViewRepresentable {
 
         let coordinator = context.coordinator
         coordinator.style = style
+        coordinator.onUnfold = onUnfold
+        coordinator.apply(fold, to: textView)
         textView.editorStyle = style
         configure(textView)
         textView.takesFocusOnAppear = takesFocusOnAppear
@@ -51,6 +55,8 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.string = text
         coordinator.lastText = text
         textView.delegate = coordinator
+        textView.textContentStorage?.delegate = coordinator
+        coordinator.enforceFold(in: textView)
         if let layoutManager = textView.textLayoutManager {
             layoutManager.delegate = coordinator
         } else {
@@ -121,11 +127,14 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.onChange = onChange
         coordinator.onFollowLink = onFollowLink
         coordinator.onScroll = onScroll
+        coordinator.onUnfold = onUnfold
         coordinator.linkSuggestions = linkSuggestions
         coordinator.linkInsertion = linkInsertion
         guard let textView = scrollView.documentView as? FocusingTextView else {
             return
         }
+
+        coordinator.apply(fold, to: textView)
 
         textView.onAttach = onAttach
         textView.onFocus = onFocus
@@ -135,6 +144,7 @@ struct MarkdownTextView: NSViewRepresentable {
             if textView.string != text {
                 textView.string = text
                 textView.undoManager?.removeAllActions()
+                coordinator.enforceFold(in: textView)
             }
         }
 
@@ -147,6 +157,7 @@ struct MarkdownTextView: NSViewRepresentable {
         coordinator.dismantle()
         (scrollView.documentView as? NSTextView)?.delegate = nil
         (scrollView.documentView as? NSTextView)?.textLayoutManager?.delegate = nil
+        (scrollView.documentView as? NSTextView)?.textContentStorage?.delegate = nil
         if let observer = coordinator.boundsObserver {
             NotificationCenter.default.removeObserver(observer)
         }

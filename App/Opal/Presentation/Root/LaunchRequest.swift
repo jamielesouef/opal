@@ -17,6 +17,7 @@ struct LaunchRequest {
     var sidebarPane: SidebarPane?
     var typeText: String?
     var isReadingView = false
+    var editsAsYAML = false
     var opensDailyNote = false
     var showsTemplates = false
     var renaming: NotePath?

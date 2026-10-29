@@ -7,14 +7,17 @@
 
 import AppKit
 import OpalCore
+import OpalDesign
 
 @MainActor
-final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLayoutManagerDelegate {
+final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLayoutManagerDelegate, NSTextContentStorageDelegate {
     // MARK: - Stored
 
     var onChange: (String) -> Void
     var onFollowLink: (Int) -> Void = { _ in }
     var onScroll: (Int) -> Void = { _ in }
+    var onUnfold: () -> Void = {}
+    nonisolated(unsafe) private(set) var fold: FrontmatterFold?
     var linkSuggestions: (String) async -> [LinkSuggestion] = { _ in [] }
     private var suggestionTask: Task<Void, Never>?
     private let undo = UndoManager()
@@ -24,7 +27,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     private var lastInsertionID: Int?
     private var appliedLength: Int?
     var lastText: String?
-    var style = EditorStyle.defaults
+    nonisolated(unsafe) var style = EditorStyle.defaults
     private var marks: [TextSpan] = []
     private var checkboxes: [TextStyleRun] = []
     private var activeRange = NSRange(location: NSNotFound, length: 0)
@@ -54,6 +57,13 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         updateSuggestions(in: textView)
     }
 
+    func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
+        if let fold, fold.isInside(editAt: affectedCharRange.location) {
+            unfold(in: textView)
+        }
+        return true
+    }
+
     func undoManager(for view: NSTextView) -> UndoManager? {
         undo
     }
@@ -61,6 +71,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     func dismantle() {
         undo.removeAllActions()
         hideSuggestions()
+        fold = nil
     }
 
     func textViewDidChangeSelection(_ notification: Notification) {
@@ -68,10 +79,22 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             return
         }
 
+        enforceFold(in: textView)
         updateMarks(in: textView)
         if suggestionPanel.isVisible {
             updateSuggestions(in: textView)
         }
+    }
+
+    // MARK: - NSTextContentStorageDelegate
+
+    nonisolated func textContentManager(_ textContentManager: NSTextContentManager, shouldEnumerate textElement: NSTextElement, options: NSTextContentManager.EnumerationOptions = []) -> Bool {
+        guard let fold else {
+            return true
+        }
+
+        let start = textContentManager.offset(from: textContentManager.documentRange.location, to: textElement.elementRange?.location ?? textContentManager.documentRange.location)
+        return fold.hidden.contains(start) == false
     }
 
     // MARK: - NSTextLayoutManagerDelegate
@@ -92,11 +115,22 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             hasCheckbox = value != nil
             stop.pointee = ObjCBool(hasCheckbox)
         }
-        guard block != nil || hasCheckbox else {
+        let foldLabel = foldLabel(for: textElement, in: textLayoutManager)
+        guard block != nil || hasCheckbox || foldLabel != nil else {
             return NSTextLayoutFragment(textElement: textElement, range: textElement.elementRange)
         }
 
-        return MarkdownBlockFragment(textElement: textElement, range: textElement.elementRange, block: block)
+        return MarkdownBlockFragment(textElement: textElement, range: textElement.elementRange, block: block, foldLabel: foldLabel)
+    }
+
+    private nonisolated func foldLabel(for textElement: NSTextElement, in textLayoutManager: NSTextLayoutManager) -> NSAttributedString? {
+        guard fold != nil, let start = textElement.elementRange?.location,
+              start.compare(textLayoutManager.documentRange.location) == .orderedSame
+        else {
+            return nil
+        }
+
+        return NSAttributedString(string: String(localized: "Properties"), attributes: [.font: style.font(), .foregroundColor: AppKitColor.secondaryText])
     }
 
     // MARK: - Link suggestions
@@ -218,6 +252,49 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         return LinkSuggestionUseCase.openQuery(in: textView.string, cursor: selection.location)
     }
 
+    // MARK: - Fold
+
+    func apply(_ newFold: FrontmatterFold?, to textView: NSTextView) {
+        guard newFold != fold else {
+            return
+        }
+
+        fold = newFold
+        relayout(textView)
+        enforceFold(in: textView)
+    }
+
+    func enforceFold(in textView: NSTextView) {
+        guard let fold else {
+            return
+        }
+
+        let range = textView.selectedRange()
+        switch fold.rule(forSelection: TextSpan(location: range.location, length: range.length)) {
+        case .keep:
+            break
+        case let .moveTo(offset):
+            textView.setSelectedRange(NSRange(location: min(offset, (textView.string as NSString).length), length: 0))
+        case .unfold:
+            unfold(in: textView)
+        }
+    }
+
+    private func unfold(in textView: NSTextView) {
+        fold = nil
+        relayout(textView)
+        onUnfold()
+    }
+
+    private func relayout(_ textView: NSTextView) {
+        guard let layout = textView.textLayoutManager else {
+            return
+        }
+
+        layout.invalidateLayout(for: layout.documentRange)
+        textView.needsDisplay = true
+    }
+
     // MARK: - Styles
 
     func isLink(at offset: Int) -> Bool {
@@ -336,6 +413,9 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
 
         lastRevealID = reveal.id
         let offset = TextLineUseCase.utf16Offset(ofLine: reveal.line, in: textView.string)
+        if let fold, offset > 0, fold.isInside(editAt: offset) {
+            unfold(in: textView)
+        }
         let range = NSRange(location: offset, length: 0)
         textView.setSelectedRange(range)
         Task { @MainActor in

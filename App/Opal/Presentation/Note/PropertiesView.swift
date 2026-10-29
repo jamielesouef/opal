@@ -77,6 +77,7 @@ struct PropertiesView: View {
     }
 
     private func editAsYAML() {
+        navigation.unfoldFrontmatter(of: document.path)
         navigation.isReadingView = false
         Task {
             await navigation.focusPane(pane)

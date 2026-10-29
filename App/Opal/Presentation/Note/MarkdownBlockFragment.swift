@@ -12,11 +12,13 @@ final class MarkdownBlockFragment: NSTextLayoutFragment {
     // MARK: - Stored
 
     private let block: MarkdownBlock?
+    private let foldLabel: NSAttributedString?
 
     // MARK: - Init
 
-    init(textElement: NSTextElement, range: NSTextRange?, block: MarkdownBlock?) {
+    init(textElement: NSTextElement, range: NSTextRange?, block: MarkdownBlock?, foldLabel: NSAttributedString? = nil) {
         self.block = block
+        self.foldLabel = foldLabel
         super.init(textElement: textElement, range: range)
     }
 
@@ -39,6 +41,11 @@ final class MarkdownBlockFragment: NSTextLayoutFragment {
     }
 
     override func draw(at point: CGPoint, in context: CGContext) {
+        if let foldLabel {
+            drawFoldLabel(foldLabel, at: point, in: context)
+            return
+        }
+
         let frame = CGRect(x: point.x, y: point.y, width: blockWidth, height: layoutFragmentFrame.height)
         let bar = CGRect(x: frame.minX, y: frame.minY, width: EditorMetrics.blockBarWidth, height: frame.height)
         context.saveGState()
@@ -60,6 +67,22 @@ final class MarkdownBlockFragment: NSTextLayoutFragment {
         context.restoreGState()
         super.draw(at: point, in: context)
         drawCheckboxes(at: point, in: context)
+    }
+
+    // MARK: - Fold
+
+    private func drawFoldLabel(_ label: NSAttributedString, at point: CGPoint, in context: CGContext) {
+        guard let line = textLineFragments.first, let font = label.attribute(.font, at: 0, effectiveRange: nil) as? NSFont else {
+            return
+        }
+
+        let origin = CGPoint(x: point.x + line.typographicBounds.minX, y: point.y + line.typographicBounds.minY + line.locationForCharacter(at: 0).y - font.ascender)
+        context.saveGState()
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: true)
+        label.draw(at: origin)
+        NSGraphicsContext.restoreGraphicsState()
+        context.restoreGState()
     }
 
     // MARK: - Checkboxes

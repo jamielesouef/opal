@@ -128,6 +128,7 @@ struct NoteScreen: View {
             text: note.text,
             styles: analysed.map { isLiveMarkdown ? $0.styles : $0.linkStyles } ?? [],
             stylesLength: analysed?.textLength,
+            fold: navigation.unfoldedFrontmatter.contains(note.path) ? nil : FrontmatterFoldUseCase.fold(in: note.text),
             reveal: isFocused ? navigation.reveal.flatMap { $0.path == note.path ? $0 : nil } : nil,
             insertion: isFocused ? templates.insertion.flatMap { $0.path == note.path ? $0 : nil } : nil,
             initialTopOffset: navigation.topOffset(inPane: pane),
@@ -148,6 +149,8 @@ struct NoteScreen: View {
             await document.attach(data, named: name)
         } onFocus: {
             Task { await navigation.focusPane(pane) }
+        } onUnfold: {
+            navigation.unfoldFrontmatter(of: note.path)
         }
         .id(note.path)
         .id(style)

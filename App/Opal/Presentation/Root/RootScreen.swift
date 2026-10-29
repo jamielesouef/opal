@@ -53,6 +53,10 @@ struct RootScreen: View {
                 }
                 if let note = launch.note, vault.isOpen {
                     await navigation.open(note)
+                    if launch.editsAsYAML {
+                        navigation.unfoldFrontmatter(of: note)
+                        await navigation.open(note, line: 1)
+                    }
                 }
                 for tab in launch.extraTabs where vault.isOpen {
                     await navigation.openInNewTab(tab)

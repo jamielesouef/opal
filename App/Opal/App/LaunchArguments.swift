@@ -23,6 +23,7 @@ struct LaunchArguments {
         static let sidebarPane = "-OpalSidebarPane"
         static let snapshot = "-OpalSnapshot"
         static let readingView = "-OpalReadingView"
+        static let editAsYAML = "-OpalEditAsYAML"
         static let dailyNote = "-OpalDailyNote"
         static let templates = "-OpalTemplates"
         static let rename = "-OpalRename"
@@ -52,6 +53,7 @@ struct LaunchArguments {
     let sidebarPane: SidebarPane?
     let snapshotURL: URL?
     let isReadingView: Bool
+    let editsAsYAML: Bool
     let opensDailyNote: Bool
     let showsTemplates: Bool
     let renaming: NotePath?
@@ -77,7 +79,7 @@ struct LaunchArguments {
             let typed: String? = nil
             let recentVaults: [URL] = []
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, splitShare: splitShare, hidesInspector: hidesInspector, settingsTab: settingsTab, opensNewWindow: opensNewWindow, recentVaults: recentVaults)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, editsAsYAML: editsAsYAML, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, splitShare: splitShare, hidesInspector: hidesInspector, settingsTab: settingsTab, opensNewWindow: opensNewWindow, recentVaults: recentVaults)
     }
 
     var restoresState: Bool {
@@ -107,6 +109,7 @@ struct LaunchArguments {
         search = Self.value(after: Constants.search, in: arguments)
         sidebarPane = Self.value(after: Constants.sidebarPane, in: arguments).flatMap(SidebarPane.init(rawValue:))
         isReadingView = arguments.contains(Constants.readingView)
+        editsAsYAML = arguments.contains(Constants.editAsYAML)
         opensDailyNote = arguments.contains(Constants.dailyNote)
         showsTemplates = arguments.contains(Constants.templates)
         renaming = Self.value(after: Constants.rename, in: arguments).map(NotePath.init)

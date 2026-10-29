@@ -583,7 +583,7 @@ Depends: M4-03
 Acceptance:
 - [snap] When the Properties form shows, the frontmatter lines fold to one dimmed "Properties" line in the Editor; Edit as YAML unfolds them and puts the cursor there.
 - [unit] Folding never changes the text: typing, undo and saving behave as if the lines were shown.
-Status: todo
+Status: done (29/10/2026; `FrontmatterFoldUseCaseTests`, `FrontmatterFoldServiceTests`, `opal-m6-08-folded-light.png`, `opal-m6-08-folded-dark.png`, `opal-m6-08-yaml-light.png`, `opal-m6-08-yaml-dark.png`). The fold is display only: the Editor's content delegate skips the frontmatter paragraphs after the first, and that first paragraph's layout fragment draws a dimmed "Properties" instead of `---`; the text storage is never touched. The fold range is scanned from the Note's text, so it never flickers while analysis catches up, and it applies with Live Markdown on or off. A caret that lands in the fold (arrow keys, Cmd-Up) moves to the start of the body (skip); a selection that covers part of the fold, a Find match inside it, an edit that starts before the body (Backspace at the top of the body) or a reveal into it unfolds it; Select All keeps it folded. Edit as YAML unfolds the Note for the session and puts the cursor on the first Property line (`-OpalEditAsYAML` does the same for snapshots). There is no control to fold again. Typing, undo and the caret in the live Editor are [manual]; a typed line saved after the fold left the frontmatter byte for byte as it was. Folded typing, undo and the caret are yours to check.
 
 ### M6-09 Property types across the Vault and `[property:value]` search
 As a user, I want a Property to have one type in every Note, and to find Notes by a Property's value.
