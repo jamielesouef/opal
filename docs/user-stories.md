@@ -630,7 +630,7 @@ Depends: M6-06
 Acceptance:
 - [unit] A folder in the home folder shows as `~/…`. A long path is shortened in the middle, never cut at the end.
 - [snap] The Welcome view and File › Open Recent show the short form.
-Status: todo
+Status: done (29/10/2026; `FolderPathUseCaseTests`, `opal-m7-04-welcome-light`, `opal-m7-04-welcome-dark`). `FolderPathUseCase.short(_:home:limit:)` is a pure formatter: a folder in the home folder starts with `~` (a folder beside it, such as `/Users/jamie2`, does not), and a path over 40 characters keeps its first folder and as many of the last folders as fit, joined by `…`, so the Vault's parent folder is never cut at the end; two folders or fewer are never shortened. `UserHome.path` reads the real home folder from the user database (`getpwuid`), because inside the sandbox `NSHomeDirectory()` is the app's container. `RecentVault.shortParentPath` feeds the Welcome view's Recent Vaults rows and the File › Open Recent subtitles. The snapshots show Recent Vaults seeded with temp folders under the app's container, which sit under the real home, so they read `~/…/Data/tmp/m704/Work`; no real Vault name or path appears. File › Open Recent is a menu and is not in a window snapshot: opening it to see the short subtitles is [manual] and yours to check, as is a Vault in a real folder such as `~/Documents`.
 
 ## Later
 

@@ -35,4 +35,8 @@ public struct RecentVault: Hashable, Identifiable, Sendable {
     public var parentPath: String {
         folderURL.deletingLastPathComponent().path
     }
+
+    public var shortParentPath: String {
+        FolderPathUseCase.short(parentPath, home: UserHome.path)
+    }
 }

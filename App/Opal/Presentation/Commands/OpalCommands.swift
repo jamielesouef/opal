@@ -121,7 +121,7 @@ struct OpalCommands: Commands {
                     openRecent(vault)
                 } label: {
                     Text(vault.name)
-                    Text(vault.isMissing ? String(localized: "Folder not found") : vault.parentPath)
+                    Text(vault.isMissing ? String(localized: "Folder not found") : vault.shortParentPath)
                 }
                 .disabled(vault.isMissing)
             }

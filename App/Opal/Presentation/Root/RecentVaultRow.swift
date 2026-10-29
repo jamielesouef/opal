@@ -28,7 +28,7 @@ struct RecentVaultRow: View {
                 VStack(alignment: .leading, spacing: AppSpacing.tiny) {
                     Text(vault.name)
                         .lineLimit(1)
-                    Text(vault.isMissing ? String(localized: "Folder not found") : vault.parentPath)
+                    Text(vault.isMissing ? String(localized: "Folder not found") : vault.shortParentPath)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
