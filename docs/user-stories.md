@@ -622,7 +622,7 @@ Acceptance:
 - [unit] The form takes each Property's type from the Index's Vault-wide types (`.obsidian/types.json` first, else the most common type), and falls back to the Note's own value when the Index is not ready.
 - [unit] When the Index changes, the open form updates its types.
 - [snap] A Note whose `rating` is text, in a Vault where `rating` is a number in most Notes, shows `rating` as a number.
-Status: todo
+Status: done (29/10/2026; `PropertyServiceTests`, `opal-m7-03-vault-types-light`, `opal-m7-03-vault-types-dark`). `NoteDocument.refreshPropertyTypes()` asks the Index for `propertyTypes(declared:)` (types.json first, else the most common type) once the Index is `.ready`, and `type(of:)` uses that result; until then, or when the Index fails, it uses the types.json types and the Note's own value, as before. `PropertiesView` runs the refresh with `.task(id: index.revision)`, so the open form updates after every sync and every Note update; `IndexService` is untouched because it already publishes `revision`. A new Property added from the form takes the Vault-wide type of its name. `NoteService.type(of:)` asks the focused document. The snapshot is a temp copy of Garden with four Notes where `rating` is a number and one where it is `high`: the form shows the number icon on `rating`. Editing a value in the form and watching the type stay is [manual] and yours to check.
 
 ### M7-04 Short folder paths for recent Vaults
 As a user, I want each recent Vault's folder to read the way Finder shows it, not as a long path.

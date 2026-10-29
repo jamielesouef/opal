@@ -154,7 +154,7 @@ public final class NoteService {
     }
 
     public func type(of property: Property) -> PropertyType {
-        PropertyTypeUseCase.type(of: property, declared: vault.propertyTypes)
+        focused?.type(of: property) ?? PropertyTypeUseCase.type(of: property, declared: vault.propertyTypes)
     }
 
     public func setProperty(_ property: Property, to value: PropertyValue) {

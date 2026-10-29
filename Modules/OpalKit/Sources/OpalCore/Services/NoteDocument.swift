@@ -44,6 +44,7 @@ public final class NoteDocument {
     }
 
     public private(set) var revision = 0
+    public private(set) var vaultPropertyTypes: [String: PropertyType]?
 
     // MARK: - Private
 
@@ -143,7 +144,20 @@ public final class NoteDocument {
     }
 
     public func type(of property: Property) -> PropertyType {
-        PropertyTypeUseCase.type(of: property, declared: vault.propertyTypes)
+        PropertyTypeUseCase.type(of: property, declared: vaultPropertyTypes ?? vault.propertyTypes)
+    }
+
+    public func refreshPropertyTypes() async {
+        guard let index, index.loadState == .ready, let store = index.store else {
+            vaultPropertyTypes = nil
+            return
+        }
+
+        do {
+            vaultPropertyTypes = try await store.propertyTypes(declared: vault.propertyTypes)
+        } catch {
+            AppLog.error("Reading the Property types failed: \(error)")
+        }
     }
 
     public func setProperty(_ property: Property, to value: PropertyValue) {
@@ -173,7 +187,7 @@ public final class NoteDocument {
             return
         }
 
-        edit(PropertyEditUseCase.add(key: name, type: vault.propertyTypes[name] ?? .text, to: draft, frontmatter: current))
+        edit(PropertyEditUseCase.add(key: name, type: (vaultPropertyTypes ?? vault.propertyTypes)[name] ?? .text, to: draft, frontmatter: current))
     }
 
     // MARK: - Body

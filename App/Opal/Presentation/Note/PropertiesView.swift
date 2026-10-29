@@ -13,6 +13,7 @@ struct PropertiesView: View {
     // MARK: - Environment
 
     @Environment(\.navigationService) private var navigation
+    @Environment(\.indexService) private var index
 
     // MARK: - Input
 
@@ -74,6 +75,9 @@ struct PropertiesView: View {
         }
         .padding(.horizontal, EditorMetrics.textInset)
         .padding(.vertical, AppSpacing.regular)
+        .task(id: index.revision) {
+            await document.refreshPropertyTypes()
+        }
     }
 
     // MARK: - Derived
