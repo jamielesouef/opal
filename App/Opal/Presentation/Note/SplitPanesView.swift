@@ -17,6 +17,7 @@ struct SplitPanesView<First: View, Second: View>: View {
     // MARK: - State
 
     @State private var dragStartShare: Double?
+    @State private var dragShare: Double?
 
     // MARK: - Input
 
@@ -39,7 +40,7 @@ struct SplitPanesView<First: View, Second: View>: View {
             let available = max(proxy.size.width - EditorMetrics.dividerThickness, EditorMetrics.paneMinWidth * 2)
             HStack(spacing: 0) {
                 first
-                    .frame(width: isSplit ? navigation.panes.firstPaneWidth(availableWidth: available, minPaneWidth: EditorMetrics.paneMinWidth) : proxy.size.width)
+                    .frame(width: isSplit ? available * shown(available: available) : proxy.size.width)
                 if isSplit {
                     divider(available: available)
                     second
@@ -91,9 +92,13 @@ struct SplitPanesView<First: View, Second: View>: View {
             .onChanged { value in
                 let start = dragStartShare ?? shown(available: available)
                 dragStartShare = start
-                set(start + value.translation.width / available, available: available)
+                dragShare = clamped(start + value.translation.width / available, available: available)
             }
             .onEnded { _ in
+                if let dragShare {
+                    navigation.setSplitShare(dragShare)
+                }
+                dragShare = nil
                 dragStartShare = nil
             }
     }
@@ -101,7 +106,11 @@ struct SplitPanesView<First: View, Second: View>: View {
     // MARK: - Share
 
     private func shown(available: Double) -> Double {
-        EditorPanes.clampedShare(navigation.panes.splitShare, availableWidth: available, minPaneWidth: EditorMetrics.paneMinWidth)
+        clamped(dragShare ?? navigation.panes.splitShare, available: available)
+    }
+
+    private func clamped(_ share: Double, available: Double) -> Double {
+        EditorPanes.clampedShare(share, availableWidth: available, minPaneWidth: EditorMetrics.paneMinWidth)
     }
 
     private func nudge(by step: Double, available: Double) {
@@ -109,6 +118,6 @@ struct SplitPanesView<First: View, Second: View>: View {
     }
 
     private func set(_ share: Double, available: Double) {
-        navigation.setSplitShare(EditorPanes.clampedShare(share, availableWidth: available, minPaneWidth: EditorMetrics.paneMinWidth))
+        navigation.setSplitShare(clamped(share, available: available))
     }
 }

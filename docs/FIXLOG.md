@@ -94,3 +94,9 @@ Bugs found while building, with the rule each one taught.
 - Cause: `FileSystemVaultStore.walk` called `enumerator.skipDescendants()` for every hidden item. For a file, that call is not a no-op: the enumerator drops the Folder it was about to enter. `.gitkeep` came before `2026`'s contents, so everything below `2026` was lost. Any Vault with `.DS_Store` or `.gitkeep` files could lose Folders this way. Separately, a Vault root that is a symbolic link listed nothing, because the enumerator does not enter a symbolic link given as its start.
 - Fix: call `skipDescendants()` only when the skipped item is a directory. The walk starts from the resolved root; paths were already matched against both forms.
 - Rule: call `skipDescendants()` only for a directory, and never rely on it for a file. Start a directory walk from the resolved path of its root.
+
+## 29/10/2026: the sidebar jumped sideways on every tick of a split-divider drag
+- Symptom: dragging the divider between two panes moved it well, but the sidebar column shifted horizontally on each move.
+- Cause: each drag tick called `NavigationService.setSplitShare`, which changes `panes`. `VaultScreen.body` reads `navigation.panes.isSplit`, so it observes `panes` as a whole and re-ran on every tick, rebuilding the `NavigationSplitView` (sidebar, its column width, the inspector) and saving the window state. A scripted run of 20 share changes evaluated `VaultScreen.body` and the sidebar 20 times each.
+- Fix: `SplitPanesView` keeps the live share in `@State` while dragging and writes it to `NavigationService` once, when the drag ends. Only `SplitPanesView` re-renders during the drag.
+- Rule: state that changes on every tick of a gesture stays in `@State` of the view that draws it, and is committed to a service on gesture end. Never publish it from a service that a parent screen observes.
