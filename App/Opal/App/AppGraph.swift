@@ -37,7 +37,7 @@ struct AppGraph {
                 try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
             },
             recents: UserDefaultsRecentNotesStore(defaults: defaults),
-            settingsStore: UserDefaultsSettingsStore(defaults: defaults),
+            settings: SettingsService(store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock()),
             clock: SystemClock()
         )
         self.launchRequest = launchRequest

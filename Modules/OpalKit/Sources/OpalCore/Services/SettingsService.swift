@@ -14,43 +14,63 @@ public final class SettingsService {
     // MARK: - State
 
     public var settings: OpalSettings {
-        get { vault.opalSettings }
-        set {
-            guard newValue != vault.opalSettings else {
+        didSet {
+            guard settings != oldValue else {
                 return
             }
 
-            vault.opalSettings = newValue
-            store.setSettings(newValue)
+            for vault in vaults {
+                vault.opalSettings = settings
+            }
+            store.setSettings(settings)
         }
     }
 
+    public private(set) var activeVault: VaultService?
+
     public var vaultSettings: VaultSettings {
-        vault.vaultSettings
+        activeVault?.vaultSettings ?? VaultSettings()
     }
 
     public var isVaultOpen: Bool {
-        vault.isOpen
+        activeVault?.isOpen == true
     }
 
     // MARK: - Private
 
-    private let vault: VaultService
     private let store: any SettingsStoring
     private let clock: any Clocking
+    private var vaults: [VaultService] = []
 
     // MARK: - Init
 
-    public init(vault: VaultService, store: any SettingsStoring, clock: any Clocking) {
-        self.vault = vault
+    public init(store: any SettingsStoring, clock: any Clocking) {
         self.store = store
         self.clock = clock
+        settings = store.settings()
     }
 
-    // MARK: - Intent
+    // MARK: - Vaults
 
-    public func load() {
-        vault.opalSettings = store.settings()
+    public func attach(_ vault: VaultService) {
+        vault.opalSettings = settings
+        if vaults.contains(where: { $0 === vault }) == false {
+            vaults.append(vault)
+        }
+        activeVault = vault
+    }
+
+    public func activate(_ vault: VaultService) {
+        if vaults.contains(where: { $0 === vault }) {
+            activeVault = vault
+        }
+    }
+
+    public func detach(_ vault: VaultService) {
+        vaults.removeAll { $0 === vault }
+        if activeVault === vault {
+            activeVault = vaults.last
+        }
     }
 
     // MARK: - Reads

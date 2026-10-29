@@ -15,11 +15,9 @@ struct SettingsServiceTests {
     // MARK: - Helpers
 
     private static func setUp(_ vault: FixtureVault, store: StubSettingsStore) async -> (ServiceHarness, SettingsService) {
-        let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL))
-        let service = SettingsService(vault: harness.vault, store: store, clock: ServiceHarness.clock)
-        service.load()
+        let harness = ServiceHarness(store: FileSystemVaultStore(rootURL: vault.rootURL), settingsStore: store)
         await harness.openVault()
-        return (harness, service)
+        return (harness, harness.graph.settings)
     }
 
     private static var mine: OpalSettings {
@@ -102,5 +100,24 @@ struct SettingsServiceTests {
 
         #expect(service.dailyNotePreview(format: "YYYY-MM-DD") == "2026-10-26")
         #expect(service.dailyNotePreview(format: "") == "2026-10-26")
+    }
+
+    @Test("one change reaches every attached Vault, and the active Vault's Obsidian settings are shown")
+    func reachesEveryVault() {
+        let service = SettingsService(store: StubSettingsStore(), clock: ServiceHarness.clock)
+        let first = ServiceHarness(store: StubVaultFileStore()).vault
+        let second = ServiceHarness(store: StubVaultFileStore()).vault
+        service.attach(first)
+        service.attach(second)
+
+        service.settings.linkUpdate = .never
+
+        #expect(first.linkUpdate == .never)
+        #expect(second.linkUpdate == .never)
+        #expect(service.activeVault === second)
+        service.activate(first)
+        #expect(service.activeVault === first)
+        service.detach(first)
+        #expect(service.activeVault === second)
     }
 }

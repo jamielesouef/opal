@@ -30,7 +30,7 @@ public final class ServiceGraph {
         vault: VaultService,
         makeIndex: @escaping @Sendable (URL) throws(IndexError) -> any IndexStoring,
         recents: any RecentNotesStoring,
-        settingsStore: any SettingsStoring,
+        settings: SettingsService,
         clock: any Clocking,
         saveDelay: Duration = .milliseconds(800)
     ) {
@@ -49,8 +49,8 @@ public final class ServiceGraph {
         dailyNotes = DailyNoteService(vault: vault, links: links, navigation: navigation, clock: clock)
         templates = TemplateService(vault: vault, notes: notes, clock: clock)
         renames = RenameService(vault: vault, links: links, notes: notes, navigation: navigation)
-        settings = SettingsService(vault: vault, store: settingsStore, clock: clock)
-        settings.load()
+        self.settings = settings
+        settings.attach(vault)
         vault.onExternalChange = { [index, links, notes] paths in
             await index.update(paths)
             await links.refresh(paths)

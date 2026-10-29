@@ -37,7 +37,8 @@ struct ServiceHarness {
         access: StubVaultAccess = StubVaultAccess(),
         locations: StubVaultLocationStore = StubVaultLocationStore(),
         launchVaultURL: URL? = nil,
-        makeWatcher: (@Sendable (URL) -> any VaultWatching)? = nil
+        makeWatcher: (@Sendable (URL) -> any VaultWatching)? = nil,
+        settingsStore: StubSettingsStore = StubSettingsStore()
     ) {
         self.store = store
         self.locations = locations
@@ -50,7 +51,7 @@ struct ServiceHarness {
                 try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
             },
             recents: recents,
-            settingsStore: StubSettingsStore(),
+            settings: SettingsService(store: settingsStore, clock: Self.clock),
             clock: Self.clock,
             saveDelay: .seconds(3600)
         )
