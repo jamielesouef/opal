@@ -16,6 +16,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | **M4 — Rich Editor** (built 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | **M5 — Daily work** (built 29/10/2026) | Daily Notes, Templates, rename and move with Link updates, delete, Command Palette, tabs and split view, Settings, windows | M5-01 … M5-12 |
 | **M6 — Polish** (built 29/10/2026) | The app icon and one design system, the gaps left by M5 (split divider, restoring layout, Reading view font, recent Vaults), and the Editor and Property items from Later | M6-01 … M6-09 |
+| M7 — Gaps (stories written 29/10/2026) | Close the gaps M6 left: the split at the default window size, folding the YAML again, Vault-wide Property types in the form, short folder paths for recent Vaults | M7-01 … M7-04 |
 
 Out of scope for v1: Graph, Canvas, plugins, sync, publishing, iOS and iPadOS, collaboration.
 
@@ -593,6 +594,43 @@ Acceptance:
 - [unit] Search understands `[status:draft]`, `[status]` (has the Property) and `-[status:done]`, combined with words and `tag:`, and matches list values item by item.
 - [snap] Search for `[difficulty:easy]` in `Garden` lists `Gardening Basics`.
 Status: done (29/10/2026; `GRDBIndexStoreTests`, `PropertyIndexUseCaseTests`, `SearchUseCaseTests`, `SearchServiceTests`, `opal-m6-09-search.png`). The Index (schema 6, so an older Index is rebuilt from the files) keeps one `note_properties` row per Property item, with the type inferred from the value and folded copies of the name and item for matching; the store derives the rows from the Note's text, so `IndexService` is untouched. `propertyTypes(declared:)` gives one type per name: the `.obsidian/types.json` type, else the most common across Notes (ties go to the first of `PropertyType.allCases`). `[name:value]` matches Notes with a Property of that name (any case) having a value or list item that contains the text, ignoring case and accents, like `path:` and `file:`; `[name]` means has the Property; a leading `-` negates; a negated filter alone is a search. Results show the matching frontmatter line with the value marked. The Property panel still infers a type per Note: showing the Vault-wide type there is not wired yet. Typing the query in the running app is [manual] and yours to check.
+
+## M7 — Gaps
+
+What M6 left open, from its status notes and the M6 architecture review. UX notes are added by `improve-loop` before each story is built.
+
+### M7-01 Split at the default window size
+As a user with a default-size window, I want to drag the split divider without first closing the sidebar or the Inspector.
+Depends: M6-03
+Acceptance:
+- [snap] At the default 1,100-point window with the sidebar and Inspector open, two panes fit at 280 points each with room to drag, and nothing is clipped.
+- [unit] When the Notes column is narrower than two minimum panes, the panes still share it without clipping either one.
+Status: todo
+
+### M7-02 Fold the YAML again
+As a user who chose Edit as YAML, I want to fold the frontmatter back into the "Properties" line when I am done.
+Depends: M6-08
+Acceptance:
+- [snap] While the frontmatter is unfolded, the Properties form offers Hide YAML, and the Editor folds the lines again.
+- [unit] Folding again never changes the text, and the cursor, if it was inside the frontmatter, moves to the start of the body.
+Status: todo
+
+### M7-03 Vault-wide Property types in the form
+As a user, I want the Properties form to show each Property with the type it has across the Vault, not one guessed from this Note alone.
+Depends: M6-09
+Acceptance:
+- [unit] The form takes each Property's type from the Index's Vault-wide types (`.obsidian/types.json` first, else the most common type), and falls back to the Note's own value when the Index is not ready.
+- [unit] When the Index changes, the open form updates its types.
+- [snap] A Note whose `rating` is text, in a Vault where `rating` is a number in most Notes, shows `rating` as a number.
+Status: todo
+
+### M7-04 Short folder paths for recent Vaults
+As a user, I want each recent Vault's folder to read the way Finder shows it, not as a long path.
+Depends: M6-06
+Acceptance:
+- [unit] A folder in the home folder shows as `~/…`. A long path is shortened in the middle, never cut at the end.
+- [snap] The Welcome view and File › Open Recent show the short form.
+Status: todo
 
 ## Later
 
