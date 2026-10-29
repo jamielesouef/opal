@@ -198,6 +198,7 @@ struct NoteScreen: View {
                 properties(of: document)
             }
         }
+        .environment(\.editorStyle, style)
         .task(id: ReadingKey(path: note.path, revision: document.revision)) {
             readingBlocks = await links.readingBlocks(of: note.path, text: note.text)
         }

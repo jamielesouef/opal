@@ -10,6 +10,10 @@ import OpalDesign
 import SwiftUI
 
 struct ReadingBlockView: View {
+    // MARK: - Environment
+
+    @Environment(\.editorStyle) private var style
+
     // MARK: - Input
 
     let block: ReadingBlock
@@ -22,7 +26,7 @@ struct ReadingBlockView: View {
         switch block.kind {
         case let .heading(level, text):
             Text(ReadingText.attributed(text))
-                .font(.system(size: EditorMetrics.fontSize * scale(level), weight: .bold))
+                .font(Font(style.font(scale: EditorMetrics.headingScale(level: level), weight: .bold)))
                 .padding(.top, AppSpacing.small)
                 .accessibilityAddTraits(.isHeader)
         case let .paragraph(text):
@@ -60,7 +64,7 @@ struct ReadingBlockView: View {
         case let .code(language, text):
             ScrollView(.horizontal) {
                 Text(ReadingText.code(text, language: language))
-                    .font(.system(size: EditorMetrics.fontSize * EditorMetrics.codeScale, design: .monospaced))
+                    .font(style.readingCodeFont)
                     .padding(AppSpacing.medium)
             }
             .background(AppColor.codeFill, in: RoundedRectangle(cornerRadius: AppRadius.row))
@@ -98,7 +102,7 @@ struct ReadingBlockView: View {
                 } icon: {
                     Image(systemName: CalloutStyle.systemImage(for: type))
                 }
-                .font(.body.bold())
+                .font(Font(style.font(weight: .bold)))
                 .foregroundStyle(AppColor.accent)
                 lineStack(lines)
             }
@@ -132,9 +136,5 @@ struct ReadingBlockView: View {
             }
         }
         .overlay(RoundedRectangle(cornerRadius: AppRadius.row).stroke(.separator))
-    }
-
-    private func scale(_ level: Int) -> CGFloat {
-        EditorMetrics.headingScales[min(max(level, 1), EditorMetrics.headingScales.count) - 1]
     }
 }

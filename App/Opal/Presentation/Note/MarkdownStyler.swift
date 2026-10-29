@@ -117,7 +117,7 @@ enum MarkdownStyler {
     private static func style(_ kind: TextStyleKind, range: NSRange, in storage: NSMutableAttributedString, isActive: Bool, editorStyle: EditorStyle) {
         switch kind {
         case let .heading(level):
-            let scale = EditorMetrics.headingScales[min(max(level, 1), EditorMetrics.headingScales.count) - 1]
+            let scale = EditorMetrics.headingScale(level: level)
             storage.addAttribute(.font, value: editorStyle.font(scale: scale, weight: .bold), range: range)
         case .bold:
             addTrait(.boldFontMask, range: range, in: storage, base: editorStyle.font())

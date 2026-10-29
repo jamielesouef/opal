@@ -7,6 +7,7 @@
 
 import AppKit
 import OpalDesign
+import SwiftUI
 
 struct EditorStyle: Hashable {
     // MARK: - Defaults
@@ -34,6 +35,20 @@ struct EditorStyle: Hashable {
 
     var codeFont: NSFont {
         .monospacedSystemFont(ofSize: size * EditorMetrics.codeScale, weight: .regular)
+    }
+
+    // MARK: - Reading view
+
+    var readingFont: Font {
+        Font(font())
+    }
+
+    var readingCodeFont: Font {
+        Font(codeFont)
+    }
+
+    var lineHeight: CGFloat {
+        NSLayoutManager().defaultLineHeight(for: font()) * lineSpacing
     }
 
     // MARK: - Paragraphs

@@ -39,4 +39,13 @@ struct DesignTokenTests {
     func paneMinimum() {
         #expect(EditorMetrics.paneMinWidth * 2 < EditorMetrics.windowDefaultWidth)
     }
+
+    @Test("headings shrink with their level and clamp outside 1 to 6")
+    func headingScale() {
+        let scales = (1 ... 6).map { EditorMetrics.headingScale(level: $0) }
+        #expect(scales == scales.sorted(by: >))
+        #expect(EditorMetrics.headingScale(level: 0) == scales[0])
+        #expect(EditorMetrics.headingScale(level: 9) == scales[5])
+        #expect(scales[5] == 1)
+    }
 }

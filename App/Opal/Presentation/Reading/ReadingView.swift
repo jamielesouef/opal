@@ -10,6 +10,10 @@ import OpalDesign
 import SwiftUI
 
 struct ReadingView: View {
+    // MARK: - Environment
+
+    @Environment(\.editorStyle) private var style
+
     // MARK: - Input
 
     let source: NotePath
@@ -35,8 +39,11 @@ struct ReadingView: View {
             }
             .scrollTargetLayout()
             .textSelection(.enabled)
-            .font(.system(size: EditorMetrics.fontSize))
+            .font(style.readingFont)
+            .lineHeight(.exact(points: style.lineHeight))
+            .frame(maxWidth: style.lineWidth > 0 ? style.lineWidth : .infinity)
             .padding(EditorMetrics.textInset)
+            .frame(maxWidth: .infinity)
         }
         .scrollPosition(id: $position, anchor: .top)
         .tint(.accentColor)

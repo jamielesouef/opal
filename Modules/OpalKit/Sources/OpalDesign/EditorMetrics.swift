@@ -44,4 +44,10 @@ public enum EditorMetrics {
     public static let windowMinHeight: CGFloat = 420
     public static let windowDefaultWidth: CGFloat = 1100
     public static let windowDefaultHeight: CGFloat = 720
+
+    // MARK: - Derived
+
+    public static func headingScale(level: Int) -> CGFloat {
+        headingScales[min(max(level, 1), headingScales.count) - 1]
+    }
 }
