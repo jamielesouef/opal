@@ -62,6 +62,20 @@ struct SearchServiceTests {
         #expect(await Self.names(#""matter organic""#, in: vault).isEmpty)
     }
 
+    @Test("[property:value] finds the Notes whose Property has the value, with the line shown")
+    func property() async throws {
+        let vault = try FixtureVault()
+        defer { vault.remove() }
+
+        let results = await Self.results("[difficulty:easy]", in: vault)
+
+        #expect(results.map(\.path.name) == ["Gardening Basics"])
+        #expect(results.first?.lines.first?.text == "difficulty: easy")
+        #expect(await Self.names("[difficulty:hard]", in: vault).isEmpty)
+        #expect(Set(await Self.names("[planted]", in: vault)) == ["Tomatoes"])
+        #expect(await Self.names("-[difficulty] [planted] tag:garden", in: vault) == ["Tomatoes"])
+    }
+
     @Test("tag: finds the Tag and its children, from the body and the tags Property")
     func tag() async throws {
         let vault = try FixtureVault()

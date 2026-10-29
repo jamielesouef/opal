@@ -30,7 +30,9 @@ public enum SearchQueryUseCase {
 
     private static func apply(_ word: String, to query: inout SearchQuery) {
         let lower = word.lowercased()
-        if lower.hasPrefix("path:"), word.count > 5 {
+        if let filter = propertyFilter(word) {
+            query.properties.append(filter)
+        } else if lower.hasPrefix("path:"), word.count > 5 {
             query.paths.append(unquoted(String(word.dropFirst(5))))
         } else if lower.hasPrefix("file:"), word.count > 5 {
             query.files.append(unquoted(String(word.dropFirst(5))))
@@ -42,6 +44,23 @@ public enum SearchQueryUseCase {
         } else {
             query.words.append(word)
         }
+    }
+
+    private static func propertyFilter(_ word: String) -> PropertyFilter? {
+        let isExcluded = word.hasPrefix("-[")
+        let bracketed = isExcluded ? String(word.dropFirst()) : word
+        guard bracketed.hasPrefix("["), bracketed.hasSuffix("]"), bracketed.hasPrefix("[[") == false else {
+            return nil
+        }
+
+        let inner = bracketed.dropFirst().dropLast()
+        let parts = inner.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        guard let name = parts.first?.trimmingCharacters(in: .whitespaces), name.isEmpty == false, name.contains("[") == false else {
+            return nil
+        }
+
+        let value = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces) : ""
+        return PropertyFilter(name: name, value: value.isEmpty ? nil : value, isExcluded: isExcluded)
     }
 
     private static func tokens(in text: String) -> [Token] {

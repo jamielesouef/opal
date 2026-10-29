@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import GRDB
 import Testing
 @testable import OpalCore
 
@@ -87,5 +88,82 @@ struct GRDBIndexStoreTests {
         try await store.upsert([Self.note("Soil.md", "# Soil\n\nGood soil.\n")])
 
         _ = try await store.search(SearchQueryUseCase.parse(text), limit: 10)
+    }
+
+    // MARK: - Properties
+
+    private static func names(_ text: String, in store: GRDBIndexStore) async throws -> [String] {
+        try await store.search(SearchQueryUseCase.parse(text), limit: 10).map(\.path.name)
+    }
+
+    @Test("finds Notes by Property: value, presence, absence and list items, ignoring case")
+    func propertySearch() async throws {
+        let folder = Self.folder()
+        defer { try? FileManager().removeItem(at: folder) }
+        let store = try GRDBIndexStore(folderURL: folder)
+        try await store.upsert([
+            Self.note("A.md", "---\nstatus: Draft\ntags: [garden, howto]\n---\nSoil here."),
+            Self.note("B.md", "---\nstatus: done\n---\nSoil there."),
+            Self.note("C.md", "Soil bare.")
+        ])
+
+        #expect(try await Self.names("[status:draft]", in: store) == ["A"])
+        #expect(try await Self.names("[STATUS]", in: store) == ["A", "B"])
+        #expect(try await Self.names("-[status:done]", in: store) == ["A", "C"])
+        #expect(try await Self.names("-[status]", in: store) == ["C"])
+        #expect(try await Self.names("[tags:howto]", in: store) == ["A"])
+        #expect(try await Self.names("[tags:how] soil", in: store) == ["A"])
+        #expect(try await Self.names("[status:dra] tag:garden", in: store) == ["A"])
+        #expect(try await Self.names("[status:draft] [tags:nope]", in: store).isEmpty)
+    }
+
+    @Test("an edit replaces a Note's Properties and a remove drops them")
+    func propertyReplace() async throws {
+        let folder = Self.folder()
+        defer { try? FileManager().removeItem(at: folder) }
+        let store = try GRDBIndexStore(folderURL: folder)
+        try await store.upsert([Self.note("A.md", "---\nstatus: draft\n---\n")])
+        try await store.upsert([Self.note("A.md", "---\nstatus: done\n---\n", seconds: 2)])
+
+        #expect(try await Self.names("[status:draft]", in: store).isEmpty)
+        #expect(try await Self.names("[status:done]", in: store) == ["A"])
+
+        try await store.remove([NotePath("A.md")])
+        #expect(try await store.propertyTypes(declared: [:]).isEmpty)
+    }
+
+    @Test("a name used with two types shows the declared type, or else the most common")
+    func propertyTypes() async throws {
+        let folder = Self.folder()
+        defer { try? FileManager().removeItem(at: folder) }
+        let store = try GRDBIndexStore(folderURL: folder)
+        try await store.upsert([
+            Self.note("A.md", "---\nrating: 4\n---\n"),
+            Self.note("B.md", "---\nrating: 5\n---\n"),
+            Self.note("C.md", "---\nrating: great\nplanted: 2026-03-14\n---\n")
+        ])
+
+        let common = try await store.propertyTypes(declared: [:])
+        let declared = try await store.propertyTypes(declared: ["rating": .text])
+
+        #expect(common == ["rating": .number, "planted": .date])
+        #expect(declared == ["rating": .text, "planted": .date])
+    }
+
+    @Test("an Index from an older schema is rebuilt empty and then fills with Properties")
+    func olderSchema() async throws {
+        let folder = Self.folder()
+        defer { try? FileManager().removeItem(at: folder) }
+        try FileManager().createDirectory(at: folder, withIntermediateDirectories: true)
+        let old = try DatabaseQueue(path: folder.appending(component: "index.sqlite").path)
+        try await old.write { db in
+            try db.execute(sql: "CREATE TABLE notes (id INTEGER PRIMARY KEY); PRAGMA user_version = \(GRDBIndexStore.schemaVersion - 1);")
+        }
+        try old.close()
+
+        let store = try GRDBIndexStore(folderURL: folder)
+        try await store.upsert([Self.note("A.md", "---\nstatus: draft\n---\n")])
+
+        #expect(try await Self.names("[status:draft]", in: store) == ["A"])
     }
 }

@@ -11,7 +11,7 @@ import GRDB
 public final class GRDBIndexStore: IndexStoring {
     // MARK: - Constants
 
-    public static let schemaVersion = 5
+    public static let schemaVersion = 6
 
     private enum Constants {
         static let fileName = "index.sqlite"
@@ -106,6 +106,15 @@ public final class GRDBIndexStore: IndexStoring {
                         sql: "INSERT INTO notes_fts (rowid, name, body) VALUES (?, ?, ?)",
                         arguments: [id, note.path.name, note.text]
                     )
+                    try db.execute(sql: "DELETE FROM note_properties WHERE note_id = ?", arguments: [id])
+                    for property in PropertyIndexUseCase.properties(in: note.text) {
+                        for item in property.items.isEmpty ? [""] : property.items {
+                            try db.execute(
+                                sql: "INSERT INTO note_properties (note_id, name, key, type, item, folded) VALUES (?, ?, ?, ?, ?, ?)",
+                                arguments: [id, property.name, FTSQueryBuilder.folded(property.name), property.type.rawValue, item, FTSQueryBuilder.folded(item)]
+                            )
+                        }
+                    }
                 }
             }
         } catch {
@@ -126,6 +135,7 @@ public final class GRDBIndexStore: IndexStoring {
                         continue
                     }
                     try db.execute(sql: "DELETE FROM notes_fts WHERE rowid = ?", arguments: [id])
+                    try db.execute(sql: "DELETE FROM note_properties WHERE note_id = ?", arguments: [id])
                     try db.execute(sql: "DELETE FROM notes WHERE id = ?", arguments: [id])
                 }
             }
@@ -144,6 +154,26 @@ public final class GRDBIndexStore: IndexStoring {
             }
         } catch {
             AppLog.error("Searching the Index failed: \(error)")
+            throw .readFailed
+        }
+    }
+
+    public func propertyTypes(declared: [String: PropertyType]) async throws(IndexError) -> [String: PropertyType] {
+        do {
+            let counts = try await queue.read { db in
+                var counts: [String: [PropertyType: Int]] = [:]
+                let rows = try Row.fetchAll(db, sql: """
+                SELECT name, type, COUNT(DISTINCT note_id) AS notes FROM note_properties GROUP BY name, type
+                """)
+                for row in rows {
+                    if let type = PropertyType(rawValue: row["type"] as String) {
+                        counts[row["name"] as String, default: [:]][type] = row["notes"] as Int
+                    }
+                }
+                return counts
+            }
+            return PropertyIndexUseCase.resolvedTypes(counts: counts, declared: declared)
+        } catch {
             throw .readFailed
         }
     }
@@ -170,6 +200,15 @@ public final class GRDBIndexStore: IndexStoring {
             conditions.append("(notes.tags LIKE ? ESCAPE '\\' OR notes.tags LIKE ? ESCAPE '\\')")
             arguments.append(patterns.exact)
             arguments.append(patterns.child)
+        }
+        for filter in query.properties {
+            var condition = "SELECT 1 FROM note_properties WHERE note_properties.note_id = notes.id AND note_properties.key = ?"
+            arguments.append(FTSQueryBuilder.folded(filter.name))
+            if let value = filter.value {
+                condition += " AND note_properties.folded LIKE ? ESCAPE '\\'"
+                arguments.append(FTSQueryBuilder.likePattern(containing: FTSQueryBuilder.folded(value)))
+            }
+            conditions.append((filter.isExcluded ? "NOT EXISTS (" : "EXISTS (") + condition + ")")
         }
         let order = query.hasTextTerms ? "bm25(notes_fts, 5.0, 1.0)" : "notes.path"
         let filter = conditions.isEmpty ? "1" : conditions.joined(separator: " AND ")
@@ -208,6 +247,16 @@ public final class GRDBIndexStore: IndexStoring {
                 parsed BLOB NOT NULL,
                 tags TEXT NOT NULL DEFAULT ' '
             );
+            CREATE TABLE note_properties (
+                note_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                key TEXT NOT NULL,
+                type TEXT NOT NULL,
+                item TEXT NOT NULL,
+                folded TEXT NOT NULL
+            );
+            CREATE INDEX note_properties_note ON note_properties (note_id);
+            CREATE INDEX note_properties_key ON note_properties (key);
             CREATE VIRTUAL TABLE notes_fts USING fts5(name, body, tokenize = 'unicode61 remove_diacritics 2');
             PRAGMA user_version = \(schemaVersion);
             """)

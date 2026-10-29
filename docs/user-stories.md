@@ -592,7 +592,7 @@ Acceptance:
 - [unit] The Index keeps each Note's Properties; a name used with two types shows the type from `.obsidian/types.json`, or else the most common one.
 - [unit] Search understands `[status:draft]`, `[status]` (has the Property) and `-[status:done]`, combined with words and `tag:`, and matches list values item by item.
 - [snap] Search for `[difficulty:easy]` in `Garden` lists `Gardening Basics`.
-Status: todo
+Status: done (29/10/2026; `GRDBIndexStoreTests`, `PropertyIndexUseCaseTests`, `SearchUseCaseTests`, `SearchServiceTests`, `opal-m6-09-search.png`). The Index (schema 6, so an older Index is rebuilt from the files) keeps one `note_properties` row per Property item, with the type inferred from the value and folded copies of the name and item for matching; the store derives the rows from the Note's text, so `IndexService` is untouched. `propertyTypes(declared:)` gives one type per name: the `.obsidian/types.json` type, else the most common across Notes (ties go to the first of `PropertyType.allCases`). `[name:value]` matches Notes with a Property of that name (any case) having a value or list item that contains the text, ignoring case and accents, like `path:` and `file:`; `[name]` means has the Property; a leading `-` negates; a negated filter alone is a search. Results show the matching frontmatter line with the value marked. The Property panel still infers a type per Note: showing the Vault-wide type there is not wired yet. Typing the query in the running app is [manual] and yours to check.
 
 ## Later
 

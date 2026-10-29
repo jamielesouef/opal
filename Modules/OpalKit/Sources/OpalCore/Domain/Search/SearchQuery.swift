@@ -14,6 +14,7 @@ public struct SearchQuery: Hashable, Sendable {
     public var paths: [String] = []
     public var files: [String] = []
     public var tags: [String] = []
+    public var properties: [PropertyFilter] = []
 
     // MARK: - Init
 
@@ -23,7 +24,8 @@ public struct SearchQuery: Hashable, Sendable {
         excluded: [String] = [],
         paths: [String] = [],
         files: [String] = [],
-        tags: [String] = []
+        tags: [String] = [],
+        properties: [PropertyFilter] = []
     ) {
         self.words = words
         self.phrases = phrases
@@ -31,12 +33,13 @@ public struct SearchQuery: Hashable, Sendable {
         self.paths = paths
         self.files = files
         self.tags = tags
+        self.properties = properties
     }
 
     // MARK: - Derived
 
     public var isEmpty: Bool {
-        words.isEmpty && phrases.isEmpty && paths.isEmpty && files.isEmpty && tags.isEmpty
+        words.isEmpty && phrases.isEmpty && paths.isEmpty && files.isEmpty && tags.isEmpty && properties.isEmpty
     }
 
     public var hasTextTerms: Bool {

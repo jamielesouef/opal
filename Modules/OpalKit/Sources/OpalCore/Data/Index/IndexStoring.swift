@@ -10,5 +10,6 @@ public protocol IndexStoring: Sendable {
     func parsedNotes() async throws(IndexError) -> [NotePath: ParsedNote]
     func upsert(_ notes: [IndexedNote]) async throws(IndexError)
     func remove(_ paths: [NotePath]) async throws(IndexError)
+    func propertyTypes(declared: [String: PropertyType]) async throws(IndexError) -> [String: PropertyType]
     func search(_ query: SearchQuery, limit: Int) async throws(IndexError) -> [SearchHit]
 }

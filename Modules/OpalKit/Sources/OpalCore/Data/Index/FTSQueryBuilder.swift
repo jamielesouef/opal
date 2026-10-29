@@ -5,6 +5,8 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
+import Foundation
+
 enum FTSQueryBuilder {
     // MARK: - Match
 
@@ -35,6 +37,10 @@ enum FTSQueryBuilder {
 
     static func tagColumn(for tags: [String]) -> String {
         " " + tags.map { $0.lowercased() }.joined(separator: " ") + " "
+    }
+
+    static func folded(_ value: String) -> String {
+        value.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
     }
 
     // MARK: - Private

@@ -19,7 +19,7 @@ public enum SearchSnippetUseCase {
 
     public static func result(for path: NotePath, text: String, query: SearchQuery) -> SearchResult {
         let terms = query.highlightTerms.filter { $0.isEmpty == false }
-        let frontmatterTerms = terms + query.tags
+        let frontmatterTerms = terms + query.tags + query.properties.compactMap { $0.isExcluded ? nil : $0.value }
         let rawLines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         let frontmatterEnd = frontmatterLineCount(rawLines)
         var lines: [SearchLine] = []

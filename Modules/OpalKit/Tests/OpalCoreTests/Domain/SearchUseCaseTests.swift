@@ -25,6 +25,25 @@ struct SearchUseCaseTests {
         #expect(query.tags == ["garden/harvest"])
     }
 
+    @Test("reads [name:value], [name] and -[name:value] beside words and tags")
+    func parseProperties() {
+        let query = SearchQueryUseCase.parse(#"soil [status:draft] [Due] -[status:done] [kind:"to do"] tag:#garden [[Soil]] [a:b"#)
+
+        #expect(query.properties == [
+            PropertyFilter(name: "status", value: "draft"),
+            PropertyFilter(name: "Due"),
+            PropertyFilter(name: "status", value: "done", isExcluded: true),
+            PropertyFilter(name: "kind", value: "to do")
+        ])
+        #expect(query.words == ["soil", "[[Soil]]", "[a:b"])
+        #expect(query.tags == ["garden"])
+    }
+
+    @Test("a property filter alone is a query")
+    func propertyOnly() {
+        #expect(SearchQueryUseCase.parse("-[status:done]").isEmpty == false)
+    }
+
     @Test("an empty or blank query is empty", arguments: ["", "   ", "-x"])
     func empty(text: String) {
         #expect(SearchQueryUseCase.parse(text).isEmpty)
