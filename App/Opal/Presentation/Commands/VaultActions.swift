@@ -28,6 +28,15 @@ enum VaultActions {
         await open(WaitingVault(folderURL: url, isNew: true), graph: graph, windowID: windowID, windows: windows, openWindow: openWindow)
     }
 
+    static func openRecent(_ recent: RecentVault, recents: RecentVaultsService, graph: ServiceGraph, windowID: UUID?, windows: WindowRegistry, openWindow: (UUID) -> Void) async {
+        await recents.load()
+        guard let chosen = recents.vaults.first(where: { $0.id == recent.id }), chosen.isMissing == false else {
+            return
+        }
+
+        await open(WaitingVault(folderURL: chosen.folderURL, isNew: false), graph: graph, windowID: windowID, windows: windows, openWindow: openWindow)
+    }
+
     static func open(_ waiting: WaitingVault, in graph: ServiceGraph) async {
         await graph.notes.close()
         if waiting.isNew {

@@ -10,4 +10,6 @@ import Foundation
 public protocol VaultLocationStoring: Sendable {
     func lastVaultBookmark() async -> Data?
     func setLastVaultBookmark(_ bookmark: Data?) async
+    func recentVaults() async -> [RecentVaultRecord]
+    func setRecentVaults(_ records: [RecentVaultRecord]) async
 }

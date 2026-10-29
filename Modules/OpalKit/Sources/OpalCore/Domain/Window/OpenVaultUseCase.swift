@@ -19,9 +19,9 @@ public enum OpenVaultUseCase {
         return roots[window] == nil ? .openHere : .openInNewWindow
     }
 
-    // MARK: - Private
+    // MARK: - Paths
 
-    private static func normalized(_ url: URL) -> String {
+    static func normalized(_ url: URL) -> String {
         url.standardizedFileURL.resolvingSymlinksInPath().path(percentEncoded: false).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 }

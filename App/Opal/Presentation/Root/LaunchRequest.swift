@@ -5,6 +5,7 @@
 //  Created by Jamie Le Souef on 28/10/2026.
 //
 
+import Foundation
 import OpalCore
 
 struct LaunchRequest {
@@ -28,4 +29,5 @@ struct LaunchRequest {
     var hidesInspector = false
     var settingsTab: String?
     var opensNewWindow = false
+    var recentVaults: [URL] = []
 }

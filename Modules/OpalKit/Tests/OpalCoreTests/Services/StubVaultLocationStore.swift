@@ -13,6 +13,7 @@ actor StubVaultLocationStore: VaultLocationStoring {
 
     private(set) var bookmark: Data?
     private(set) var setCount = 0
+    private(set) var recents: [RecentVaultRecord] = []
 
     // MARK: - Init
 
@@ -29,5 +30,13 @@ actor StubVaultLocationStore: VaultLocationStoring {
     func setLastVaultBookmark(_ bookmark: Data?) {
         setCount += 1
         self.bookmark = bookmark
+    }
+
+    func recentVaults() -> [RecentVaultRecord] {
+        recents
+    }
+
+    func setRecentVaults(_ records: [RecentVaultRecord]) {
+        recents = records
     }
 }

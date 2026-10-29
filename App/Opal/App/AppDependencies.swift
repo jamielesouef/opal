@@ -22,18 +22,22 @@ enum AppDependencies {
         let arguments = LaunchArguments(ProcessInfo.processInfo.arguments)
         let defaults = arguments.defaultsSuite.flatMap(UserDefaults.init(suiteName:)) ?? .standard
 
+        let recents = RecentVaultsService(access: SecurityScopedVaultAccess(), locations: UserDefaultsVaultLocationStore(defaults: defaults))
+
         return AppGraph(
             makeVault: { id, isFirst in
                 VaultService(
                     access: SecurityScopedVaultAccess(),
                     locations: UserDefaultsVaultLocationStore(defaults: defaults, windowID: id, fallsBackToLastVault: isFirst),
                     launchVaultURL: isFirst ? arguments.vaultURL : nil,
+                    recents: recents,
                     makeWatcher: { FSEventsVaultWatcher(rootURL: $0) },
                     makeStore: { FileSystemVaultStore(rootURL: $0) }
                 )
             },
             indexBaseURL: arguments.indexFolderURL ?? defaultIndexBaseURL(),
             defaults: defaults,
+            recents: recents,
             launchRequest: arguments.request,
             launchVaultURL: arguments.vaultURL,
             restoresState: arguments.restoresState,

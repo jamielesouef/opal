@@ -13,6 +13,7 @@
         // MARK: - Stored
 
         private var bookmark: Data?
+        private var recents: [RecentVaultRecord] = []
 
         // MARK: - VaultLocationStoring
 
@@ -22,6 +23,14 @@
 
         func setLastVaultBookmark(_ bookmark: Data?) {
             self.bookmark = bookmark
+        }
+
+        func recentVaults() -> [RecentVaultRecord] {
+            recents
+        }
+
+        func setRecentVaults(_ records: [RecentVaultRecord]) {
+            recents = records
         }
     }
 #endif

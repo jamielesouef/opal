@@ -30,6 +30,7 @@ struct OpalApp: App {
         .commands {
             OpalCommands(
                 windows: AppDependencies.shared.windows,
+                recents: AppDependencies.shared.recents,
                 placeholder: AppDependencies.shared.placeholder,
                 defaults: AppDependencies.shared.defaults
             )

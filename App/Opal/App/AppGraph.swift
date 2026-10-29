@@ -15,6 +15,7 @@ struct AppGraph {
     let windows: WindowRegistry
     let settings: SettingsService
     let placeholder: ServiceGraph
+    let recents: RecentVaultsService
 
     // MARK: - Launch
 
@@ -31,6 +32,7 @@ struct AppGraph {
         makeVault: @escaping @MainActor (_ windowID: UUID, _ isFirst: Bool) -> VaultService,
         indexBaseURL: URL,
         defaults: UserDefaults,
+        recents: RecentVaultsService,
         launchRequest: LaunchRequest = LaunchRequest(),
         launchVaultURL: URL? = nil,
         restoresState: Bool = true,
@@ -38,7 +40,7 @@ struct AppGraph {
         launchSnapshotURL: URL? = nil
     ) {
         let settings = SettingsService(store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock())
-        let recents = UserDefaultsRecentNotesStore(defaults: defaults)
+        let recentNotes = UserDefaultsRecentNotesStore(defaults: defaults)
         let windowStore = UserDefaultsWindowListStore(defaults: defaults)
         let makeGraph: @MainActor (VaultService, UUID) -> ServiceGraph = { vault, windowID in
             ServiceGraph(
@@ -46,7 +48,7 @@ struct AppGraph {
                 makeIndex: { root throws(IndexError) in
                     try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
                 },
-                recents: recents,
+                recents: recentNotes,
                 windowID: windowID,
                 windows: windowStore,
                 settings: settings,
@@ -54,6 +56,7 @@ struct AppGraph {
             )
         }
         self.settings = settings
+        self.recents = recents
         windows = WindowRegistry(store: windowStore) { id, isFirst in
             makeGraph(makeVault(id, isFirst), id)
         }

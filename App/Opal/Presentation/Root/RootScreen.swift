@@ -40,6 +40,10 @@ struct RootScreen: View {
                 }
             }
             .task {
+                await AppDependencies.shared.recents.load()
+                for url in launch.recentVaults {
+                    await AppDependencies.shared.recents.record(url)
+                }
                 await vault.start()
                 if let windowID, let waiting = AppDependencies.shared.windows.takeWaitingVault(for: windowID) {
                     await VaultActions.open(waiting, in: graph)
@@ -101,11 +105,17 @@ struct RootScreen: View {
     private var content: some View {
         switch vault.loadState {
         case let .closed(reason):
-            WelcomeView(message: reason?.message) {
+            let recents = AppDependencies.shared.recents
+            WelcomeView(message: reason?.message, recents: recents.vaults) {
                 Task { await VaultActions.openVault(graph: graph, windowID: windowID, windows: AppDependencies.shared.windows, openWindow: { openWindow(value: $0) }) }
             } onCreate: {
                 Task { await VaultActions.createVault(graph: graph, windowID: windowID, windows: AppDependencies.shared.windows, openWindow: { openWindow(value: $0) }) }
+            } onChoose: { recent in
+                Task { await VaultActions.openRecent(recent, recents: recents, graph: graph, windowID: windowID, windows: AppDependencies.shared.windows, openWindow: { openWindow(value: $0) }) }
+            } onRemove: { recent in
+                Task { await recents.remove(recent) }
             }
+            .task { await recents.load() }
         case .opening:
             ProgressView(String(localized: "Opening Vault…"))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

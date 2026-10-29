@@ -36,6 +36,7 @@ struct LaunchArguments {
         static let settings = "-OpalSettings"
         static let newWindow = "-OpalNewWindow"
         static let restoreState = "-OpalRestoreState"
+        static let recentVaults = "-OpalRecentVaults"
     }
 
     // MARK: - Stored
@@ -64,16 +65,19 @@ struct LaunchArguments {
     let settingsTab: String?
     let opensNewWindow: Bool
     let forcesRestore: Bool
+    let recentVaultURLs: [URL]
 
     // MARK: - Derived
 
     var request: LaunchRequest {
         #if DEBUG
             let typed = typeText
+            let recentVaults = recentVaultURLs
         #else
             let typed: String? = nil
+            let recentVaults: [URL] = []
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, splitShare: splitShare, hidesInspector: hidesInspector, settingsTab: settingsTab, opensNewWindow: opensNewWindow)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, splitShare: splitShare, hidesInspector: hidesInspector, settingsTab: settingsTab, opensNewWindow: opensNewWindow, recentVaults: recentVaults)
     }
 
     var restoresState: Bool {
@@ -112,6 +116,7 @@ struct LaunchArguments {
         extraTabs = (Self.value(after: Constants.tabs, in: arguments) ?? "").split(separator: ",").map { NotePath(String($0)) }
         opensNewWindow = arguments.contains(Constants.newWindow)
         forcesRestore = arguments.contains(Constants.restoreState)
+        recentVaultURLs = (Self.value(after: Constants.recentVaults, in: arguments) ?? "").split(separator: ",").map { URL(filePath: String($0), directoryHint: .isDirectory) }
         settingsTab = Self.value(after: Constants.settings, in: arguments)
         splitNote = Self.value(after: Constants.split, in: arguments).map(NotePath.init)
         splitShare = Self.value(after: Constants.splitShare, in: arguments).flatMap(Double.init)

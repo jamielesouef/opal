@@ -12,6 +12,7 @@ public final class UserDefaultsVaultLocationStore: VaultLocationStoring, @unchec
 
     private enum Constants {
         static let lastVaultBookmarkKey = "lastVaultBookmark"
+        static let recentVaultsKey = "recentVaults"
     }
 
     // MARK: - Private
@@ -42,5 +43,13 @@ public final class UserDefaultsVaultLocationStore: VaultLocationStoring, @unchec
 
     public func setLastVaultBookmark(_ bookmark: Data?) {
         defaults.set(bookmark, forKey: key)
+    }
+
+    public func recentVaults() -> [RecentVaultRecord] {
+        defaults.data(forKey: Constants.recentVaultsKey).flatMap { try? JSONDecoder().decode([RecentVaultRecord].self, from: $0) } ?? []
+    }
+
+    public func setRecentVaults(_ records: [RecentVaultRecord]) {
+        defaults.set(try? JSONEncoder().encode(records), forKey: Constants.recentVaultsKey)
     }
 }

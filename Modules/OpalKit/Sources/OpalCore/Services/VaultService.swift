@@ -67,6 +67,7 @@ public final class VaultService: SingleFlightRefreshing {
 
     private let access: any VaultAccessGranting
     private let locations: any VaultLocationStoring
+    private let recents: RecentVaultsService?
     private let launchVaultURL: URL?
     private let makeStore: @Sendable (URL) -> any VaultFileStoring
     private let makeWatcher: (@Sendable (URL) -> any VaultWatching)?
@@ -85,12 +86,14 @@ public final class VaultService: SingleFlightRefreshing {
         access: any VaultAccessGranting,
         locations: any VaultLocationStoring,
         launchVaultURL: URL?,
+        recents: RecentVaultsService? = nil,
         makeWatcher: (@Sendable (URL) -> any VaultWatching)? = nil,
         makeStore: @escaping @Sendable (URL) -> any VaultFileStoring
     ) {
         self.access = access
         self.locations = locations
         self.launchVaultURL = launchVaultURL
+        self.recents = recents
         self.makeWatcher = makeWatcher
         self.makeStore = makeStore
     }
@@ -104,7 +107,7 @@ public final class VaultService: SingleFlightRefreshing {
 
         hasStarted = true
         if let launchVaultURL {
-            await openVault(at: launchVaultURL, remember: false)
+            await openVault(at: launchVaultURL, remember: false, records: false)
         } else {
             await restoreLastVault()
         }
@@ -280,7 +283,7 @@ public final class VaultService: SingleFlightRefreshing {
         await openVault(at: resolved.folderURL, remember: resolved.isStale)
     }
 
-    private func openVault(at folderURL: URL, remember: Bool) async {
+    private func openVault(at folderURL: URL, remember: Bool, records: Bool = true) async {
         refreshTask?.cancel()
         closeCurrentVault()
         isOpening = true
@@ -325,6 +328,9 @@ public final class VaultService: SingleFlightRefreshing {
         apply(listed, tree: await Self.tree(from: listed))
         isOpening = false
         startWatching(folderURL)
+        if records {
+            await recents?.record(folderURL)
+        }
     }
 
     private func startWatching(_ folderURL: URL) {

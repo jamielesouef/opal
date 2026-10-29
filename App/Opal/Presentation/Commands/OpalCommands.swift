@@ -19,6 +19,7 @@ struct OpalCommands: Commands {
     // MARK: - Dependencies
 
     let windows: WindowRegistry
+    let recents: RecentVaultsService
     let placeholder: ServiceGraph
 
     // MARK: - Preferences
@@ -27,8 +28,9 @@ struct OpalCommands: Commands {
 
     // MARK: - Init
 
-    init(windows: WindowRegistry, placeholder: ServiceGraph, defaults: UserDefaults) {
+    init(windows: WindowRegistry, recents: RecentVaultsService, placeholder: ServiceGraph, defaults: UserDefaults) {
         self.windows = windows
+        self.recents = recents
         self.placeholder = placeholder
         _isLiveMarkdown = AppStorage(wrappedValue: true, EditorPreferences.liveMarkdownKey, store: defaults)
     }
@@ -66,6 +68,7 @@ struct OpalCommands: Commands {
             runner.button(.newFolder)
             Divider()
             runner.button(.openVault)
+            openRecentMenu
             runner.button(.createVault)
         }
 
@@ -106,6 +109,38 @@ struct OpalCommands: Commands {
             runner.button(.closeTab)
             runner.button(.save)
             runner.button(.reloadVault)
+        }
+    }
+
+    // MARK: - Open Recent
+
+    private var openRecentMenu: some View {
+        Menu(String(localized: "Open Recent")) {
+            ForEach(recents.vaults) { vault in
+                Button {
+                    openRecent(vault)
+                } label: {
+                    Text(vault.name)
+                    Text(vault.isMissing ? String(localized: "Folder not found") : vault.parentPath)
+                }
+                .disabled(vault.isMissing)
+            }
+            Divider()
+            Button(String(localized: "Clear Menu")) {
+                Task { await recents.clear() }
+            }
+            .disabled(recents.vaults.isEmpty)
+        }
+        .disabled(runner.isEnabled(.openVault) == false)
+    }
+
+    private func openRecent(_ vault: RecentVault) {
+        guard let focusedGraph, let windowID else {
+            return
+        }
+
+        Task {
+            await VaultActions.openRecent(vault, recents: recents, graph: focusedGraph, windowID: windowID, windows: windows, openWindow: { openWindow(value: $0) })
         }
     }
 }
