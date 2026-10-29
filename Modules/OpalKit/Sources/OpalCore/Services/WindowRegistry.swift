@@ -82,6 +82,20 @@ public final class WindowRegistry {
         waitingVaults.removeValue(forKey: id)
     }
 
+    // MARK: - Frames
+
+    public func savedFrame(for id: UUID) -> WindowFrame? {
+        store.windowState(for: id)?.frame
+    }
+
+    public func setFrame(_ frame: WindowFrame, for id: UUID) {
+        guard windowIDs.contains(id) else {
+            return
+        }
+
+        store.updateWindowState(for: id) { $0.frame = frame }
+    }
+
     // MARK: - Closing
 
     public func close(_ id: UUID) async {
@@ -98,6 +112,7 @@ public final class WindowRegistry {
         graph.settings.detach(graph.vault)
         windowIDs.removeAll { $0 == id }
         store.setWindowIDs(windowIDs)
+        store.setWindowState(nil, for: id)
     }
 
     public func flushAll() async {

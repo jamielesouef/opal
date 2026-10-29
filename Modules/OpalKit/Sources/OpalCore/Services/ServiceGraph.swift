@@ -30,6 +30,8 @@ public final class ServiceGraph {
         vault: VaultService,
         makeIndex: @escaping @Sendable (URL) throws(IndexError) -> any IndexStoring,
         recents: any RecentNotesStoring,
+        windowID: UUID,
+        windows: any WindowListStoring,
         settings: SettingsService,
         clock: any Clocking,
         saveDelay: Duration = .milliseconds(800)
@@ -37,7 +39,7 @@ public final class ServiceGraph {
         let index = IndexService(vault: vault, makeIndex: makeIndex)
         let links = LinkService(vault: vault, index: index)
         let notes = NoteService(vault: vault, links: links, index: index, clock: clock, saveDelay: saveDelay)
-        let navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents)
+        let navigation = NavigationService(vault: vault, notes: notes, links: links, recents: recents, windowID: windowID, windows: windows)
         self.vault = vault
         self.index = index
         self.links = links

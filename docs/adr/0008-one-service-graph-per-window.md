@@ -19,4 +19,4 @@ M5-12 asks for more than one window, each on its own Vault, with its own Index, 
 
 - Two windows never share Notes, an Index, a Link map, tabs or history. Every window builds its own Index store, keyed by the Vault, as one window does today.
 - `AppDependencies.shared` keeps only app-wide values: launch arguments, preferences, `SettingsService` and `WindowRegistry`. A view that is missing its window's graph falls back to an empty placeholder graph with no Vault, never to another window's graph.
-- SwiftUI's own window restoration is off, so window frames are not restored. Opal restores which windows were open and their Vaults.
+- SwiftUI's own window restoration is off. Opal restores which windows were open, their Vaults, and (M6-04) each window's panes, split share and frame, from `WindowState` saved per window id beside the window list.

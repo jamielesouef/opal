@@ -12,6 +12,7 @@ public final class UserDefaultsWindowListStore: WindowListStoring, @unchecked Se
 
     private enum Constants {
         static let key = "openWindows"
+        static let statePrefix = "windowState."
     }
 
     // MARK: - Private
@@ -32,5 +33,19 @@ public final class UserDefaultsWindowListStore: WindowListStoring, @unchecked Se
 
     public func setWindowIDs(_ ids: [UUID]) {
         defaults.set(ids.map(\.uuidString), forKey: Constants.key)
+    }
+
+    public func windowState(for id: UUID) -> WindowState? {
+        defaults.data(forKey: key(for: id)).flatMap { try? JSONDecoder().decode(WindowState.self, from: $0) }
+    }
+
+    public func setWindowState(_ state: WindowState?, for id: UUID) {
+        defaults.set(state.flatMap { try? JSONEncoder().encode($0) }, forKey: key(for: id))
+    }
+
+    // MARK: - Private
+
+    private func key(for id: UUID) -> String {
+        Constants.statePrefix + id.uuidString
     }
 }

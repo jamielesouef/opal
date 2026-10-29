@@ -36,6 +36,7 @@ enum AppDependencies {
             defaults: defaults,
             launchRequest: arguments.request,
             launchVaultURL: arguments.vaultURL,
+            restoresState: arguments.restoresState,
             launchAppearance: arguments.appearanceName,
             launchSnapshotURL: arguments.snapshotURL
         )

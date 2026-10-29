@@ -40,6 +40,8 @@
                     try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
                 },
                 recents: UserDefaultsRecentNotesStore(defaults: defaults),
+                windowID: UUID(),
+                windows: UserDefaultsWindowListStore(defaults: defaults),
                 settings: SettingsService(store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock()),
                 clock: SystemClock()
             )

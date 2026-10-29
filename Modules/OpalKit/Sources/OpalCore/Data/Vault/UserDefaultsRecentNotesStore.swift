@@ -12,7 +12,6 @@ public final class UserDefaultsRecentNotesStore: RecentNotesStoring, @unchecked 
 
     private enum Constants {
         static let keyPrefix = "recentNotes."
-        static let tabsPrefix = "openTabs."
     }
 
     // MARK: - Private
@@ -33,14 +32,6 @@ public final class UserDefaultsRecentNotesStore: RecentNotesStoring, @unchecked 
 
     public func setRecentNotes(_ paths: [NotePath], forVaultAt rootURL: URL) {
         defaults.set(paths.map(\.rawValue), forKey: key(for: rootURL))
-    }
-
-    public func openTabs(forVaultAt rootURL: URL) -> [NotePath] {
-        (defaults.stringArray(forKey: Constants.tabsPrefix + rootURL.standardizedFileURL.path) ?? []).map(NotePath.init)
-    }
-
-    public func setOpenTabs(_ paths: [NotePath], forVaultAt rootURL: URL) {
-        defaults.set(paths.map(\.rawValue), forKey: Constants.tabsPrefix + rootURL.standardizedFileURL.path)
     }
 
     // MARK: - Private

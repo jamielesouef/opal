@@ -111,8 +111,8 @@ struct QuickSwitcherServiceTests {
         await harness.navigation.selectTab(harness.navigation.tabs.tabs[0].id)
         #expect(harness.notes.path == NotePath("Welcome.md"))
 
-        let restored = NavigationService(vault: harness.vault, notes: harness.notes, links: harness.links, recents: harness.recents)
-        await restored.restoreTabs()
+        let restored = NavigationService(vault: harness.vault, notes: harness.notes, links: harness.links, recents: harness.recents, windowID: harness.windowID, windows: harness.windows)
+        await restored.restoreWindowState()
         #expect(restored.tabs.paths == [NotePath("Welcome.md"), NotePath("Soil.md")])
 
         await harness.navigation.closeSelectedTab()

@@ -39,6 +39,8 @@ struct WindowRegistryTests {
                         try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexFolder))
                     },
                     recents: StubRecentNotesStore(),
+                    windowID: id,
+                    windows: windows,
                     settings: settings,
                     clock: ServiceHarness.clock,
                     saveDelay: .seconds(3600)
@@ -147,7 +149,52 @@ struct WindowRegistryTests {
         #expect(try garden.text("Soil.md") == "# Soil\n\nClosed.\n")
         #expect(registry.windowIDs.isEmpty)
         #expect(fixture.windows.windowIDs().isEmpty)
+        #expect(fixture.windows.windowState(for: id) == nil)
         #expect(graph.vault.isOpen == false)
         #expect(fixture.settings.activeVault == nil)
+    }
+
+    @Test("each window's panes, focus, split share and frame come back, without Notes that are gone")
+    func restoresWindowState() async throws {
+        let garden = try FixtureVault()
+        let empty = try FixtureVault.empty()
+        let fixture = Fixture()
+        defer { garden.remove(); empty.remove(); fixture.remove() }
+        let firstID = UUID()
+        let secondID = UUID()
+        let firstFrame = WindowFrame(x: 40, y: 60, width: 900, height: 700)
+        let secondFrame = WindowFrame(x: 500, y: 80, width: 800, height: 600)
+        let before = fixture.registry()
+        let first = before.graph(for: firstID)
+        await first.vault.open(folderURL: garden.rootURL)
+        await first.syncFollowers()
+        await first.navigation.open(NotePath("Welcome.md"))
+        await first.navigation.openInNewTab(NotePath("Tomatoes.md"))
+        await first.navigation.splitRight()
+        await first.navigation.open(NotePath("Soil.md"))
+        first.navigation.setSplitShare(0.65)
+        await first.navigation.focusPane(0)
+        before.setFrame(firstFrame, for: firstID)
+        await before.graph(for: secondID).vault.open(folderURL: empty.rootURL)
+        before.setFrame(secondFrame, for: secondID)
+        before.isQuitting = true
+        await before.close(firstID)
+        await before.close(secondID)
+        try FileManager().removeItem(at: garden.rootURL.appending(path: "Soil.md"))
+
+        let after = fixture.registry()
+        let restored = after.graph(for: firstID)
+        await restored.vault.start()
+        await restored.navigation.restoreWindowState()
+        #expect(restored.navigation.panes.paths == [[NotePath("Welcome.md"), NotePath("Tomatoes.md")], []])
+        #expect(restored.navigation.panes.focusedIndex == 0)
+        #expect(restored.navigation.panes.splitShare == 0.65)
+        #expect(after.savedFrame(for: firstID) == firstFrame)
+        #expect(after.savedFrame(for: secondID) == secondFrame)
+        let other = after.graph(for: secondID)
+        await other.vault.start()
+        await other.navigation.restoreWindowState()
+        #expect(other.navigation.panes.isSplit == false)
+        #expect(other.navigation.panes.paths == [[]])
     }
 }

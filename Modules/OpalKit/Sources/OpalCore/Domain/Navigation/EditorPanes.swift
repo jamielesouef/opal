@@ -23,6 +23,13 @@ public struct EditorPanes: Hashable, Sendable {
         panes = [first]
     }
 
+    public init(restoring state: WindowState) {
+        let saved = state.panes.prefix(Self.maxCount).map { TabList(paths: $0) }
+        panes = saved.isEmpty ? [TabList()] : saved
+        focusedIndex = min(max(state.focusedPane, 0), panes.count - 1)
+        splitShare = panes.count > 1 ? min(max(state.splitShare, 0), 1) : Self.evenShare
+    }
+
     // MARK: - Derived
 
     public var focused: TabList {
@@ -32,6 +39,10 @@ public struct EditorPanes: Hashable, Sendable {
 
     public var isSplit: Bool {
         panes.count > 1
+    }
+
+    public var paths: [[NotePath]] {
+        panes.map(\.paths)
     }
 
     public var focusedPath: NotePath? {

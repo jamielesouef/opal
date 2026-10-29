@@ -38,13 +38,14 @@ struct WindowScreen: View {
             .environment(\.launchRequest, isFirst ? app.launchRequest : LaunchRequest())
             .focusedSceneValue(\.serviceGraph, graph)
             .focusedSceneValue(\.windowID, id)
+            .remembersWindowFrame(id: id, restores: app.restoresState && app.launchSnapshotURL == nil)
             .onChange(of: appearsActive, initial: true) { _, isActive in
                 if isActive {
                     graph.settings.activate(graph.vault)
                 }
             }
             .task {
-                guard isFirst, app.launchVaultURL == nil, app.launchSnapshotURL == nil else {
+                guard isFirst, app.restoresState, app.launchSnapshotURL == nil else {
                     return
                 }
 

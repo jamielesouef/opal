@@ -44,8 +44,8 @@ struct RootScreen: View {
                 if let windowID, let waiting = AppDependencies.shared.windows.takeWaitingVault(for: windowID) {
                     await VaultActions.open(waiting, in: graph)
                 }
-                if vault.isOpen {
-                    await navigation.restoreTabs()
+                if vault.isOpen, AppDependencies.shared.restoresState {
+                    await navigation.restoreWindowState()
                 }
                 if let note = launch.note, vault.isOpen {
                     await navigation.open(note)

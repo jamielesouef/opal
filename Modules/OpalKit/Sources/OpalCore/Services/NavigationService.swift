@@ -47,6 +47,8 @@ public final class NavigationService {
     private let notes: NoteService
     private let links: LinkService
     private let recents: any RecentNotesStoring
+    private let windowID: UUID
+    private let windows: any WindowListStoring
 
     private var nextRevealID = 0
     private var recentsRoot: URL?
@@ -54,11 +56,20 @@ public final class NavigationService {
 
     // MARK: - Init
 
-    public init(vault: VaultService, notes: NoteService, links: LinkService, recents: any RecentNotesStoring) {
+    public init(
+        vault: VaultService,
+        notes: NoteService,
+        links: LinkService,
+        recents: any RecentNotesStoring,
+        windowID: UUID,
+        windows: any WindowListStoring
+    ) {
         self.vault = vault
         self.notes = notes
         self.links = links
         self.recents = recents
+        self.windowID = windowID
+        self.windows = windows
     }
 
     // MARK: - Intent
@@ -71,7 +82,7 @@ public final class NavigationService {
             reveal = nil
             await showPanes()
             await record(path)
-            await saveTabs()
+            saveWindowState()
         }
 
         guard let line else {
@@ -107,11 +118,13 @@ public final class NavigationService {
     public func forget(_ path: NotePath) {
         panes.forget(path)
         recentNotes.removeAll { $0 == path }
+        saveWindowState()
     }
 
     public func move(from old: NotePath, to new: NotePath) {
         panes.move(from: old, to: new)
         recentNotes = recentNotes.map { $0 == old ? new : $0 }
+        saveWindowState()
     }
 
     // MARK: - Panes
@@ -128,14 +141,17 @@ public final class NavigationService {
         editorTopOffset = offset
         reveal = nil
         await showPanes()
+        saveWindowState()
     }
 
     public func setSplitShare(_ share: Double) {
         panes.setSplitShare(share)
+        saveWindowState()
     }
 
     public func resetSplitShare() {
         panes.resetSplitShare()
+        saveWindowState()
     }
 
     public func focusPane(_ index: Int) async {
@@ -147,6 +163,7 @@ public final class NavigationService {
         panes.focus(index)
         reveal = nil
         await showPanes()
+        saveWindowState()
     }
 
     public func topOffset(inPane index: Int) -> Int {
@@ -174,7 +191,7 @@ public final class NavigationService {
         if let path {
             await record(path)
         }
-        await saveTabs()
+        saveWindowState()
     }
 
     public func selectTab(_ id: Int, inPane index: Int) async {
@@ -190,7 +207,7 @@ public final class NavigationService {
         tabs.setTopOffset(editorTopOffset)
         tabs.select(id)
         await showSelectedTab()
-        await saveTabs()
+        saveWindowState()
     }
 
     public func selectNeighbourTab(by offset: Int) async {
@@ -220,25 +237,24 @@ public final class NavigationService {
                 await showPanes()
             }
         }
-        await saveTabs()
+        saveWindowState()
     }
 
     public func closeSelectedTab() async {
         await closeTab(tabs.selectedID)
     }
 
-    public func restoreTabs() async {
+    public func restoreWindowState() async {
         guard let root = vault.store?.rootURL else {
             return
         }
 
         tabsRoot = root
-        let saved = await recents.openTabs(forVaultAt: root).filter { vault.kind(of: $0) == .note }
-        guard saved.isEmpty == false else {
+        guard let saved = windows.windowState(for: windowID)?.dropping(where: { vault.kind(of: $0) != .note }) else {
             return
         }
 
-        panes = EditorPanes(TabList(paths: saved))
+        panes = EditorPanes(restoring: saved)
         await showSelectedTab()
     }
 
@@ -251,6 +267,7 @@ public final class NavigationService {
         editorTopOffset = 0
         await showPanes()
         await record(path)
+        saveWindowState()
     }
 
     public func goForward() async {
@@ -262,6 +279,7 @@ public final class NavigationService {
         editorTopOffset = 0
         await showPanes()
         await record(path)
+        saveWindowState()
     }
 
     public func loadRecentNotes() async {
@@ -292,13 +310,16 @@ public final class NavigationService {
         await showPanes()
     }
 
-    // ponytail: only the first pane's tabs are remembered; restore the split too when someone asks for it
-    private func saveTabs() async {
-        guard let root = vault.store?.rootURL else {
+    private func saveWindowState() {
+        guard vault.store?.rootURL != nil else {
             return
         }
 
-        await recents.setOpenTabs(panes.panes[0].paths, forVaultAt: root)
+        windows.updateWindowState(for: windowID) { state in
+            state.panes = panes.paths
+            state.focusedPane = panes.focusedIndex
+            state.splitShare = panes.splitShare
+        }
     }
 
     private func record(_ path: NotePath) async {
