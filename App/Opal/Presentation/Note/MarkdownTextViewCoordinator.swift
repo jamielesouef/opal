@@ -26,6 +26,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
     var lastText: String?
     var style = EditorStyle.defaults
     private var marks: [TextSpan] = []
+    private var checkboxes: [TextStyleRun] = []
     private var activeRange = NSRange(location: NSNotFound, length: 0)
     private var styled = IndexSet()
     var boundsObserver: (any NSObjectProtocol)?
@@ -80,11 +81,18 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         textLayoutFragmentFor location: any NSTextLocation,
         in textElement: NSTextElement
     ) -> NSTextLayoutFragment {
-        guard let paragraph = textElement as? NSTextParagraph,
-              paragraph.attributedString.length > 0,
-              let value = paragraph.attributedString.attribute(MarkdownBlock.key, at: 0, effectiveRange: nil) as? String,
-              let block = MarkdownBlock(rawValue: value)
-        else {
+        guard let paragraph = textElement as? NSTextParagraph, paragraph.attributedString.length > 0 else {
+            return NSTextLayoutFragment(textElement: textElement, range: textElement.elementRange)
+        }
+
+        let text = paragraph.attributedString
+        let block = (text.attribute(MarkdownBlock.key, at: 0, effectiveRange: nil) as? String).flatMap(MarkdownBlock.init(rawValue:))
+        var hasCheckbox = false
+        text.enumerateAttribute(MarkdownCheckbox.key, in: NSRange(location: 0, length: text.length)) { value, _, stop in
+            hasCheckbox = value != nil
+            stop.pointee = ObjCBool(hasCheckbox)
+        }
+        guard block != nil || hasCheckbox else {
             return NSTextLayoutFragment(textElement: textElement, range: textElement.elementRange)
         }
 
@@ -226,6 +234,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
         styles = newStyles
         appliedLength = storage.length
         marks = newStyles.filter { $0.kind == .mark }.map(\.span)
+        checkboxes = newStyles.filter { $0.kind.isCheckbox }
         activeRange = MarkdownStyler.activeRange(in: textView)
         styled = IndexSet()
         styleVisibleText(in: textView)
@@ -283,7 +292,7 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             return
         }
 
-        MarkdownStyler.fadeMarks(marks, in: storage, from: activeRange, to: newRange)
+        MarkdownStyler.fadeMarks(marks, checkboxes: checkboxes, in: storage, from: activeRange, to: newRange)
         activeRange = newRange
     }
 

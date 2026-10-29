@@ -31,6 +31,15 @@ struct CheckboxToggleUseCaseTests {
         #expect(result == expected)
     }
 
+    @Test("a click anywhere on the drawn box changes the same one character", arguments: [0, 1, 2])
+    func clickOnBox(offset: Int) throws {
+        let text = "Intro\n- [ ] Sow"
+        let styles = MarkdownStyleParser.runs(in: text, parsed: MarkdownNoteParser.parse(text))
+        let box = try #require(styles.first { $0.kind.isCheckbox })
+        let toggle = try #require(CheckboxToggleUseCase.toggle(at: box.span.location + offset, in: styles))
+        #expect(toggle.span == TextSpan(location: box.span.location + 1, length: 1))
+    }
+
     @Test("does nothing away from a checkbox", arguments: ["- [ ] Sow", "Text [ ] not a task", "`- [ ] code`"])
     func ignores(text: String) {
         let styles = MarkdownStyleParser.runs(in: text, parsed: MarkdownNoteParser.parse(text))

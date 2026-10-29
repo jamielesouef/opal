@@ -52,8 +52,24 @@ enum MarkdownStyler {
         return text.paragraphRange(for: NSRange(location: start, length: end - start))
     }
 
-    static func fadeMarks(_ marks: [TextSpan], in storage: NSTextStorage, from oldRange: NSRange, to newRange: NSRange) {
+    static func fadeMarks(_ marks: [TextSpan], checkboxes: [TextStyleRun], in storage: NSTextStorage, from oldRange: NSRange, to newRange: NSRange) {
         storage.beginEditing()
+        for box in checkboxes where box.span.upperBound <= storage.length {
+            guard case let .checkbox(isDone) = box.kind else {
+                continue
+            }
+
+            let range = NSRange(location: box.span.location, length: box.span.length)
+            let isActive = touches(range, newRange)
+            if touches(range, oldRange) != isActive {
+                storage.addAttribute(.foregroundColor, value: MarkdownCheckbox.textColor(isDone: isDone, isActive: isActive), range: range)
+                if isActive {
+                    storage.removeAttribute(MarkdownCheckbox.key, range: range)
+                } else {
+                    storage.addAttribute(MarkdownCheckbox.key, value: isDone, range: range)
+                }
+            }
+        }
         for mark in marks where mark.upperBound <= storage.length {
             let range = NSRange(location: mark.location, length: mark.length)
             let wasActive = touches(range, oldRange)
@@ -143,7 +159,10 @@ enum MarkdownStyler {
         case .listMarker, .horizontalRule:
             storage.addAttribute(.foregroundColor, value: AppKitColor.secondaryText, range: range)
         case let .checkbox(isDone):
-            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: isDone ? AppKitColor.secondaryText : AppKitColor.accent], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: MarkdownCheckbox.textColor(isDone: isDone, isActive: isActive)], range: range)
+            if isActive == false {
+                storage.addAttribute(MarkdownCheckbox.key, value: isDone, range: range)
+            }
         case .tag:
             storage.addAttributes([.foregroundColor: AppKitColor.accent, .backgroundColor: AppKitColor.tagFill], range: range)
         case .frontmatter:

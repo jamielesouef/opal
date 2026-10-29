@@ -575,7 +575,7 @@ Acceptance:
 - [snap] With Live Markdown on, `- [ ]` and `- [x]` draw as an empty and a ticked checkbox; the brackets show again when the cursor is on the line.
 - [unit] Clicking the box changes only the character between the brackets (the M4-05 use case).
 - [manual] With Live Markdown off, the text shows as written.
-Status: todo
+Status: done (29/10/2026; `CheckboxToggleUseCaseTests`, `opal-m6-07-light.png`, `opal-m6-07-dark.png`, `opal-m6-07-active-light.png`, `opal-m6-07-active-dark.png`). The styler keeps the `[ ]` in the text but makes it clear and tags it with `MarkdownCheckbox.key`; `MarkdownBlockFragment` (now also made for any line with a tagged box, quotes included) draws `square` or `checkmark.square.fill` over the three characters after the text. The brackets come back, in the old colours, when the cursor is on the line: `fadeMarks` swaps the colour and tag on selection change, so moving the cursor rewrites only the boxes whose state changed. Done tasks keep the strikethrough and faint text from M4-05. Clicking already went through the text view (`shouldChangeText`, `didChangeText`), so it is one undo step and saves like a typed edit; a click on any of the three characters toggles the one between the brackets. Between the click and the next analysis the box still shows the old state (a few milliseconds). Clicking in the running app, undo of a click, and Live Markdown off showing the text as written are [manual] and yours to check.
 
 ### M6-08 Hide the frontmatter in the Editor
 As a user, I want to edit Properties in the form without the YAML showing again below it.
