@@ -106,3 +106,9 @@ Bugs found while building, with the rule each one taught.
 - Cause: automatic window tabbing was on (the "Prefer tabs" setting or Merge All Windows), and Opal never opted out. The system tab bar pushes the content down while the Inspector column is laid out against the toolbar.
 - Fix: `OpalAppDelegate.applicationWillFinishLaunching` sets `NSWindow.allowsAutomaticWindowTabbing = false`. That also removes Show Tab Bar and Merge All Windows from the menus. Opal has its own tabs (M5-09).
 - Rule: an app with its own tabs turns off automatic window tabbing before its first window opens.
+
+## 29/10/2026: an empty tab pushed the tab bar to the middle of the window
+- Symptom: with a New Tab open (No Note Open), the tab bar sat halfway down the Notes column, with empty space above it.
+- Cause: the tab bar is a top `safeAreaInset` on `NoteScreen`. `ContentUnavailableView` takes only its own height, so the pane was as tall as its content, centred, and the inset sat on top of it. A Note's Editor fills the height, which hid the bug.
+- Fix: the editor pane's frame also takes `maxHeight: .infinity`, so the inset is always at the top of the column.
+- Rule: a view that carries a `safeAreaInset` gets a frame that fills the space it lives in, whatever its content is.

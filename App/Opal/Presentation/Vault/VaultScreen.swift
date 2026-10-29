@@ -189,7 +189,7 @@ struct VaultScreen: View {
 
     private func editorPane(_ pane: Int) -> some View {
         NoteScreen(pane: pane)
-            .frame(minWidth: 0, maxWidth: .infinity)
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .top, spacing: 0) {
                 if navigation.panes.isSplit || notes.path != nil || navigation.tabs.tabs.count > 1 {
                     VStack(spacing: 0) {
