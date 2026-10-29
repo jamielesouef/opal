@@ -31,7 +31,9 @@ public final class DailyNoteService {
 
     @discardableResult
     public func openToday() async -> NotePath? {
+
         let now = clock.now
+
         guard let store = vault.store,
               let path = DailyNotePlanUseCase.path(on: now, timeZone: clock.timeZone, settings: vault.dailyNoteSettings)
         else {

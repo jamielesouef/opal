@@ -45,6 +45,7 @@ public final class IndexService {
     // MARK: - Intent
 
     public func sync() async {
+        
         guard let vaultStore = vault.store else {
             close()
             return
@@ -82,6 +83,7 @@ public final class IndexService {
     }
 
     public func update(_ paths: Set<NotePath>) async {
+
         guard let vaultStore = vault.store, let index = store, rootURL == vaultStore.rootURL else {
             return
         }
