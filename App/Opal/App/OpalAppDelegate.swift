@@ -18,6 +18,10 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - NSApplicationDelegate
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         if let name = AppDependencies.shared.launchAppearance {
             NSApp.appearance = NSAppearance(named: name)

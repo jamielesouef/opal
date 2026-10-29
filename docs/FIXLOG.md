@@ -100,3 +100,9 @@ Bugs found while building, with the rule each one taught.
 - Cause: each drag tick called `NavigationService.setSplitShare`, which changes `panes`. `VaultScreen.body` reads `navigation.panes.isSplit`, so it observes `panes` as a whole and re-ran on every tick, rebuilding the `NavigationSplitView` (sidebar, its column width, the inspector) and saving the window state. A scripted run of 20 share changes evaluated `VaultScreen.body` and the sidebar 20 times each.
 - Fix: `SplitPanesView` keeps the live share in `@State` while dragging and writes it to `NavigationService` once, when the drag ends. Only `SplitPanesView` re-renders during the drag.
 - Rule: state that changes on every tick of a gesture stays in `@State` of the view that draws it, and is committed to a service on gesture end. Never publish it from a service that a parent screen observes.
+
+## 29/10/2026: macOS merged two Opal windows into native window tabs
+- Symptom: with two windows open, a system tab bar ("Untitled 5" | "Opal") appeared above Opal's own tab bar, and the Inspector's top no longer lined up with the toolbar.
+- Cause: automatic window tabbing was on (the "Prefer tabs" setting or Merge All Windows), and Opal never opted out. The system tab bar pushes the content down while the Inspector column is laid out against the toolbar.
+- Fix: `OpalAppDelegate.applicationWillFinishLaunching` sets `NSWindow.allowsAutomaticWindowTabbing = false`. That also removes Show Tab Bar and Merge All Windows from the menus. Opal has its own tabs (M5-09).
+- Rule: an app with its own tabs turns off automatic window tabbing before its first window opens.
