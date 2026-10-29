@@ -141,6 +141,47 @@ struct FileSystemVaultStoreTests {
         }
     }
 
+    @Test("keeps walking past a hidden file that sits beside a Folder")
+    func walksPastHiddenFile() async throws {
+        let fixture = try FixtureVault()
+        defer { fixture.remove() }
+        for folder in ["daily/2026/01-Jan", "daily/2026/10-Oct"] {
+            try FileManager().createDirectory(at: fixture.url(folder), withIntermediateDirectories: true)
+        }
+        try fixture.write("", to: "daily/.gitkeep")
+        try fixture.write("# Day", to: "daily/2026/01-Jan/26-01-1.md")
+        try fixture.write("# Day", to: "daily/2026/10-Oct/26-10-1.md")
+        try fixture.write("# Day", to: "daily/2026/26-07-27.md")
+        let store = FileSystemVaultStore(rootURL: fixture.rootURL)
+
+        let paths = try await Set(store.listEntries().map(\.path.rawValue))
+
+        #expect(paths.isSuperset(of: ["daily/2026", "daily/2026/01-Jan", "daily/2026/10-Oct", "daily/2026/10-Oct/26-10-1.md", "daily/2026/26-07-27.md"]))
+        #expect(paths.contains("daily/.gitkeep") == false)
+    }
+
+    @Test("lists nested Folders when the Vault root is a symbolic link")
+    func listsThroughSymlinkedRoot() async throws {
+        let container = FileManager().temporaryDirectory.appending(component: "Opal-Link-\(UUID().uuidString)")
+        defer { try? FileManager().removeItem(at: container) }
+        let real = container.appending(component: "Drive/obsidian")
+        let months = ["01-Jan", "02-Feb", "10-Oct"]
+        for month in months {
+            let folder = real.appending(component: "daily/2026/\(month)")
+            try FileManager().createDirectory(at: folder, withIntermediateDirectories: true)
+            try Data("# Day".utf8).write(to: folder.appending(component: "26-01-1.md"))
+        }
+        try Data("# Day".utf8).write(to: real.appending(component: "daily/2026/26-07-27.md"))
+        try Data().write(to: real.appending(component: "daily/.gitkeep"))
+        let link = container.appending(component: "obsidian")
+        try FileManager().createSymbolicLink(at: link, withDestinationURL: real)
+        let store = FileSystemVaultStore(rootURL: link)
+
+        let paths = try await Set(store.listEntries().map(\.path.rawValue))
+
+        #expect(paths.isSuperset(of: ["daily", "daily/2026", "daily/2026/01-Jan", "daily/2026/10-Oct", "daily/2026/10-Oct/26-01-1.md", "daily/2026/26-07-27.md"]))
+    }
+
     @Test("reports a missing Vault folder as unreadable")
     func missingRoot() async {
         let store = FileSystemVaultStore(rootURL: FileManager().temporaryDirectory.appending(component: "Missing-\(UUID().uuidString)"))

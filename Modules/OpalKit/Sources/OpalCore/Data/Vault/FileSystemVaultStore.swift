@@ -208,7 +208,7 @@ public actor FileSystemVaultStore: VaultFileStoring {
 
     private func walk(_ visit: (NotePath, FileAttributeType?, [FileAttributeKey: Any]) -> Void) throws(VaultError) {
         guard isDirectory(rootURL),
-              let enumerator = fileManager.enumerator(at: rootURL, includingPropertiesForKeys: Constants.walkKeys)
+              let enumerator = fileManager.enumerator(at: rootURL.resolvingSymlinksInPath(), includingPropertiesForKeys: Constants.walkKeys)
         else {
             throw .folderUnreadable
         }
@@ -222,7 +222,9 @@ public actor FileSystemVaultStore: VaultFileStoring {
             let path = NotePath(String(url.path.dropFirst(prefix.count)))
             let values = try? url.resourceValues(forKeys: Set(Constants.walkKeys))
             guard path.isHidden == false, values?.isSymbolicLink != true else {
-                enumerator.skipDescendants()
+                if values?.isDirectory == true {
+                    enumerator.skipDescendants()
+                }
                 continue
             }
 

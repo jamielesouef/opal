@@ -88,3 +88,9 @@ Bugs found while building, with the rule each one taught.
 - Fix: each pane gets `.frame(minWidth: 0, maxWidth: .infinity)`, so the panes share the width evenly whatever they hold.
 - Rule: views placed side by side in an `HStack` get explicit flexible frames. Snapshot new layouts at the default window size, not only at a remembered one.
 
+
+## 29/10/2026: the Folder tree dropped every Folder below a Folder that held a hidden file
+- Symptom: in the user's Vault, `daily` showed only `2026`, and `2026` showed none of its month Folders or Notes, although `daily/2026/01-Jan` to `10-Oct` exist on disk. `daily` holds a `.gitkeep`.
+- Cause: `FileSystemVaultStore.walk` called `enumerator.skipDescendants()` for every hidden item. For a file, that call is not a no-op: the enumerator drops the Folder it was about to enter. `.gitkeep` came before `2026`'s contents, so everything below `2026` was lost. Any Vault with `.DS_Store` or `.gitkeep` files could lose Folders this way. Separately, a Vault root that is a symbolic link listed nothing, because the enumerator does not enter a symbolic link given as its start.
+- Fix: call `skipDescendants()` only when the skipped item is a directory. The walk starts from the resolved root; paths were already matched against both forms.
+- Rule: call `skipDescendants()` only for a directory, and never rely on it for a file. Start a directory walk from the resolved path of its root.
