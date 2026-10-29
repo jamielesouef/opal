@@ -38,6 +38,10 @@ public struct FrontmatterFold: Hashable, Sendable {
         return selection.location == 0 && selection.upperBound >= end ? .keep : .unfold
     }
 
+    public func selectionAfterFolding(_ selection: TextSpan) -> TextSpan {
+        selection.location < end ? TextSpan(location: end, length: 0) : selection
+    }
+
     public func isInside(editAt location: Int) -> Bool {
         location < end
     }

@@ -33,11 +33,19 @@ struct PropertiesView: View {
                 Text(String(localized: "Properties"))
                     .font(.headline)
                 Spacer()
-                Button(String(localized: "Edit as YAML")) {
-                    editAsYAML()
+                if isShowingYAML {
+                    Button(String(localized: "Hide YAML")) {
+                        navigation.foldFrontmatter(of: document.path)
+                    }
+                    .buttonStyle(.link)
+                    .help(String(localized: "Fold the frontmatter back into the Properties line"))
+                } else {
+                    Button(String(localized: "Edit as YAML")) {
+                        editAsYAML()
+                    }
+                    .buttonStyle(.link)
+                    .help(String(localized: "Show the frontmatter in the Editor"))
                 }
-                .buttonStyle(.link)
-                .help(String(localized: "Show the frontmatter in the Editor"))
             }
 
             if frontmatter.isReadable == false {
@@ -66,6 +74,12 @@ struct PropertiesView: View {
         }
         .padding(.horizontal, EditorMetrics.textInset)
         .padding(.vertical, AppSpacing.regular)
+    }
+
+    // MARK: - Derived
+
+    private var isShowingYAML: Bool {
+        navigation.isReadingView == false && navigation.unfoldedFrontmatter.contains(document.path)
     }
 
     // MARK: - Intent

@@ -106,4 +106,20 @@ struct FrontmatterFoldServiceTests {
         #expect(harness.navigation.unfoldedFrontmatter == [Self.tomatoes])
         #expect(harness.navigation.unfoldedFrontmatter.contains(NotePath("Soil.md")) == false)
     }
+
+    @Test("Hide YAML folds the Note again and writes nothing")
+    func refoldWritesNothing() async throws {
+        let (harness, vault, before) = try await Self.open()
+        defer { vault.remove() }
+
+        harness.navigation.unfoldFrontmatter(of: Self.tomatoes)
+        harness.navigation.unfoldFrontmatter(of: NotePath("Soil.md"))
+        harness.navigation.foldFrontmatter(of: Self.tomatoes)
+        await harness.notes.flush()
+
+        #expect(harness.navigation.unfoldedFrontmatter == [NotePath("Soil.md")])
+        #expect(harness.notes.loadState.note?.text == before)
+        #expect(try vault.text(Self.tomatoes.rawValue) == before)
+        #expect(FrontmatterFoldUseCase.fold(in: before) != nil)
+    }
 }

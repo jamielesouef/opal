@@ -181,6 +181,10 @@ public final class NavigationService {
         unfoldedFrontmatter.insert(path)
     }
 
+    public func foldFrontmatter(of path: NotePath) {
+        unfoldedFrontmatter.remove(path)
+    }
+
     public func showPanes() async {
         await notes.show(panes.focusedPath, alsoShowing: panes.otherPaths)
     }

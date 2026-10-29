@@ -613,7 +613,7 @@ Depends: M6-08
 Acceptance:
 - [snap] While the frontmatter is unfolded, the Properties form offers Hide YAML, and the Editor folds the lines again.
 - [unit] Folding again never changes the text, and the cursor, if it was inside the frontmatter, moves to the start of the body.
-Status: todo
+Status: done (29/10/2026; `FrontmatterFoldUseCaseTests`, `FrontmatterFoldServiceTests`, `opal-m7-02-hide-yaml-light`, `opal-m7-02-hide-yaml-dark`). While a Note is unfolded in the Editor, the Properties form shows Hide YAML in the slot where Edit as YAML sits, with the help "Fold the frontmatter back into the Properties line"; in Reading view, or when the Note is folded, Edit as YAML shows instead. Hide YAML calls `NavigationService.foldFrontmatter(of:)`, which removes the Note from `unfoldedFrontmatter`; the Editor then folds the lines again as in M6-08. `FrontmatterFold.selectionAfterFolding` gives the new selection: a caret or selection that touches the frontmatter becomes a caret at the start of the body, anything in the body stays. `MarkdownTextViewCoordinator.apply` uses it when the fold goes from off to on, so a selection inside the frontmatter does not unfold it again. Nothing is written: the text is untouched. The snapshots show the unfolded Note (`-OpalEditAsYAML`) with Hide YAML. Clicking Hide YAML and seeing the lines fold and the caret move in the running app is [manual] and yours to check.
 
 ### M7-03 Vault-wide Property types in the form
 As a user, I want the Properties form to show each Property with the type it has across the Vault, not one guessed from this Note alone.

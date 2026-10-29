@@ -259,9 +259,23 @@ final class MarkdownTextViewCoordinator: NSObject, NSTextViewDelegate, NSTextLay
             return
         }
 
+        let isFolding = fold == nil
         fold = newFold
         relayout(textView)
+        if isFolding, let newFold {
+            collapseSelection(into: newFold, in: textView)
+        }
         enforceFold(in: textView)
+    }
+
+    private func collapseSelection(into fold: FrontmatterFold, in textView: NSTextView) {
+        let range = textView.selectedRange()
+        let folded = fold.selectionAfterFolding(TextSpan(location: range.location, length: range.length))
+        guard folded != TextSpan(location: range.location, length: range.length) else {
+            return
+        }
+
+        textView.setSelectedRange(NSRange(location: min(folded.location, (textView.string as NSString).length), length: folded.length))
     }
 
     func enforceFold(in textView: NSTextView) {

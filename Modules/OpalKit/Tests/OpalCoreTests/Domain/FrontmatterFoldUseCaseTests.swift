@@ -79,6 +79,21 @@ struct FrontmatterFoldUseCaseTests {
         #expect(fold.rule(forSelection: TextSpan(location: 19, length: 10)) == .keep)
     }
 
+    @Test("folding again moves a caret or selection that touches the frontmatter to the start of the body")
+    func refoldMovesSelection() {
+        let fold = FrontmatterFold(headingLength: 4, end: 19)
+        #expect(fold.selectionAfterFolding(TextSpan(location: 0, length: 0)) == TextSpan(location: 19, length: 0))
+        #expect(fold.selectionAfterFolding(TextSpan(location: 12, length: 0)) == TextSpan(location: 19, length: 0))
+        #expect(fold.selectionAfterFolding(TextSpan(location: 10, length: 20)) == TextSpan(location: 19, length: 0))
+    }
+
+    @Test("folding again leaves a selection in the body where it is")
+    func refoldKeepsBodySelection() {
+        let fold = FrontmatterFold(headingLength: 4, end: 19)
+        #expect(fold.selectionAfterFolding(TextSpan(location: 19, length: 0)) == TextSpan(location: 19, length: 0))
+        #expect(fold.selectionAfterFolding(TextSpan(location: 25, length: 6)) == TextSpan(location: 25, length: 6))
+    }
+
     @Test("an edit before the body is inside the fold")
     func editInside() {
         let fold = FrontmatterFold(headingLength: 4, end: 19)
