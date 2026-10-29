@@ -162,6 +162,10 @@ view that acts on it.
 - **Panels and Finder actions are called from Presentation.** `VaultPanels`
   (`NSOpenPanel`, `NSSavePanel`) and `WorkspaceActions` (`NSWorkspace`) are
   `@MainActor` AppKit calls that Data, which is never `@MainActor`, cannot own.
+- **Every App file imports the modules whose types it names.** A view that
+  declares an `@Environment` property of an `OpalCore` type imports `OpalCore`
+  itself; Swift 6 member import visibility warns otherwise (review 29/10/2026,
+  after M6). The App target builds with zero warnings.
 
 ## Open questions
 

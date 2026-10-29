@@ -19,7 +19,7 @@ struct OpalApp: App {
 
     var body: some Scene {
         WindowGroup(for: UUID.self) { $id in
-            WindowScreen(id: id ?? AppDependencies.shared.windows.firstWindowID)
+            WindowScreen(id: id)
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
                 .defaultAppStorage(AppDependencies.shared.defaults)
         } defaultValue: {
