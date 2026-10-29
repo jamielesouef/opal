@@ -10,13 +10,6 @@ import OpalDesign
 import SwiftUI
 
 struct PropertyRow: View {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let nameWidth: CGFloat = 140
-        static let iconWidth: CGFloat = 18
-    }
-
     // MARK: - Input
 
     let document: NoteDocument
@@ -34,12 +27,12 @@ struct PropertyRow: View {
         HStack(alignment: .firstTextBaseline, spacing: AppSpacing.small) {
             Image(systemName: type.systemImage)
                 .foregroundStyle(.secondary)
-                .frame(width: Constants.iconWidth)
+                .frame(width: EditorMetrics.propertyIconWidth)
                 .help(type.title)
             Text(property.key)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .frame(width: Constants.nameWidth, alignment: .leading)
+                .frame(width: EditorMetrics.propertyNameWidth, alignment: .leading)
             editor
         }
         .contextMenu {

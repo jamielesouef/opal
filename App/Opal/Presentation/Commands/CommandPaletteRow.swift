@@ -21,23 +21,23 @@ struct CommandPaletteRow: View {
         HStack(spacing: AppSpacing.small) {
             Text(command.group)
                 .font(.caption)
-                .opacity(0.7)
-                .frame(width: 40, alignment: .leading)
+                .opacity(AppOpacity.subdued)
+                .frame(width: EditorMetrics.shortcutGroupWidth, alignment: .leading)
             Text(command.title)
                 .lineLimit(1)
             Spacer(minLength: AppSpacing.small)
             Text(command.shortcutText)
                 .font(.callout.monospaced())
-                .opacity(0.7)
+                .opacity(AppOpacity.subdued)
         }
-        .foregroundStyle(isSelected ? .white : .primary)
-        .opacity(isEnabled ? 1 : 0.45)
+        .foregroundStyle(isSelected ? AppColor.onAccent : .primary)
+        .opacity(isEnabled ? 1 : AppOpacity.disabled)
         .padding(.horizontal, AppSpacing.small)
-        .padding(.vertical, AppSpacing.xsmall + 2)
+        .padding(.vertical, AppSpacing.compact)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.accentColor)
+                RoundedRectangle(cornerRadius: AppRadius.row, style: .continuous)
+                    .fill(AppColor.accent)
             }
         }
         .contentShape(.rect)

@@ -20,20 +20,20 @@ struct QuickSwitcherRow: View {
     var body: some View {
         HStack(spacing: AppSpacing.small) {
             Image(systemName: "text.document")
-                .foregroundStyle(isSelected ? .white : .secondary)
+                .foregroundStyle(isSelected ? AppColor.onAccent : .secondary)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppSpacing.tiny) {
                 Text(match.path.name)
                     .lineLimit(1)
                 if let alias = match.matchedAlias {
                     Label(alias, systemImage: "arrow.turn.down.right")
                         .font(.caption)
-                        .opacity(0.8)
+                        .opacity(AppOpacity.emphasized)
                         .lineLimit(1)
                 } else if match.path.parent.isRoot == false {
                     Text(match.path.parent.rawValue)
                         .font(.caption)
-                        .opacity(0.7)
+                        .opacity(AppOpacity.subdued)
                         .lineLimit(1)
                 }
             }
@@ -43,16 +43,16 @@ struct QuickSwitcherRow: View {
             if isSelected {
                 Text("↩")
                     .font(.callout)
-                    .opacity(0.8)
+                    .opacity(AppOpacity.emphasized)
             }
         }
-        .foregroundStyle(isSelected ? .white : .primary)
+        .foregroundStyle(isSelected ? AppColor.onAccent : .primary)
         .padding(.horizontal, AppSpacing.small)
-        .padding(.vertical, AppSpacing.xsmall + 2)
+        .padding(.vertical, AppSpacing.compact)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.accentColor)
+                RoundedRectangle(cornerRadius: AppRadius.row, style: .continuous)
+                    .fill(AppColor.accent)
             }
         }
         .contentShape(.rect)

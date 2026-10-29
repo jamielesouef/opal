@@ -20,7 +20,7 @@ struct LinkSuggestionRow: View {
     var body: some View {
         HStack(spacing: AppSpacing.small) {
             Image(systemName: icon)
-                .foregroundStyle(isSelected ? .white : .secondary)
+                .foregroundStyle(isSelected ? AppColor.onAccent : .secondary)
                 .frame(width: AppSpacing.regular)
 
             VStack(alignment: .leading, spacing: 0) {
@@ -29,20 +29,20 @@ struct LinkSuggestionRow: View {
                 if let detail {
                     Text(detail)
                         .font(.caption)
-                        .opacity(0.75)
+                        .opacity(AppOpacity.subdued)
                         .lineLimit(1)
                 }
             }
 
             Spacer(minLength: 0)
         }
-        .foregroundStyle(isSelected ? .white : .primary)
+        .foregroundStyle(isSelected ? AppColor.onAccent : .primary)
         .padding(.horizontal, AppSpacing.small)
         .padding(.vertical, AppSpacing.xsmall)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(Color.accentColor)
+                RoundedRectangle(cornerRadius: AppRadius.row, style: .continuous)
+                    .fill(AppColor.accent)
             }
         }
         .contentShape(.rect)

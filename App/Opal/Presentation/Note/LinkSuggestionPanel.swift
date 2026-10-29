@@ -12,14 +12,6 @@ import SwiftUI
 
 @MainActor
 final class LinkSuggestionPanel {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let rowHeight: CGFloat = 40
-        static let maxVisibleRows = 7
-        static let gap: CGFloat = 4
-    }
-
     // MARK: - Stored
 
     private var panel: NSPanel?
@@ -39,10 +31,10 @@ final class LinkSuggestionPanel {
         onPick: @escaping (Int) -> Void
     ) {
         let list = LinkSuggestionList(suggestions: suggestions, selectedIndex: selectedIndex, onPick: onPick)
-        let height = CGFloat(min(suggestions.count, Constants.maxVisibleRows)) * Constants.rowHeight + AppSpacing.small
+        let height = CGFloat(min(suggestions.count, EditorMetrics.suggestionMaxRows)) * EditorMetrics.suggestionRowHeight + AppSpacing.small
         let frame = NSRect(
             x: anchor.minX,
-            y: anchor.minY - height - Constants.gap,
+            y: anchor.minY - height - EditorMetrics.suggestionGap,
             width: EditorMetrics.suggestionWidth,
             height: height
         )

@@ -5,6 +5,7 @@
 //  Created by Jamie Le Souef on 29/10/2026.
 //
 
+import OpalDesign
 import SwiftUI
 
 struct SetByVaultNote<Content: View>: View {
@@ -16,7 +17,7 @@ struct SetByVaultNote<Content: View>: View {
     // MARK: - View
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 2) {
+        VStack(alignment: .trailing, spacing: AppSpacing.tiny) {
             content
                 .disabled(isSet)
             if isSet {

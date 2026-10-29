@@ -6,6 +6,7 @@
 //
 
 import OpalCore
+import OpalDesign
 import SwiftUI
 
 struct SaveStatusView: View {
@@ -26,7 +27,7 @@ struct SaveStatusView: View {
                 .foregroundStyle(.secondary)
         case let (true, .failed(error)):
             Label(String(localized: "Not Saved"), systemImage: "exclamationmark.triangle")
-                .foregroundStyle(.red)
+                .foregroundStyle(AppColor.failure)
                 .help(error.message)
         }
     }

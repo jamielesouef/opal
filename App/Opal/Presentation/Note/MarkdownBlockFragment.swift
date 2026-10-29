@@ -9,12 +9,6 @@ import AppKit
 import OpalDesign
 
 final class MarkdownBlockFragment: NSTextLayoutFragment {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let calloutAlpha: CGFloat = 0.08
-    }
-
     // MARK: - Stored
 
     private let block: MarkdownBlock
@@ -50,15 +44,15 @@ final class MarkdownBlockFragment: NSTextLayoutFragment {
         context.saveGState()
         switch block {
         case .quote:
-            context.setFillColor(NSColor.separatorColor.cgColor)
+            context.setFillColor(AppKitColor.divider.cgColor)
             context.fill(bar)
         case .callout:
-            context.setFillColor(NSColor.controlAccentColor.withAlphaComponent(Constants.calloutAlpha).cgColor)
+            context.setFillColor(AppKitColor.calloutFill.cgColor)
             context.fill(frame)
-            context.setFillColor(NSColor.controlAccentColor.cgColor)
+            context.setFillColor(AppKitColor.accent.cgColor)
             context.fill(bar)
         case .code:
-            context.setFillColor(NSColor.quaternarySystemFill.cgColor)
+            context.setFillColor(AppKitColor.codeFill.cgColor)
             context.fill(frame)
         }
         context.restoreGState()

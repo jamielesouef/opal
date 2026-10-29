@@ -10,13 +10,6 @@ import OpalDesign
 import SwiftUI
 
 struct TabBarView: View {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let tabMaxWidth: CGFloat = 200
-        static let cornerRadius: CGFloat = 6
-    }
-
     // MARK: - Environment
 
     @Environment(\.navigationService) private var navigation
@@ -68,7 +61,7 @@ struct TabBarView: View {
         return HStack(spacing: AppSpacing.xsmall) {
             Text(tab.path?.name ?? String(localized: "New Tab"))
                 .lineLimit(1)
-                .frame(maxWidth: Constants.tabMaxWidth, alignment: .leading)
+                .frame(maxWidth: EditorMetrics.tabMaxWidth, alignment: .leading)
             Button {
                 Task { await navigation.closeTab(tab.id, inPane: pane) }
             } label: {
@@ -83,7 +76,7 @@ struct TabBarView: View {
         .padding(.vertical, AppSpacing.xsmall)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: AppRadius.row, style: .continuous)
                     .fill(isFocused ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.quinary))
             }
         }

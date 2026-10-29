@@ -6,15 +6,13 @@
 //
 
 import OpalCore
+import OpalDesign
 import SwiftUI
 
 enum ReadingText {
     // MARK: - Constants
 
     private enum Constants {
-        static let unresolvedOpacity = 0.55
-        static let highlightOpacity = 0.35
-        static let tagOpacity = 0.12
         static let linkScheme = "opal-link"
     }
 
@@ -38,15 +36,15 @@ enum ReadingText {
             }
             part.inlinePresentationIntent = intent.isEmpty ? nil : intent
             if inline.styles.contains(.highlight) {
-                part.backgroundColor = .yellow.opacity(Constants.highlightOpacity)
+                part.backgroundColor = AppColor.highlight
             }
             if inline.styles.contains(.tag) {
-                part.foregroundColor = .accentColor
-                part.backgroundColor = .accentColor.opacity(Constants.tagOpacity)
+                part.foregroundColor = AppColor.accent
+                part.backgroundColor = AppColor.tagFill
             }
             if let link = inline.link {
                 part.link = linkURL(link)
-                part.foregroundColor = inline.isResolved ? .accentColor : .accentColor.opacity(Constants.unresolvedOpacity)
+                part.foregroundColor = inline.isResolved ? AppColor.accent : AppColor.unresolvedLink
             }
             result += part
         }
@@ -88,13 +86,13 @@ enum ReadingText {
     private static func color(_ kind: CodeTokenKind) -> Color {
         switch kind {
         case .keyword:
-            .purple
+            AppColor.codeKeyword
         case .string:
-            .red
+            AppColor.codeString
         case .number:
-            .blue
+            AppColor.codeNumber
         case .comment:
-            .secondary
+            AppColor.codeComment
         }
     }
 }

@@ -10,16 +10,6 @@ import OpalDesign
 import SwiftUI
 
 struct ReadingBlockView: View {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let listIndent: CGFloat = 20
-        static let calloutOpacity = 0.08
-        static let cornerRadius: CGFloat = 6
-        static let blockPadding: CGFloat = 10
-        static let cellPadding: CGFloat = 6
-    }
-
     // MARK: - Input
 
     let block: ReadingBlock
@@ -44,7 +34,7 @@ struct ReadingBlockView: View {
                         onToggleCheckbox(block.line)
                     } label: {
                         Image(systemName: checkbox ? "checkmark.square.fill" : "square")
-                            .foregroundStyle(checkbox ? Color.accentColor : .secondary)
+                            .foregroundStyle(checkbox ? AppColor.accent : .secondary)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(checkbox ? String(localized: "Done") : String(localized: "To do"))
@@ -56,7 +46,7 @@ struct ReadingBlockView: View {
                 Text(ReadingText.attributed(text))
                     .foregroundStyle(checkbox == true ? .secondary : .primary)
             }
-            .padding(.leading, CGFloat(depth) * Constants.listIndent)
+            .padding(.leading, CGFloat(depth) * EditorMetrics.listIndent)
         case let .quote(lines):
             HStack(alignment: .top, spacing: AppSpacing.small) {
                 Rectangle()
@@ -71,9 +61,9 @@ struct ReadingBlockView: View {
             ScrollView(.horizontal) {
                 Text(ReadingText.code(text, language: language))
                     .font(.system(size: EditorMetrics.fontSize * EditorMetrics.codeScale, design: .monospaced))
-                    .padding(Constants.blockPadding)
+                    .padding(AppSpacing.medium)
             }
-            .background(Color(nsColor: .quaternarySystemFill), in: RoundedRectangle(cornerRadius: Constants.cornerRadius))
+            .background(AppColor.codeFill, in: RoundedRectangle(cornerRadius: AppRadius.row))
         case let .table(header, rows):
             table(header: header, rows: rows)
         case .rule:
@@ -96,7 +86,7 @@ struct ReadingBlockView: View {
     private func callout(type: String, title: [ReadingInline], lines: [[ReadingInline]]) -> some View {
         HStack(alignment: .top, spacing: 0) {
             Rectangle()
-                .fill(Color.accentColor)
+                .fill(AppColor.accent)
                 .frame(width: EditorMetrics.blockBarWidth)
             VStack(alignment: .leading, spacing: AppSpacing.small) {
                 Label {
@@ -109,14 +99,14 @@ struct ReadingBlockView: View {
                     Image(systemName: CalloutStyle.systemImage(for: type))
                 }
                 .font(.body.bold())
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(AppColor.accent)
                 lineStack(lines)
             }
-            .padding(Constants.blockPadding)
+            .padding(AppSpacing.medium)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color.accentColor.opacity(Constants.calloutOpacity))
-        .clipShape(RoundedRectangle(cornerRadius: Constants.cornerRadius))
+        .background(AppColor.calloutFill)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.row))
     }
 
     private func table(header: [[ReadingInline]], rows: [[[ReadingInline]]]) -> some View {
@@ -125,7 +115,7 @@ struct ReadingBlockView: View {
                 ForEach(Array(header.enumerated()), id: \.offset) { _, cell in
                     Text(ReadingText.attributed(cell))
                         .bold()
-                        .padding(Constants.cellPadding)
+                        .padding(AppSpacing.compact)
                 }
             }
             Divider()
@@ -136,12 +126,12 @@ struct ReadingBlockView: View {
                 GridRow {
                     ForEach(Array(row.enumerated()), id: \.offset) { _, cell in
                         Text(ReadingText.attributed(cell))
-                            .padding(Constants.cellPadding)
+                            .padding(AppSpacing.compact)
                     }
                 }
             }
         }
-        .overlay(RoundedRectangle(cornerRadius: Constants.cornerRadius).stroke(.separator))
+        .overlay(RoundedRectangle(cornerRadius: AppRadius.row).stroke(.separator))
     }
 
     private func scale(_ level: Int) -> CGFloat {

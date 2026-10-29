@@ -14,9 +14,6 @@ enum MarkdownStyler {
     // MARK: - Constants
 
     private enum Constants {
-        static let unresolvedAlpha: CGFloat = 0.55
-        static let highlightAlpha: CGFloat = 0.35
-        static let tagAlpha: CGFloat = 0.12
         static let windowMargin = 3000
     }
 
@@ -129,30 +126,30 @@ enum MarkdownStyler {
         case .strikethrough:
             storage.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range)
         case .highlight:
-            storage.addAttribute(.backgroundColor, value: NSColor.systemYellow.withAlphaComponent(Constants.highlightAlpha), range: range)
+            storage.addAttribute(.backgroundColor, value: AppKitColor.highlight, range: range)
         case .inlineCode:
-            storage.addAttributes([.font: editorStyle.codeFont, .backgroundColor: NSColor.quaternarySystemFill], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .backgroundColor: AppKitColor.codeFill], range: range)
         case .codeBlock:
             storage.addAttributes([.font: editorStyle.codeFont, MarkdownBlock.key: MarkdownBlock.code.rawValue], range: range)
         case .quote:
-            storage.addAttributes([.foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: editorStyle.indentedParagraph, MarkdownBlock.key: MarkdownBlock.quote.rawValue], range: range)
+            storage.addAttributes([.foregroundColor: AppKitColor.secondaryText, .paragraphStyle: editorStyle.indentedParagraph, MarkdownBlock.key: MarkdownBlock.quote.rawValue], range: range)
         case .callout:
             storage.addAttributes([.paragraphStyle: editorStyle.indentedParagraph, MarkdownBlock.key: MarkdownBlock.callout.rawValue], range: range)
         case .calloutTitle:
             addTrait(.boldFontMask, range: range, in: storage, base: editorStyle.font())
-            storage.addAttribute(.foregroundColor, value: NSColor.controlAccentColor, range: range)
+            storage.addAttribute(.foregroundColor, value: AppKitColor.accent, range: range)
         case .doneTask:
-            storage.addAttributes([.strikethroughStyle: NSUnderlineStyle.single.rawValue, .foregroundColor: NSColor.secondaryLabelColor], range: range)
+            storage.addAttributes([.strikethroughStyle: NSUnderlineStyle.single.rawValue, .foregroundColor: AppKitColor.secondaryText], range: range)
         case .listMarker, .horizontalRule:
-            storage.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: range)
+            storage.addAttribute(.foregroundColor, value: AppKitColor.secondaryText, range: range)
         case let .checkbox(isDone):
-            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: isDone ? NSColor.secondaryLabelColor : NSColor.controlAccentColor], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: isDone ? AppKitColor.secondaryText : AppKitColor.accent], range: range)
         case .tag:
-            storage.addAttributes([.foregroundColor: NSColor.controlAccentColor, .backgroundColor: NSColor.controlAccentColor.withAlphaComponent(Constants.tagAlpha)], range: range)
+            storage.addAttributes([.foregroundColor: AppKitColor.accent, .backgroundColor: AppKitColor.tagFill], range: range)
         case .frontmatter:
-            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: NSColor.secondaryLabelColor], range: range)
+            storage.addAttributes([.font: editorStyle.codeFont, .foregroundColor: AppKitColor.secondaryText], range: range)
         case let .link(isResolved):
-            let color = isResolved ? NSColor.controlAccentColor : NSColor.controlAccentColor.withAlphaComponent(Constants.unresolvedAlpha)
+            let color = isResolved ? AppKitColor.accent : AppKitColor.unresolvedLink
             storage.addAttribute(.foregroundColor, value: color, range: range)
         case .mark:
             storage.addAttribute(.foregroundColor, value: markColor(isActive: isActive), range: range)
@@ -160,7 +157,7 @@ enum MarkdownStyler {
     }
 
     private static func markColor(isActive: Bool) -> NSColor {
-        isActive ? .secondaryLabelColor : .quaternaryLabelColor
+        isActive ? AppKitColor.secondaryText : AppKitColor.quietText
     }
 
     private static func addTrait(_ trait: NSFontTraitMask, range: NSRange, in storage: NSMutableAttributedString, base: NSFont) {

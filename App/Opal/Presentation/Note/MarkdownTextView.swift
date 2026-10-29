@@ -170,8 +170,8 @@ struct MarkdownTextView: NSViewRepresentable {
         textView.isContinuousSpellCheckingEnabled = style.checksSpelling
         textView.font = style.font()
         textView.defaultParagraphStyle = style.paragraph
-        textView.textColor = .textColor
-        textView.backgroundColor = .textBackgroundColor
+        textView.textColor = AppKitColor.text
+        textView.backgroundColor = AppKitColor.editorBackground
         textView.textContainerInset = NSSize(width: style.horizontalInset(forWidth: textView.frame.width), height: EditorMetrics.textInset)
         textView.typingAttributes = style.baseAttributes
     }

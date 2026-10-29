@@ -9,12 +9,6 @@ import OpalDesign
 import SwiftUI
 
 struct WelcomeView: View {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let iconSize: CGFloat = 96
-    }
-
     // MARK: - Input
 
     let message: String?
@@ -27,7 +21,7 @@ struct WelcomeView: View {
         VStack(spacing: AppSpacing.large) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
-                .frame(width: Constants.iconSize, height: Constants.iconSize)
+                .frame(width: EditorMetrics.welcomeIconSize, height: EditorMetrics.welcomeIconSize)
                 .accessibilityHidden(true)
 
             VStack(spacing: AppSpacing.small) {

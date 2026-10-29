@@ -6,6 +6,7 @@
 //
 
 import OpalCore
+import OpalDesign
 import SwiftUI
 
 enum SearchLineText {
@@ -24,7 +25,7 @@ enum SearchLineText {
                 continue
             }
             text[lower ..< upper].inlinePresentationIntent = .stronglyEmphasized
-            text[lower ..< upper].backgroundColor = Color.accentColor.opacity(0.25)
+            text[lower ..< upper].backgroundColor = AppColor.searchMatch
         }
         return text
     }

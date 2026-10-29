@@ -14,6 +14,7 @@ Read the one that matches the task before writing code. When they disagree with 
 | Opal's planned modules and deliberate constraints | `ARCHITECTURE.md` |
 | File shapes and test shapes | `docs/templates/README.md` and the templates beside it |
 | What a screen looks like | `docs/design-brief.md` |
+| Which design token to use when | `docs/design/DESIGN-SYSTEM.md`. Use its tokens; never raw colours, radii, spacing or durations in `Presentation` (a test fails if you do) |
 
 ## Toolchain
 

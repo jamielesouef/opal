@@ -94,14 +94,14 @@ struct TemplatePickerView: View {
         let subfolder = template.parent.components.dropFirst(folder.components.count).joined(separator: "/")
         return HStack(spacing: AppSpacing.small) {
             Image(systemName: "doc.on.doc")
-                .foregroundStyle(isSelected ? .white : .secondary)
-            VStack(alignment: .leading, spacing: 2) {
+                .foregroundStyle(isSelected ? AppColor.onAccent : .secondary)
+            VStack(alignment: .leading, spacing: AppSpacing.tiny) {
                 Text(template.name)
                     .lineLimit(1)
                 if subfolder.isEmpty == false {
                     Text(subfolder)
                         .font(.caption)
-                        .opacity(0.7)
+                        .opacity(AppOpacity.subdued)
                         .lineLimit(1)
                 }
             }
@@ -109,16 +109,16 @@ struct TemplatePickerView: View {
             if isSelected {
                 Text("↩")
                     .font(.callout)
-                    .opacity(0.8)
+                    .opacity(AppOpacity.emphasized)
             }
         }
-        .foregroundStyle(isSelected ? .white : .primary)
+        .foregroundStyle(isSelected ? AppColor.onAccent : .primary)
         .padding(.horizontal, AppSpacing.small)
-        .padding(.vertical, AppSpacing.xsmall + 2)
+        .padding(.vertical, AppSpacing.compact)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.accentColor)
+                RoundedRectangle(cornerRadius: AppRadius.row, style: .continuous)
+                    .fill(AppColor.accent)
             }
         }
         .contentShape(.rect)

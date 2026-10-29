@@ -531,7 +531,7 @@ Acceptance:
 - [unit] `OpalDesign` holds the tokens: accent, text and fill roles, spacing, radii, the Editor metrics and animation durations. No view in Presentation uses a literal colour, a spacing number or a radius (a grep check fails the build script if one appears).
 - [snap] `design/DESIGN-SYSTEM.md` says which token to use when, with the full snapshot set in light and dark.
 - [manual] The accent follows the system accent colour; Opal adds no colour picker of its own.
-Status: todo
+Status: done (29/10/2026; `OpalDesignTests` (`PresentationTokenCheckTests`, `LiteralScannerTests`, `DesignTokenTests`), `opal-m6-02-*.png`). The "grep check" is a Swift Testing test, not a build script: it scans `App/Opal/Presentation` for literal colours, opacities, spacing, radii, frame sizes, font sizes and animation values, so it runs with the suite. `docs/design/DESIGN-SYSTEM.md` (not `design/`) says which token to use when. The 32 snapshots (light and dark, 16 screens) match the pre-refactor build pixel for pixel. Deliberate unifications: the Link suggestion row radius 5 to 6 (`AppRadius.row`) and its detail text opacity 0.75 to 0.7 (`AppOpacity.subdued`); the Link suggestion panel is not in the snapshots. The accent is `Color.accentColor` / `controlAccentColor` and Settings has no colour picker; checking it against a changed System Settings accent is yours ([manual]).
 
 ### M6-03 Drag the split divider
 As a user with two panes, I want to make one wider than the other.

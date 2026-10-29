@@ -5,15 +5,10 @@
 //  Created by Jamie Le Souef on 29/10/2026.
 //
 
+import OpalDesign
 import SwiftUI
 
 struct SettingsScreen: View {
-    // MARK: - Constants
-
-    private enum Constants {
-        static let width: CGFloat = 520
-    }
-
     // MARK: - State
 
     @AppStorage(EditorPreferences.settingsTabKey) private var tab = SettingsTab.editor
@@ -28,7 +23,7 @@ struct SettingsScreen: View {
                     .tag(tab)
             }
         }
-        .frame(width: Constants.width)
+        .frame(width: EditorMetrics.settingsWidth)
         .fixedSize(horizontal: false, vertical: true)
     }
 

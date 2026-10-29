@@ -6,6 +6,7 @@
 //
 
 import OpalCore
+import OpalDesign
 import SwiftUI
 
 struct NoteScreen: View {
@@ -172,7 +173,7 @@ struct NoteScreen: View {
     private func properties(of document: NoteDocument) -> some View {
         if let frontmatter = document.frontmatter {
             PropertiesView(document: document, frontmatter: frontmatter, pane: pane)
-                .background(Color(nsColor: .textBackgroundColor))
+                .background(AppColor.editorBackground)
             Divider()
         }
     }

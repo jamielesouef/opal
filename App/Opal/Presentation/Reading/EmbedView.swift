@@ -14,8 +14,6 @@ struct EmbedView: View {
 
     private enum Constants {
         static let maximumDepth = 4
-        static let cornerRadius: CGFloat = 6
-        static let pdfHeight: CGFloat = 480
     }
 
     // MARK: - Environment
@@ -50,8 +48,8 @@ struct EmbedView: View {
             case let .pdf(path):
                 if let url = vault.url(for: path) {
                     PDFEmbedView(url: url)
-                        .frame(height: Constants.pdfHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: Constants.cornerRadius))
+                        .frame(height: EditorMetrics.pdfEmbedHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.row))
                 }
             case let .file(path):
                 Button(path.name, systemImage: "doc") {
@@ -97,7 +95,7 @@ struct EmbedView: View {
         }
         .padding(AppSpacing.regular)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .overlay(RoundedRectangle(cornerRadius: Constants.cornerRadius).stroke(.separator))
+        .overlay(RoundedRectangle(cornerRadius: AppRadius.row).stroke(.separator))
     }
 
     @ViewBuilder

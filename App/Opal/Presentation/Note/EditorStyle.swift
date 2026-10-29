@@ -53,7 +53,7 @@ struct EditorStyle: Hashable {
     }
 
     var baseAttributes: [NSAttributedString.Key: Any] {
-        [.font: font(), .foregroundColor: NSColor.textColor, .paragraphStyle: paragraph]
+        [.font: font(), .foregroundColor: AppKitColor.text, .paragraphStyle: paragraph]
     }
 
     // MARK: - Width

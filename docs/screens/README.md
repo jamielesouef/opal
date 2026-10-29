@@ -118,3 +118,4 @@ Acceptance flags with no value (`-OpalReadingView`, `-OpalDailyNote`, `-OpalTemp
 | `opal-m5-12-new-window.png` | File › New Window (`-OpalNewWindow`, last on the command line): a new window with the Welcome view | M5-12 |
 | `opal-m5-12-split-default-size.png` | Split view at the default window size (1100 × 720), which crashed before the fix in FIXLOG | M5-12 |
 | `opal-m5-11-editor-style.png` | Serif, 18 pt, line spacing 1.4, Narrow line width | M5-11 |
+| `opal-m6-02-<screen>-light.png`, `-dark.png` | The full set after the design-token refactor: note, reading, embeds, props (Properties), search, switcher, palette, templates, split, move, inspector, settings-editor, -files, -daily, -appearance, welcome. Pixel-identical to the build before the refactor | M6-02 |

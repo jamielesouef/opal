@@ -16,6 +16,7 @@ let package = Package(
     targets: [
         .target(name: "OpalDesign"),
         .target(name: "OpalCore", dependencies: [.product(name: "GRDB", package: "GRDB.swift")]),
+        .testTarget(name: "OpalDesignTests", dependencies: ["OpalDesign"]),
         .testTarget(
             name: "OpalCoreTests",
             dependencies: ["OpalCore"],

@@ -37,7 +37,7 @@ struct LinkSuggestionList: View {
             }
         }
         .frame(width: EditorMetrics.suggestionWidth)
-        .background(.regularMaterial, in: .rect(cornerRadius: 8))
+        .background(.regularMaterial, in: .rect(cornerRadius: AppRadius.panel))
     }
 }
 

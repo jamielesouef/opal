@@ -14,8 +14,6 @@ struct EditorSettingsView: View {
     private enum Constants {
         static let sizes = 11 ... 24
         static let spacings: [Double] = [1, 1.2, 1.4, 1.6]
-        static let narrowWidth: Double = 600
-        static let readableWidth: Double = 720
     }
 
     // MARK: - State
@@ -42,8 +40,8 @@ struct EditorSettingsView: View {
                 }
             }
             Picker(String(localized: "Line width"), selection: $lineWidth) {
-                Text(String(localized: "Narrow")).tag(Constants.narrowWidth)
-                Text(String(localized: "Readable")).tag(Constants.readableWidth)
+                Text(String(localized: "Narrow")).tag(EditorMetrics.narrowLineWidth)
+                Text(String(localized: "Readable")).tag(EditorMetrics.readableLineWidth)
                 Text(String(localized: "Fill the window")).tag(0.0)
             }
             Picker(String(localized: "Line spacing"), selection: $lineSpacing) {

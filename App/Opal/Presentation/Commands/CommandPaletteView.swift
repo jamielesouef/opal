@@ -138,7 +138,7 @@ struct CommandPaletteView: View {
         recentText = CommandMatchUseCase.recording(command.id, in: recent).joined(separator: String(Constants.separator))
         navigation.isCommandPaletteShown = false
         Task {
-            try? await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: AppMotion.dismissDelay)
             runner.run(command)
         }
     }

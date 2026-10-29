@@ -32,7 +32,7 @@ struct UnlinkedMentionsSection: View {
                     Button {
                         onOpen(mention)
                     } label: {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: AppSpacing.tiny) {
                             Text(mention.source.name)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
