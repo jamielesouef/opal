@@ -12,7 +12,7 @@ struct WelcomeView: View {
     // MARK: - Constants
 
     private enum Constants {
-        static let iconSize: CGFloat = 56
+        static let iconSize: CGFloat = 96
     }
 
     // MARK: - Input
@@ -25,9 +25,10 @@ struct WelcomeView: View {
 
     var body: some View {
         VStack(spacing: AppSpacing.large) {
-            Image(systemName: "text.document")
-                .font(.system(size: Constants.iconSize))
-                .foregroundStyle(.tint)
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: Constants.iconSize, height: Constants.iconSize)
+                .accessibilityHidden(true)
 
             VStack(spacing: AppSpacing.small) {
                 Text(String(localized: "Welcome to Opal"))

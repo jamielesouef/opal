@@ -519,11 +519,11 @@ The app looks like itself, keeps its layout between launches, and closes the gap
 
 ### M6-01 App icon
 As a user, I want Opal to have its own icon in the Dock, Finder and the app switcher.
-Screens: `docs/design/app-icon-source.png` (the source the user chose)
+Screens: none. The user asked for a faceted opal stone (crisp flat facets, sharp edges, an opal's play of colour) instead of the source image `docs/design/app-icon-source.png`, which showed an igloo.
 Acceptance:
 - [snap] `Icon/AppIcon.icon` (Icon Composer: JSON plus SVG layers) compiles with `actool`, and the built app shows it in the default, dark, clear and tinted looks (`ictool` renders each).
 - [snap] Every window snapshot from M6 on shows the real icon wherever the system draws it (About, the Welcome view).
-Status: todo
+Status: done (29/10/2026; xcodebuild build, actool, ictool; opal-m6-01-icon-default, opal-m6-01-icon-dark, opal-m6-01-icon-tinted, opal-m6-01-icon-clear, opal-m6-01-welcome). `Icon/AppIcon.icon` is a faceted opal stone drawn as two SVG layers (`stone.svg`: 17 flat facets, each with its own milky white and pale blue gradient and a flash of teal, green, violet, pink or orange; `edges.svg`: crisp white facet edges and three highlight facets) on a deep indigo gradient, so the glass reads in the default, dark, clear and tinted looks. `project.yml` adds it as a resource with `ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon`; the built bundle carries `AppIcon.icns`, `Assets.car` with the stone and edges renditions, and `CFBundleIconName` = `AppIcon`. The Welcome view now shows `NSApp.applicationIconImage` at 96 points in place of the `text.document` symbol. The About panel is drawn by the system from the same icon and cannot be captured by the in-app snapshot, so it is not in a snapshot. Checking the Dock, Finder and the app switcher, and the About panel, are yours to check ([manual]). The Welcome snapshot is taken without -OpalVaultPath on an empty defaults suite, in light appearance only (the dark snapshot loses the window background, an existing snapshot limit).
 
 ### M6-02 One design system
 As a user, I want every screen to use the same colours, spacing, radii and motion.
