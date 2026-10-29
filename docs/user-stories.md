@@ -15,6 +15,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | **M3 — Find** (built 27/10/2026) | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-06 |
 | **M4 — Rich Editor** (built 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
 | **M5 — Daily work** (built 29/10/2026) | Daily Notes, Templates, rename and move with Link updates, delete, Command Palette, tabs and split view, Settings, windows | M5-01 … M5-12 |
+| M6 — Polish (stories written 29/10/2026) | The app icon and one design system, the gaps left by M5 (split divider, restoring layout, Reading view font, recent Vaults), and the Editor and Property items from Later | M6-01 … M6-09 |
 
 Out of scope for v1: Graph, Canvas, plugins, sync, publishing, iOS and iPadOS, collaboration.
 
@@ -512,8 +513,94 @@ Acceptance:
 - [unit] Windows and their Vaults are restored at launch.
 Status: done (29/10/2026; ADR 0008, `WindowRegistryTests`, `SettingsServiceTests.reachesEveryVault`, `opal-m5-12-new-window.png`, `opal-m5-12-split-default-size.png`). Each window has its own `ServiceGraph`. Open Vault… and Create Vault… open in this window when it has no Vault, bring forward the window that already shows the Vault, and otherwise open a new window. Settings are shared by every window, and the Settings window shows the Obsidian settings of the window that was active last. Opal restores the open windows and their Vaults itself, but not window frames. Acceptance runs with `-OpalVaultPath` open one window and restore nothing. Opening, closing and quitting with several windows are [manual].
 
+## M6 — Polish
+
+The app looks like itself, keeps its layout between launches, and closes the gaps M4 and M5 left. UX notes are added by `improve-loop` before each story is built.
+
+### M6-01 App icon
+As a user, I want Opal to have its own icon in the Dock, Finder and the app switcher.
+Screens: `docs/design/app-icon-source.png` (the source the user chose)
+Acceptance:
+- [snap] `Icon/AppIcon.icon` (Icon Composer: JSON plus SVG layers) compiles with `actool`, and the built app shows it in the default, dark, clear and tinted looks (`ictool` renders each).
+- [snap] Every window snapshot from M6 on shows the real icon wherever the system draws it (About, the Welcome view).
+Status: todo
+
+### M6-02 One design system
+As a user, I want every screen to use the same colours, spacing, radii and motion.
+Acceptance:
+- [unit] `OpalDesign` holds the tokens: accent, text and fill roles, spacing, radii, the Editor metrics and animation durations. No view in Presentation uses a literal colour, a spacing number or a radius (a grep check fails the build script if one appears).
+- [snap] `design/DESIGN-SYSTEM.md` says which token to use when, with the full snapshot set in light and dark.
+- [manual] The accent follows the system accent colour; Opal adds no colour picker of its own.
+Status: todo
+
+### M6-03 Drag the split divider
+As a user with two panes, I want to make one wider than the other.
+Depends: M5-10
+Acceptance:
+- [snap] A divider between the panes can be dragged; neither pane gets narrower than 280 points, at any window size including the default 1100 points.
+- [unit] The share of each pane is kept with the panes and survives switching tabs.
+- [manual] Double-clicking the divider makes the panes equal again.
+Status: todo
+
+### M6-04 Restore the split and window frames
+As a user, I want Opal to come back the way I left it: each window's size and place, its panes and their tabs.
+Depends: M5-12, M6-03
+Acceptance:
+- [unit] For each window, the saved state holds both panes' tabs, the focused pane, the split share and the window frame, outside the Vault. A Note that no longer exists is dropped from it.
+- [manual] Quit with two windows, one split; relaunch shows both, in the same places, with the same panes.
+Status: todo
+
+### M6-05 Reading view uses the Editor's font settings
+As a user, I want Reading view to read in the font, size and line spacing I chose for the Editor.
+Depends: M5-11
+Acceptance:
+- [snap] Reading view of `Tomatoes` with Serif, 18 pt and line spacing 1.4 matches the Editor's text size and spacing; code blocks stay monospaced.
+- [snap] The Narrow and Readable line widths also centre Reading view.
+Status: todo
+
+### M6-06 Open a recent Vault
+As a user with several Vaults, I want to get back to one I used before without hunting for its folder.
+Screens: `obsidian-19-vault-switcher.png`, `obsidian-01-vault-chooser.png`
+Depends: M5-12
+Acceptance:
+- [unit] Opal keeps the last ten Vaults it opened (security-scoped bookmarks, outside the Vault); a Vault whose folder is gone is shown dimmed with "Folder not found" and can be removed from the list.
+- [snap] File › Open Recent lists them by name with their folder as a subtitle, and the Welcome view lists them under its buttons.
+- [unit] Choosing one follows the M5-12 rule: this window if it has no Vault, the window that already shows it, or a new window.
+Status: todo
+
+### M6-07 A drawn checkbox in the Editor
+As a user, I want tasks in the Editor to show a checkbox I can click, as Reading view does.
+Depends: M4-05
+Acceptance:
+- [snap] With Live Markdown on, `- [ ]` and `- [x]` draw as an empty and a ticked checkbox; the brackets show again when the cursor is on the line.
+- [unit] Clicking the box changes only the character between the brackets (the M4-05 use case).
+- [manual] With Live Markdown off, the text shows as written.
+Status: todo
+
+### M6-08 Hide the frontmatter in the Editor
+As a user, I want to edit Properties in the form without the YAML showing again below it.
+Depends: M4-03
+Acceptance:
+- [snap] When the Properties form shows, the frontmatter lines fold to one dimmed "Properties" line in the Editor; Edit as YAML unfolds them and puts the cursor there.
+- [unit] Folding never changes the text: typing, undo and saving behave as if the lines were shown.
+Status: todo
+
+### M6-09 Property types across the Vault and `[property:value]` search
+As a user, I want a Property to have one type in every Note, and to find Notes by a Property's value.
+Depends: M4-03, M3-04
+Acceptance:
+- [unit] The Index keeps each Note's Properties; a name used with two types shows the type from `.obsidian/types.json`, or else the most common one.
+- [unit] Search understands `[status:draft]`, `[status]` (has the Property) and `-[status:done]`, combined with words and `tag:`, and matches list values item by item.
+- [snap] Search for `[difficulty:easy]` in `Garden` lists `Gardening Basics`.
+Status: todo
+
 ## Later
 
 - Custom shortcuts for any command (`obsidian-24-settings-hotkeys.png`).
-- Vault-wide Property types and `[property:value]` search (from M4-03).
-- A drawn checkbox in the Editor; hiding the frontmatter in the Editor while the Properties form shows it (from M4-03, M4-05).
+- Any installed font in Settings › Editor, not only the four system designs (from M5-11).
+- A general Settings tab (`obsidian-20-settings-general.png`): Opal has no update channel or account, so only "open the last Vault at launch" would go there.
+
+## Dropped
+
+- Graph view (`obsidian-17-graph-view-out-of-scope.png`), Canvas, plugins, sync, publishing and collaboration: out of scope for v1 (design brief).
+- iOS and iPadOS: out of scope for v1.
