@@ -78,3 +78,5 @@ Why not now: it works, `restoresWindowState` and `WindowStateTests` cover the ro
 ## Top recommendation
 
 Card 1. It is the only card whose proof is complete today, it is mechanical, and it clears the warnings that every M6 story had to explain. It is a small step, not a redesign. The Editor coordinator split (card 2) is the bigger gain, but it needs its `[[` proof recorded first, so it stays for the user to pick.
+
+Done on 29/10/2026 in one commit (card 1). A clean build of the App target went from 7 warnings to none, and all 325 tests in 60 suites pass. `ARCHITECTURE.md` gained the import rule. Cards 2 to 5 are left for the user to pick.
