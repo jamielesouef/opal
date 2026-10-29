@@ -5,28 +5,51 @@
 //  Created by Jamie Le Souef on 27/10/2026.
 //
 
+import Foundation
 import OpalCore
 
 @MainActor
 enum VaultActions {
     // MARK: - Vault
 
-    static func openVault(vault: VaultService, notes: NoteService) async {
+    static func openVault(graph: ServiceGraph, windowID: UUID?, windows: WindowRegistry, openWindow: (UUID) -> Void) async {
         guard let url = VaultPanels.chooseVaultFolder() else {
             return
         }
 
-        await notes.close()
-        await vault.open(folderURL: url)
+        await open(WaitingVault(folderURL: url, isNew: false), graph: graph, windowID: windowID, windows: windows, openWindow: openWindow)
     }
 
-    static func createVault(vault: VaultService, notes: NoteService) async {
+    static func createVault(graph: ServiceGraph, windowID: UUID?, windows: WindowRegistry, openWindow: (UUID) -> Void) async {
         guard let url = VaultPanels.chooseNewVaultFolder() else {
             return
         }
 
-        await notes.close()
-        await vault.create(folderURL: url)
+        await open(WaitingVault(folderURL: url, isNew: true), graph: graph, windowID: windowID, windows: windows, openWindow: openWindow)
+    }
+
+    static func open(_ waiting: WaitingVault, in graph: ServiceGraph) async {
+        await graph.notes.close()
+        if waiting.isNew {
+            await graph.vault.create(folderURL: waiting.folderURL)
+        } else {
+            await graph.vault.open(folderURL: waiting.folderURL)
+        }
+    }
+
+    private static func open(_ waiting: WaitingVault, graph: ServiceGraph, windowID: UUID?, windows: WindowRegistry, openWindow: (UUID) -> Void) async {
+        guard let windowID else {
+            return
+        }
+
+        switch windows.decide(opening: waiting.folderURL, from: windowID) {
+        case let .bringToFront(other):
+            openWindow(other)
+        case .openHere:
+            await open(waiting, in: graph)
+        case .openInNewWindow:
+            openWindow(windows.newWindow(opening: waiting))
+        }
     }
 
     static func reloadVault(vault: VaultService, notes: NoteService) async {

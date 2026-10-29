@@ -220,20 +220,10 @@ struct NoteScreen: View {
     #Preview {
         let graph = PreviewGraph.makeGraph(openingGarden: true)
         NoteScreen(pane: 0)
-            .environment(\.vaultService, graph.services.vault)
-            .environment(\.noteService, graph.services.notes)
-            .environment(\.linkService, graph.services.links)
-            .environment(\.indexService, graph.services.index)
-            .environment(\.searchService, graph.services.search)
-            .environment(\.mentionService, graph.services.mentions)
-            .environment(\.dailyNoteService, graph.services.dailyNotes)
-            .environment(\.templateService, graph.services.templates)
-            .environment(\.renameService, graph.services.renames)
-            .environment(\.navigationService, graph.services.navigation)
-            .environment(\.quickSwitcherService, graph.services.switcher)
+            .serviceGraph(graph)
             .task {
-                await graph.services.vault.start()
-                await graph.services.navigation.open(NotePath("Welcome.md"))
+                await graph.vault.start()
+                await graph.navigation.open(NotePath("Welcome.md"))
             }
             .frame(width: 600, height: 400)
     }

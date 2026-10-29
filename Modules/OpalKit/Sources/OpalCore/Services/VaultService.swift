@@ -114,6 +114,14 @@ public final class VaultService: SingleFlightRefreshing {
         await openVault(at: folderURL, remember: true)
     }
 
+    public func close() {
+        closeCurrentVault()
+    }
+
+    public var rootURL: URL? {
+        vault?.rootURL
+    }
+
     public func create(folderURL: URL) async {
         do {
             try access.createVaultFolder(at: folderURL)

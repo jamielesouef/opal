@@ -19,6 +19,9 @@ struct CommandPaletteView: View {
 
     // MARK: - Environment
 
+    @Environment(\.serviceGraph) private var graph
+    @Environment(\.windowID) private var windowID
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.vaultService) private var vault
     @Environment(\.openSettings) private var openSettings
     @Environment(\.noteService) private var notes
@@ -105,15 +108,12 @@ struct CommandPaletteView: View {
 
     private var runner: AppCommandRunner {
         AppCommandRunner(
-            vault: vault,
-            notes: notes,
-            navigation: navigation,
-            switcher: switcher,
-            search: search,
-            dailyNotes: dailyNotes,
-            templates: templates,
+            graph: graph,
+            windowID: windowID,
+            windows: AppDependencies.shared.windows,
             toggleLiveMarkdown: { isLiveMarkdown.toggle() },
-            openSettings: { openSettings() }
+            openSettings: { openSettings() },
+            openWindow: { openWindow(value: $0) }
         )
     }
 

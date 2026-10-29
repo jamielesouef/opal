@@ -9,58 +9,59 @@ import OpalCore
 import SwiftUI
 
 private let defaultVaultService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.vault
+    AppDependencies.shared.placeholder.vault
 }
 
 private let defaultNoteService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.notes
+    AppDependencies.shared.placeholder.notes
 }
 
 private let defaultLinkService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.links
+    AppDependencies.shared.placeholder.links
 }
 
 private let defaultNavigationService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.navigation
+    AppDependencies.shared.placeholder.navigation
 }
 
 private let defaultQuickSwitcherService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.switcher
+    AppDependencies.shared.placeholder.switcher
 }
 
 private let defaultIndexService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.index
+    AppDependencies.shared.placeholder.index
 }
 
 private let defaultSearchService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.search
+    AppDependencies.shared.placeholder.search
 }
 
 private let defaultMentionService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.mentions
+    AppDependencies.shared.placeholder.mentions
 }
 
 private let defaultDailyNoteService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.dailyNotes
+    AppDependencies.shared.placeholder.dailyNotes
 }
 
 private let defaultTemplateService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.templates
+    AppDependencies.shared.placeholder.templates
 }
 
 private let defaultRenameService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.renames
+    AppDependencies.shared.placeholder.renames
 }
 
 private let defaultSettingsService = MainActor.assumeIsolated {
-    AppDependencies.shared.services.settings
+    AppDependencies.shared.settings
 }
 
 private let defaultServiceGraph = MainActor.assumeIsolated {
-    AppDependencies.shared.services
+    AppDependencies.shared.placeholder
 }
 
 extension EnvironmentValues {
+    @Entry var windowID: UUID?
     @Entry var serviceGraph: ServiceGraph = defaultServiceGraph
     @Entry var vaultService: VaultService = defaultVaultService
     @Entry var noteService: NoteService = defaultNoteService

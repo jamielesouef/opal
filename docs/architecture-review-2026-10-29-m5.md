@@ -77,3 +77,11 @@ Why not now: two more parameters wouldn't hurt, and no story in line adds Editor
 Card 1, `ServiceGraph` in OpalCore, done in three commits. It is the change that makes M5-12 easy, and it closes the open 28/10 card.
 
 Done on 29/10/2026 in three commits. After each step all 274 tests pass and the Debug build succeeds. The split snapshot shows the same content. A launch with an empty Index folder built the Index, and the Backlinks and unlinked mentions came from the synced Link map. The tests that build `DailyNoteService` (with its own clock) and `SettingsService` (with its own store) still build them by hand on purpose.
+
+## Addendum: end of Milestone 5 (after M5-12)
+
+- Card 2, "Every view falls back to the shared graph", was done in M5-12. Each window injects its own graph, and the menus read the key window's graph through a focused scene value. The environment defaults now fall back to an empty placeholder graph, never to another window's graph. Outside previews, `AppDependencies.shared` gives only app-wide values: the window registry, settings, launch values and defaults.
+- Card 3, `MarkdownTextView`'s parameters, stays Worth exploring.
+- New finding: a snapshot run's `NSApp.terminate` waits in `_shouldTerminate`, because `applicationShouldTerminate` replies from a main-actor `Task` while the snapshot's own main-actor task is still on the stack. Snapshots are written before this, so the acceptance script kills the app after it writes the PNG. A real ⌘Q does not run inside a main-actor task, so it should not be affected, but that has not been checked by hand. Speculative: reply synchronously when nothing needs saving.
+- Baseline at the end of M5: 280 tests in 54 suites pass, and the Debug build succeeds.
+

@@ -18,22 +18,19 @@ struct OpalApp: App {
     // MARK: - Scene
 
     var body: some Scene {
-        Window(String(localized: "Opal"), id: "main") {
-            RootScreen()
+        WindowGroup(for: UUID.self) { $id in
+            WindowScreen(id: id ?? AppDependencies.shared.windows.firstWindowID)
                 .frame(minWidth: EditorMetrics.windowMinWidth, minHeight: EditorMetrics.windowMinHeight)
                 .defaultAppStorage(AppDependencies.shared.defaults)
-                .environment(\.launchRequest, AppDependencies.shared.launchRequest)
+        } defaultValue: {
+            AppDependencies.shared.windows.defaultWindowID()
         }
         .defaultSize(width: EditorMetrics.windowDefaultWidth, height: EditorMetrics.windowDefaultHeight)
+        .restorationBehavior(.disabled)
         .commands {
             OpalCommands(
-                vault: AppDependencies.shared.services.vault,
-                notes: AppDependencies.shared.services.notes,
-                navigation: AppDependencies.shared.services.navigation,
-                switcher: AppDependencies.shared.services.switcher,
-                search: AppDependencies.shared.services.search,
-                dailyNotes: AppDependencies.shared.services.dailyNotes,
-                templates: AppDependencies.shared.services.templates,
+                windows: AppDependencies.shared.windows,
+                placeholder: AppDependencies.shared.placeholder,
                 defaults: AppDependencies.shared.defaults
             )
         }

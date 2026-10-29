@@ -9,19 +9,17 @@ import OpalCore
 import SwiftUI
 
 struct OpalCommands: Commands {
-    // MARK: - Dependencies
-
-    let vault: VaultService
-    let notes: NoteService
-    let navigation: NavigationService
-    let switcher: QuickSwitcherService
-    let search: SearchService
-    let dailyNotes: DailyNoteService
-    let templates: TemplateService
-
     // MARK: - Environment
 
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
+    @FocusedValue(\.serviceGraph) private var focusedGraph
+    @FocusedValue(\.windowID) private var windowID
+
+    // MARK: - Dependencies
+
+    let windows: WindowRegistry
+    let placeholder: ServiceGraph
 
     // MARK: - Preferences
 
@@ -29,30 +27,26 @@ struct OpalCommands: Commands {
 
     // MARK: - Init
 
-    init(vault: VaultService, notes: NoteService, navigation: NavigationService, switcher: QuickSwitcherService, search: SearchService, dailyNotes: DailyNoteService, templates: TemplateService, defaults: UserDefaults) {
-        self.vault = vault
-        self.notes = notes
-        self.navigation = navigation
-        self.switcher = switcher
-        self.search = search
-        self.dailyNotes = dailyNotes
-        self.templates = templates
+    init(windows: WindowRegistry, placeholder: ServiceGraph, defaults: UserDefaults) {
+        self.windows = windows
+        self.placeholder = placeholder
         _isLiveMarkdown = AppStorage(wrappedValue: true, EditorPreferences.liveMarkdownKey, store: defaults)
     }
 
     // MARK: - Runner
 
+    private var navigation: NavigationService {
+        (focusedGraph ?? placeholder).navigation
+    }
+
     private var runner: AppCommandRunner {
         AppCommandRunner(
-            vault: vault,
-            notes: notes,
-            navigation: navigation,
-            switcher: switcher,
-            search: search,
-            dailyNotes: dailyNotes,
-            templates: templates,
+            graph: focusedGraph ?? placeholder,
+            windowID: focusedGraph == nil ? nil : windowID,
+            windows: windows,
             toggleLiveMarkdown: { isLiveMarkdown.toggle() },
-            openSettings: { openSettings() }
+            openSettings: { openSettings() },
+            openWindow: { openWindow(value: $0) }
         )
     }
 
@@ -64,6 +58,8 @@ struct OpalCommands: Commands {
         }
 
         CommandGroup(replacing: .newItem) {
+            runner.button(.newWindow)
+            Divider()
             runner.button(.newNote)
             runner.button(.newTab)
             runner.button(.duplicateNote)
@@ -83,6 +79,7 @@ struct OpalCommands: Commands {
                 navigation.isCommandPaletteShown = true
             }
             .keyboardShortcut("p", modifiers: [.command, .shift])
+            .disabled(focusedGraph == nil)
 
             Divider()
 

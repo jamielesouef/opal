@@ -21,6 +21,9 @@ struct RootScreen: View {
     @Environment(\.dailyNoteService) private var dailyNotes
     @Environment(\.templateService) private var templates
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.serviceGraph) private var graph
+    @Environment(\.windowID) private var windowID
 
     // MARK: - Preferences
 
@@ -38,6 +41,9 @@ struct RootScreen: View {
             }
             .task {
                 await vault.start()
+                if let windowID, let waiting = AppDependencies.shared.windows.takeWaitingVault(for: windowID) {
+                    await VaultActions.open(waiting, in: graph)
+                }
                 if vault.isOpen {
                     await navigation.restoreTabs()
                 }
@@ -50,6 +56,9 @@ struct RootScreen: View {
                 if let split = launch.splitNote, vault.isOpen {
                     await navigation.splitRight()
                     await navigation.open(split)
+                }
+                if launch.opensNewWindow {
+                    openWindow(value: AppDependencies.shared.windows.newWindow())
                 }
                 if let tab = launch.settingsTab.flatMap(SettingsTab.init(rawValue:)) {
                     settingsTab = tab
@@ -87,9 +96,9 @@ struct RootScreen: View {
         switch vault.loadState {
         case let .closed(reason):
             WelcomeView(message: reason?.message) {
-                Task { await VaultActions.openVault(vault: vault, notes: notes) }
+                Task { await VaultActions.openVault(graph: graph, windowID: windowID, windows: AppDependencies.shared.windows, openWindow: { openWindow(value: $0) }) }
             } onCreate: {
-                Task { await VaultActions.createVault(vault: vault, notes: notes) }
+                Task { await VaultActions.createVault(graph: graph, windowID: windowID, windows: AppDependencies.shared.windows, openWindow: { openWindow(value: $0) }) }
             }
         case .opening:
             ProgressView(String(localized: "Opening Vault…"))
@@ -104,32 +113,12 @@ struct RootScreen: View {
     #Preview("No Vault") {
         let graph = PreviewGraph.makeGraph(openingGarden: false)
         RootScreen()
-            .environment(\.vaultService, graph.services.vault)
-            .environment(\.noteService, graph.services.notes)
-            .environment(\.linkService, graph.services.links)
-            .environment(\.indexService, graph.services.index)
-            .environment(\.searchService, graph.services.search)
-            .environment(\.mentionService, graph.services.mentions)
-            .environment(\.dailyNoteService, graph.services.dailyNotes)
-            .environment(\.templateService, graph.services.templates)
-            .environment(\.renameService, graph.services.renames)
-            .environment(\.navigationService, graph.services.navigation)
-            .environment(\.quickSwitcherService, graph.services.switcher)
+            .serviceGraph(graph)
     }
 
     #Preview("Garden Vault") {
         let graph = PreviewGraph.makeGraph(openingGarden: true)
         RootScreen()
-            .environment(\.vaultService, graph.services.vault)
-            .environment(\.noteService, graph.services.notes)
-            .environment(\.linkService, graph.services.links)
-            .environment(\.indexService, graph.services.index)
-            .environment(\.searchService, graph.services.search)
-            .environment(\.mentionService, graph.services.mentions)
-            .environment(\.dailyNoteService, graph.services.dailyNotes)
-            .environment(\.templateService, graph.services.templates)
-            .environment(\.renameService, graph.services.renames)
-            .environment(\.navigationService, graph.services.navigation)
-            .environment(\.quickSwitcherService, graph.services.switcher)
+            .serviceGraph(graph)
     }
 #endif

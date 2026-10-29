@@ -9,6 +9,7 @@ import SwiftUI
 
 enum AppCommand: String, CaseIterable, Identifiable {
     case settings
+    case newWindow
     case newNote
     case duplicateNote
     case newFolder
@@ -43,6 +44,8 @@ enum AppCommand: String, CaseIterable, Identifiable {
         switch self {
         case .settings:
             String(localized: "Settings…")
+        case .newWindow:
+            String(localized: "New Window")
         case .newNote:
             String(localized: "New Note")
         case .duplicateNote:
@@ -92,7 +95,7 @@ enum AppCommand: String, CaseIterable, Identifiable {
         switch self {
         case .settings:
             String(localized: "Opal")
-        case .newNote, .duplicateNote, .newFolder, .openVault, .createVault, .save, .reloadVault, .newTab, .closeTab:
+        case .newWindow, .newNote, .duplicateNote, .newFolder, .openVault, .createVault, .save, .reloadVault, .newTab, .closeTab:
             String(localized: "File")
         case .insertTemplate:
             String(localized: "Edit")
@@ -110,6 +113,8 @@ enum AppCommand: String, CaseIterable, Identifiable {
         case .newNote:
             KeyboardShortcut("n")
         case .newFolder:
+            KeyboardShortcut("n", modifiers: [.command, .option])
+        case .newWindow:
             KeyboardShortcut("n", modifiers: [.command, .shift])
         case .openVault:
             KeyboardShortcut("o", modifiers: [.command, .shift])

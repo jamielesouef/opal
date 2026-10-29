@@ -30,8 +30,9 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        AppDependencies.shared.windows.isQuitting = true
         Task {
-            await AppDependencies.shared.services.notes.flush()
+            await AppDependencies.shared.windows.flushAll()
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
@@ -39,7 +40,7 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillResignActive(_ notification: Notification) {
         Task {
-            await AppDependencies.shared.services.notes.flush()
+            await AppDependencies.shared.windows.flushAll()
         }
     }
 
@@ -68,7 +69,7 @@ final class OpalAppDelegate: NSObject, NSApplicationDelegate {
             Task {
                 try? await Task.sleep(for: Constants.snapshotDelay)
                 let settingsTitle = AppDependencies.shared.launchRequest.settingsTab.flatMap(SettingsTab.init(rawValue:))?.title
-                let visible = NSApp.windows.filter { $0.isVisible && $0.sheetParent == nil }
+                let visible = NSApp.orderedWindows.filter { $0.isVisible && $0.sheetParent == nil }
                 let window = visible.first { $0.title == settingsTitle } ?? visible.first
                 write(window?.contentView, to: url)
                 if let sheet = window?.attachedSheet {

@@ -12,21 +12,30 @@ import SwiftUI
 struct AppCommandRunner {
     // MARK: - Dependencies
 
-    let vault: VaultService
-    let notes: NoteService
-    let navigation: NavigationService
-    let switcher: QuickSwitcherService
-    let search: SearchService
-    let dailyNotes: DailyNoteService
-    let templates: TemplateService
+    let graph: ServiceGraph
+    let windowID: UUID?
+    let windows: WindowRegistry
     let toggleLiveMarkdown: () -> Void
     let openSettings: () -> Void
+    let openWindow: (UUID) -> Void
+
+    private var vault: VaultService { graph.vault }
+    private var notes: NoteService { graph.notes }
+    private var navigation: NavigationService { graph.navigation }
+    private var switcher: QuickSwitcherService { graph.switcher }
+    private var search: SearchService { graph.search }
+    private var dailyNotes: DailyNoteService { graph.dailyNotes }
+    private var templates: TemplateService { graph.templates }
 
     // MARK: - State
 
     func isEnabled(_ command: AppCommand) -> Bool {
-        switch command {
-        case .settings, .openVault, .createVault, .toggleInspector, .toggleLiveMarkdown:
+        guard windowID != nil || command == .settings || command == .newWindow else {
+            return false
+        }
+
+        return switch command {
+        case .settings, .newWindow, .openVault, .createVault, .toggleInspector, .toggleLiveMarkdown:
             true
         case .newNote, .newFolder, .reloadVault, .quickSwitcher, .dailyNote, .searchVault, .back, .forward, .newTab, .closeTab, .nextTab, .previousTab:
             vault.isOpen
@@ -47,6 +56,8 @@ struct AppCommandRunner {
         switch command {
         case .settings:
             openSettings()
+        case .newWindow:
+            openWindow(windows.newWindow())
         case .newNote:
             Task { await VaultActions.createNote(vault: vault, navigation: navigation) }
         case .duplicateNote:
@@ -56,9 +67,9 @@ struct AppCommandRunner {
         case .newFolder:
             Task { await VaultActions.createFolder(vault: vault, notes: notes) }
         case .openVault:
-            Task { await VaultActions.openVault(vault: vault, notes: notes) }
+            Task { await VaultActions.openVault(graph: graph, windowID: windowID, windows: windows, openWindow: openWindow) }
         case .createVault:
-            Task { await VaultActions.createVault(vault: vault, notes: notes) }
+            Task { await VaultActions.createVault(graph: graph, windowID: windowID, windows: windows, openWindow: openWindow) }
         case .save:
             Task { await notes.flush() }
         case .reloadVault:

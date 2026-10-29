@@ -81,3 +81,10 @@ Bugs found while building, with the rule each one taught.
 - Cause: `@Observable` compares an `Equatable` property's old and new value before notifying observers. Every save reloaded about 5,000 mentions, and `MentionService.mentions.setter` compared both arrays string by string (1.4 s). SwiftUI then compared view inputs again. Separately, every save changed `index.revision`, which `VaultScreen` observed, so the sidebar List re-diffed the whole Folder tree.
 - Fix: `MentionService` keeps the mentions out of observation and publishes a `mentionsRevision`. `UnlinkedMention` equality and hashing use the source, span and line, never the line's text. The index and Vault-change observers moved into `VaultSync`, and the index status and Folder tree into their own views, so a save no longer rebuilds `VaultScreen`.
 - Rule: an observed property that holds a large collection is published through a revision counter, not compared value by value. Value types that reach SwiftUI compare by identity fields, not by long strings.
+
+## 29/10/2026: split view crashed at the default window size
+- Symptom: with two panes in a 1,100-point window, both on Notes with Properties, the app threw "needing another Update Constraints in Window pass" and quit. At 1,626 points it worked, so M5-10's snapshots (taken in a wider window) missed it. M5-12 caught it: new windows open at the default size.
+- Cause: the panes sat in an `HStack` without flexible frames, so each pane's width followed its content's ideal width. The Properties form and the Editor's scroll view kept renegotiating the split.
+- Fix: each pane gets `.frame(minWidth: 0, maxWidth: .infinity)`, so the panes share the width evenly whatever they hold.
+- Rule: views placed side by side in an `HStack` get explicit flexible frames. Snapshot new layouts at the default window size, not only at a remembered one.
+

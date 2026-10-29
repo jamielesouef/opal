@@ -191,6 +191,7 @@ struct VaultScreen: View {
 
     private func editorPane(_ pane: Int) -> some View {
         NoteScreen(pane: pane)
+            .frame(minWidth: 0, maxWidth: .infinity)
             .safeAreaInset(edge: .top, spacing: 0) {
                 if navigation.panes.isSplit || notes.path != nil || navigation.tabs.tabs.count > 1 {
                     VStack(spacing: 0) {
@@ -206,17 +207,7 @@ struct VaultScreen: View {
     #Preview {
         let graph = PreviewGraph.makeGraph(openingGarden: true)
         VaultScreen(vault: Vault(rootURL: PreviewGraph.gardenRoot))
-            .environment(\.vaultService, graph.services.vault)
-            .environment(\.noteService, graph.services.notes)
-            .environment(\.linkService, graph.services.links)
-            .environment(\.indexService, graph.services.index)
-            .environment(\.searchService, graph.services.search)
-            .environment(\.mentionService, graph.services.mentions)
-            .environment(\.dailyNoteService, graph.services.dailyNotes)
-            .environment(\.templateService, graph.services.templates)
-            .environment(\.renameService, graph.services.renames)
-            .environment(\.navigationService, graph.services.navigation)
-            .environment(\.quickSwitcherService, graph.services.switcher)
-            .task { await graph.services.vault.start() }
+            .serviceGraph(graph)
+            .task { await graph.vault.start() }
     }
 #endif

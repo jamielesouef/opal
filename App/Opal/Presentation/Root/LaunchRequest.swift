@@ -25,4 +25,5 @@ struct LaunchRequest {
     var extraTabs: [NotePath] = []
     var splitNote: NotePath?
     var settingsTab: String?
+    var opensNewWindow = false
 }

@@ -14,7 +14,7 @@ Each story has acceptance criteria. A story is done when its criteria pass in te
 | **M2 — Links** (built 27/10/2026) | Follow Links, see Backlinks, find Notes by name | M2-01 … M2-10 |
 | **M3 — Find** (built 27/10/2026) | The Index, full-text Search, Tags, unlinked mentions | M3-01 … M3-06 |
 | **M4 — Rich Editor** (built 28/10/2026) | Live Markdown, Reading view, Properties, Embeds | M4-01 … M4-06 |
-| M5 — Daily work (stories expanded 28/10/2026) | Daily Notes, Templates, rename and move with Link updates, delete, Command Palette, tabs and split view, Settings, windows | M5-01 … M5-12 |
+| **M5 — Daily work** (built 29/10/2026) | Daily Notes, Templates, rename and move with Link updates, delete, Command Palette, tabs and split view, Settings, windows | M5-01 … M5-12 |
 
 Out of scope for v1: Graph, Canvas, plugins, sync, publishing, iOS and iPadOS, collaboration.
 
@@ -510,7 +510,7 @@ Acceptance:
 - [unit] Each window has its own Vault, Index, Link map, tabs and history; two windows on two Vaults do not share state. The same Vault can't be open in two windows at once (the second brings the first to the front).
 - [snap] File › New Window (⇧⌘N moves to New Folder… ⌥⌘N) opens the Vault picker; Open Vault… in a window with a Vault opens a new window.
 - [unit] Windows and their Vaults are restored at launch.
-Status: todo
+Status: done (29/10/2026; ADR 0008, `WindowRegistryTests`, `SettingsServiceTests.reachesEveryVault`, `opal-m5-12-new-window.png`, `opal-m5-12-split-default-size.png`). Each window has its own `ServiceGraph`. Open Vault… and Create Vault… open in this window when it has no Vault, bring forward the window that already shows the Vault, and otherwise open a new window. Settings are shared by every window, and the Settings window shows the Obsidian settings of the window that was active last. Opal restores the open windows and their Vaults itself, but not window frames. Acceptance runs with `-OpalVaultPath` open one window and restore nothing. Opening, closing and quitting with several windows are [manual].
 
 ## Later
 

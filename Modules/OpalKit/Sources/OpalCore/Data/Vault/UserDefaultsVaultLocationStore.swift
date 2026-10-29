@@ -17,20 +17,30 @@ public final class UserDefaultsVaultLocationStore: VaultLocationStoring, @unchec
     // MARK: - Private
 
     private let defaults: UserDefaults
+    private let key: String
+    private let fallbackKey: String?
 
     // MARK: - Init
 
     public init(defaults: UserDefaults) {
         self.defaults = defaults
+        key = Constants.lastVaultBookmarkKey
+        fallbackKey = nil
+    }
+
+    public init(defaults: UserDefaults, windowID: UUID, fallsBackToLastVault: Bool) {
+        self.defaults = defaults
+        key = Constants.lastVaultBookmarkKey + "." + windowID.uuidString
+        fallbackKey = fallsBackToLastVault ? Constants.lastVaultBookmarkKey : nil
     }
 
     // MARK: - VaultLocationStoring
 
     public func lastVaultBookmark() -> Data? {
-        defaults.data(forKey: Constants.lastVaultBookmarkKey)
+        defaults.data(forKey: key) ?? fallbackKey.flatMap(defaults.data(forKey:))
     }
 
     public func setLastVaultBookmark(_ bookmark: Data?) {
-        defaults.set(bookmark, forKey: Constants.lastVaultBookmarkKey)
+        defaults.set(bookmark, forKey: key)
     }
 }

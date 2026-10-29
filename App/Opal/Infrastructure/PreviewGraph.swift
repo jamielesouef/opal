@@ -25,17 +25,23 @@
 
         // MARK: - Graph
 
-        static func makeGraph(openingGarden: Bool) -> AppGraph {
+        static func makeGraph(openingGarden: Bool) -> ServiceGraph {
             let store = MockVaultFileStore(rootURL: gardenRoot, files: gardenFiles, folders: ["Areas", "Attachments"])
             let vaultService = VaultService(
                 access: MockVaultAccess(),
                 locations: MockVaultLocationStore(),
                 launchVaultURL: openingGarden ? gardenRoot : nil
             ) { _ in store }
-            return AppGraph(
-                vaultService: vaultService,
-                indexBaseURL: FileManager().temporaryDirectory.appending(component: "OpalPreviewIndexes"),
-                defaults: UserDefaults(suiteName: previewDefaultsSuite) ?? .standard
+            let defaults = UserDefaults(suiteName: previewDefaultsSuite) ?? .standard
+            let indexBaseURL = FileManager().temporaryDirectory.appending(component: "OpalPreviewIndexes")
+            return ServiceGraph(
+                vault: vaultService,
+                makeIndex: { root throws(IndexError) in
+                    try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
+                },
+                recents: UserDefaultsRecentNotesStore(defaults: defaults),
+                settings: SettingsService(store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock()),
+                clock: SystemClock()
             )
         }
     }

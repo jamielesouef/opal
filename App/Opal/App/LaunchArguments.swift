@@ -32,6 +32,7 @@ struct LaunchArguments {
         static let tabs = "-OpalTabs"
         static let split = "-OpalSplit"
         static let settings = "-OpalSettings"
+        static let newWindow = "-OpalNewWindow"
     }
 
     // MARK: - Stored
@@ -56,6 +57,7 @@ struct LaunchArguments {
     let extraTabs: [NotePath]
     let splitNote: NotePath?
     let settingsTab: String?
+    let opensNewWindow: Bool
 
     // MARK: - Derived
 
@@ -65,7 +67,7 @@ struct LaunchArguments {
         #else
             let typed: String? = nil
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, settingsTab: settingsTab)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, settingsTab: settingsTab, opensNewWindow: opensNewWindow)
     }
 
     var appearanceName: NSAppearance.Name? {
@@ -98,6 +100,7 @@ struct LaunchArguments {
         deleting = Self.value(after: Constants.delete, in: arguments).map(NotePath.init)
         showsCommandPalette = arguments.contains(Constants.palette)
         extraTabs = (Self.value(after: Constants.tabs, in: arguments) ?? "").split(separator: ",").map { NotePath(String($0)) }
+        opensNewWindow = arguments.contains(Constants.newWindow)
         settingsTab = Self.value(after: Constants.settings, in: arguments)
         splitNote = Self.value(after: Constants.split, in: arguments).map(NotePath.init)
         snapshotURL = Self.value(after: Constants.snapshot, in: arguments).map { URL(filePath: $0) }

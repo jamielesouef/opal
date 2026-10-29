@@ -10,13 +10,16 @@ import OpalCore
 
 @MainActor
 struct AppGraph {
-    // MARK: - Services
+    // MARK: - App-wide
 
-    let services: ServiceGraph
+    let windows: WindowRegistry
+    let settings: SettingsService
+    let placeholder: ServiceGraph
 
     // MARK: - Launch
 
     let launchRequest: LaunchRequest
+    let launchVaultURL: URL?
     let launchAppearance: NSAppearance.Name?
     let launchSnapshotURL: URL?
     let defaults: UserDefaults
@@ -24,23 +27,35 @@ struct AppGraph {
     // MARK: - Init
 
     init(
-        vaultService: VaultService,
+        makeVault: @escaping @MainActor (_ windowID: UUID, _ isFirst: Bool) -> VaultService,
         indexBaseURL: URL,
         defaults: UserDefaults,
         launchRequest: LaunchRequest = LaunchRequest(),
+        launchVaultURL: URL? = nil,
         launchAppearance: NSAppearance.Name? = nil,
         launchSnapshotURL: URL? = nil
     ) {
-        services = ServiceGraph(
-            vault: vaultService,
-            makeIndex: { root throws(IndexError) in
-                try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
-            },
-            recents: UserDefaultsRecentNotesStore(defaults: defaults),
-            settings: SettingsService(store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock()),
-            clock: SystemClock()
-        )
+        let settings = SettingsService(store: UserDefaultsSettingsStore(defaults: defaults), clock: SystemClock())
+        let recents = UserDefaultsRecentNotesStore(defaults: defaults)
+        let makeGraph: @MainActor (VaultService) -> ServiceGraph = { vault in
+            ServiceGraph(
+                vault: vault,
+                makeIndex: { root throws(IndexError) in
+                    try GRDBIndexStore(folderURL: IndexLocation.folder(forVaultAt: root, in: indexBaseURL))
+                },
+                recents: recents,
+                settings: settings,
+                clock: SystemClock()
+            )
+        }
+        self.settings = settings
+        windows = WindowRegistry(store: UserDefaultsWindowListStore(defaults: defaults)) { id, isFirst in
+            makeGraph(makeVault(id, isFirst))
+        }
+        placeholder = makeGraph(makeVault(UUID(), false))
+        settings.detach(placeholder.vault)
         self.launchRequest = launchRequest
+        self.launchVaultURL = launchVaultURL
         self.launchAppearance = launchAppearance
         self.launchSnapshotURL = launchSnapshotURL
         self.defaults = defaults
