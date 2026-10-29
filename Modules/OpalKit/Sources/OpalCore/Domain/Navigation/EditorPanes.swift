@@ -9,11 +9,13 @@ public struct EditorPanes: Hashable, Sendable {
     // MARK: - Constants
 
     public static let maxCount = 2
+    public static let evenShare = 0.5
 
     // MARK: - Stored
 
     public private(set) var panes: [TabList]
     public private(set) var focusedIndex = 0
+    public private(set) var splitShare = evenShare
 
     // MARK: - Init
 
@@ -40,6 +42,29 @@ public struct EditorPanes: Hashable, Sendable {
         Set(panes.indices.filter { $0 != focusedIndex }.compactMap { panes[$0].selected.path })
     }
 
+    // MARK: - Split
+
+    public static func clampedShare(_ share: Double, availableWidth: Double, minPaneWidth: Double) -> Double {
+        guard availableWidth >= minPaneWidth * 2 else {
+            return evenShare
+        }
+
+        let margin = minPaneWidth / availableWidth
+        return min(max(share, margin), 1 - margin)
+    }
+
+    public func firstPaneWidth(availableWidth: Double, minPaneWidth: Double) -> Double {
+        availableWidth * Self.clampedShare(splitShare, availableWidth: availableWidth, minPaneWidth: minPaneWidth)
+    }
+
+    public mutating func setSplitShare(_ share: Double) {
+        splitShare = min(max(share, 0), 1)
+    }
+
+    public mutating func resetSplitShare() {
+        splitShare = Self.evenShare
+    }
+
     // MARK: - Panes
 
     public mutating func splitRight() {
@@ -47,6 +72,7 @@ public struct EditorPanes: Hashable, Sendable {
             return
         }
 
+        resetSplitShare()
         panes.insert(TabList(paths: focused.selected.path.map { [$0] } ?? []), at: focusedIndex + 1)
         focusedIndex += 1
     }
@@ -68,6 +94,7 @@ public struct EditorPanes: Hashable, Sendable {
         }
 
         panes.remove(at: index)
+        resetSplitShare()
         focusedIndex = min(focusedIndex > index ? focusedIndex - 1 : focusedIndex, panes.count - 1)
     }
 

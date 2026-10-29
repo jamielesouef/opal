@@ -31,6 +31,8 @@ struct LaunchArguments {
         static let palette = "-OpalCommandPalette"
         static let tabs = "-OpalTabs"
         static let split = "-OpalSplit"
+        static let splitShare = "-OpalSplitShare"
+        static let hideInspector = "-OpalHideInspector"
         static let settings = "-OpalSettings"
         static let newWindow = "-OpalNewWindow"
     }
@@ -56,6 +58,8 @@ struct LaunchArguments {
     let showsCommandPalette: Bool
     let extraTabs: [NotePath]
     let splitNote: NotePath?
+    let splitShare: Double?
+    let hidesInspector: Bool
     let settingsTab: String?
     let opensNewWindow: Bool
 
@@ -67,7 +71,7 @@ struct LaunchArguments {
         #else
             let typed: String? = nil
         #endif
-        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, settingsTab: settingsTab, opensNewWindow: opensNewWindow)
+        return LaunchRequest(note: openNote, quickOpen: quickOpen, search: search, sidebarPane: sidebarPane, typeText: typed, isReadingView: isReadingView, opensDailyNote: opensDailyNote, showsTemplates: showsTemplates, renaming: renaming, moving: moving, deleting: deleting, showsCommandPalette: showsCommandPalette, extraTabs: extraTabs, splitNote: splitNote, splitShare: splitShare, hidesInspector: hidesInspector, settingsTab: settingsTab, opensNewWindow: opensNewWindow)
     }
 
     var appearanceName: NSAppearance.Name? {
@@ -103,6 +107,8 @@ struct LaunchArguments {
         opensNewWindow = arguments.contains(Constants.newWindow)
         settingsTab = Self.value(after: Constants.settings, in: arguments)
         splitNote = Self.value(after: Constants.split, in: arguments).map(NotePath.init)
+        splitShare = Self.value(after: Constants.splitShare, in: arguments).flatMap(Double.init)
+        hidesInspector = arguments.contains(Constants.hideInspector)
         snapshotURL = Self.value(after: Constants.snapshot, in: arguments).map { URL(filePath: $0) }
         indexFolderURL = Self.value(after: Constants.indexFolder, in: arguments).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }

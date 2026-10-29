@@ -119,3 +119,5 @@ Acceptance flags with no value (`-OpalReadingView`, `-OpalDailyNote`, `-OpalTemp
 | `opal-m5-12-split-default-size.png` | Split view at the default window size (1100 × 720), which crashed before the fix in FIXLOG | M5-12 |
 | `opal-m5-11-editor-style.png` | Serif, 18 pt, line spacing 1.4, Narrow line width | M5-11 |
 | `opal-m6-02-<screen>-light.png`, `-dark.png` | The full set after the design-token refactor: note, reading, embeds, props (Properties), search, switcher, palette, templates, split, move, inspector, settings-editor, -files, -daily, -appearance, welcome. Pixel-identical to the build before the refactor | M6-02 |
+| `opal-m6-03-split-default-size.png` | Split view at 1100 points, both panes on Notes with Properties: the crash case, panes held at 280 | M6-03 |
+| `opal-m6-03-split-share.png`, `-split-share-min.png` | Dragged share 0.65, and 0.9 held so the second pane stays at 280 (`-OpalSplitShare`, `-OpalHideInspector`) | M6-03 |

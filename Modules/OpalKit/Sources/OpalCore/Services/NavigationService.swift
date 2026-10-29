@@ -130,6 +130,14 @@ public final class NavigationService {
         await showPanes()
     }
 
+    public func setSplitShare(_ share: Double) {
+        panes.setSplitShare(share)
+    }
+
+    public func resetSplitShare() {
+        panes.resetSplitShare()
+    }
+
     public func focusPane(_ index: Int) async {
         guard index != panes.focusedIndex else {
             return

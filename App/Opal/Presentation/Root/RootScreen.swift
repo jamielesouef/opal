@@ -56,6 +56,9 @@ struct RootScreen: View {
                 if let split = launch.splitNote, vault.isOpen {
                     await navigation.splitRight()
                     await navigation.open(split)
+                    if let share = launch.splitShare {
+                        navigation.setSplitShare(share)
+                    }
                 }
                 if launch.opensNewWindow {
                     openWindow(value: AppDependencies.shared.windows.newWindow())
@@ -76,6 +79,9 @@ struct RootScreen: View {
                 }
                 if launch.isReadingView {
                     navigation.isReadingView = true
+                }
+                if launch.hidesInspector {
+                    navigation.isInspectorShown = false
                 }
                 if let pane = launch.sidebarPane, vault.isOpen {
                     navigation.sidebarPane = pane

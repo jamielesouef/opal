@@ -33,6 +33,9 @@ public enum EditorMetrics {
     public static let inspectorIdealWidth: CGFloat = 280
     public static let inspectorMaxWidth: CGFloat = 420
     public static let paneMinWidth: CGFloat = 280
+    public static let dividerThickness: CGFloat = 1
+    public static let dividerGrabWidth: CGFloat = 9
+    public static let dividerStep = 0.05
     public static let suggestionWidth: CGFloat = 320
     public static let switcherWidth: CGFloat = 560
     public static let switcherHeight: CGFloat = 380
