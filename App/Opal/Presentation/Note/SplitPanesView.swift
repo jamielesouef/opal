@@ -37,7 +37,7 @@ struct SplitPanesView<First: View, Second: View>: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let available = max(proxy.size.width - EditorMetrics.dividerThickness, EditorMetrics.paneMinWidth * 2)
+            let available = max(proxy.size.width - EditorMetrics.dividerThickness, 0)
             HStack(spacing: 0) {
                 first
                     .frame(width: isSplit ? available * shown(available: available) : proxy.size.width)
@@ -47,7 +47,6 @@ struct SplitPanesView<First: View, Second: View>: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .frame(width: isSplit ? available + EditorMetrics.dividerThickness : proxy.size.width, height: proxy.size.height, alignment: .leading)
             .frame(width: proxy.size.width, height: proxy.size.height, alignment: .leading)
             .mask {
                 Rectangle()

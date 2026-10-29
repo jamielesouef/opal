@@ -81,6 +81,19 @@ struct EditorPanesTests {
         #expect(EditorPanes.clampedShare(0.9, availableWidth: 400, minPaneWidth: 280) == 0.5)
     }
 
+    @Test("a column narrower than two minimum panes is shared evenly and fills it exactly")
+    func tightColumnFillsExactly() {
+        var panes = EditorPanes(TabList(paths: [Self.soil]))
+        panes.splitRight()
+        panes.setSplitShare(0.9)
+        for available in [558.0, 400.0, 100.0] {
+            let first = panes.firstPaneWidth(availableWidth: available, minPaneWidth: 280)
+            #expect(first == available / 2)
+            #expect(first + (available - first) == available)
+        }
+        #expect(panes.firstPaneWidth(availableWidth: 0, minPaneWidth: 280) == 0)
+    }
+
     @Test("the first pane's width follows the share and keeps both panes at the minimum after a resize")
     func firstPaneWidth() {
         var panes = EditorPanes(TabList(paths: [Self.soil]))

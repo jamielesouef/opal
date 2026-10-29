@@ -40,6 +40,13 @@ struct DesignTokenTests {
         #expect(EditorMetrics.paneMinWidth * 2 < EditorMetrics.windowDefaultWidth)
     }
 
+    @Test("two panes fit at the minimum, with room to drag, beside the sidebar and Inspector at their ideal widths in the default window")
+    func splitFitsDefaultWindow() {
+        let column = EditorMetrics.windowDefaultWidth - EditorMetrics.sidebarIdealWidth - EditorMetrics.inspectorIdealWidth
+        let room = column - EditorMetrics.dividerThickness - EditorMetrics.paneMinWidth * 2
+        #expect(room >= EditorMetrics.dividerStep * column)
+    }
+
     @Test("headings shrink with their level and clamp outside 1 to 6")
     func headingScale() {
         let scales = (1 ... 6).map { EditorMetrics.headingScale(level: $0) }

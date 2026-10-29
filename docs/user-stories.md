@@ -605,7 +605,7 @@ Depends: M6-03
 Acceptance:
 - [snap] At the default 1,100-point window with the sidebar and Inspector open, two panes fit at 280 points each with room to drag, and nothing is clipped.
 - [unit] When the Notes column is narrower than two minimum panes, the panes still share it without clipping either one.
-Status: todo
+Status: done (29/10/2026; `EditorPanesTests`, `DesignTokenTests`, `opal-m7-01-split-default-size`). The sidebar's ideal width is now 220 points (was 260) and the Inspector's 260 (was 280), so at 1,100 points the Notes column is about 610 points: two panes of 280 plus the divider leave about 49 points to drag. The minimum stays 280. `SplitPanesView` no longer floors the width it shares at two minimum panes (that floor is what clipped the second pane): the panes always fill the column exactly, and a column under 560 points splits evenly with each pane under 280, never clipped. There is still no minimum width on the split container (FIXLOG 29/10). The snapshot shows two Notes with Properties at 1,100 points. AppKit saves the sidebar width in the app's real defaults and ignores `-OpalDefaultsSuite`, so the snapshot was taken with the saved width overridden by launch arguments; a Mac that already saved a 260-point sidebar keeps it until the user drags it. Dragging the divider with the pointer is [manual] and yours to check.
 
 ### M7-02 Fold the YAML again
 As a user who chose Edit as YAML, I want to fold the frontmatter back into the "Properties" line when I am done.

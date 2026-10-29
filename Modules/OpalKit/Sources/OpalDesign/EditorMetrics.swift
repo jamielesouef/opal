@@ -28,9 +28,9 @@ public enum EditorMetrics {
     public static let narrowLineWidth = 600.0
     public static let readableLineWidth = 720.0
     public static let sidebarMinWidth: CGFloat = 200
-    public static let sidebarIdealWidth: CGFloat = 260
+    public static let sidebarIdealWidth: CGFloat = 220
     public static let inspectorMinWidth: CGFloat = 220
-    public static let inspectorIdealWidth: CGFloat = 280
+    public static let inspectorIdealWidth: CGFloat = 260
     public static let inspectorMaxWidth: CGFloat = 420
     public static let paneMinWidth: CGFloat = 280
     public static let dividerThickness: CGFloat = 1
